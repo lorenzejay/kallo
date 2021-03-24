@@ -1,0 +1,23 @@
+[
+  {
+    "projectId": 1,
+    "projectName": "Project 1",
+    "clientName": "Client 1",
+    "clientContact": "client1@example.com",
+    "phoneNumber": "3233233333"
+  },
+  {
+    "projectId": 2,
+    "projectName": "Project 2",
+    "clientName": "Client 2",
+    "clientContact": "client2@example.com",
+    "phoneNumber": "3233233333"
+  },
+  {
+    "projectId": 3,
+    "projectName": "Project 3",
+    "clientName": "Client 3",
+    "clientContact": "client3@example.com",
+    "phoneNumber": "3233233333"
+  }
+]

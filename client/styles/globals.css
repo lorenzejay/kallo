@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;900&display=swap");
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  font-family: Poppins;
+}
+body {
+  background-color: #2f3437;
+}
+.sidebar {
+  background-color: #2f3437;
+}
+
+.card-color {
+  background-color: #3f4447;
+}
+
+.column-color {
+  background-color: #2f3437;
+}
+
+/* kanban board */
+
+/* .react-kanban-column {
+  background-color: #2f3437;
+}
+
+.react-kanban-card {
+  background-color: #3f4447;
+  color: white;
+}
+
+.react-kanban-card__title {
+  font-size: large;
+  text-decoration: underline;
+  font-style: italic;
+}
+
+.react-kanban-card--dragging {
+  opacity: 0.5;
+} */
