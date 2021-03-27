@@ -4,7 +4,7 @@ import projects from "../dummyData/projects.json";
 const Projects = () => {
   return (
     <Layout>
-      <section className="relative ml-72 text-white">
+      <section className="relative text-white">
         <h1 className="text-4xl font-bold uppercase ">Projects</h1>
         <p className="mb-5">Items: {projects.length}</p>
         <div className="flex flex-col lg:grid grid-cols-4 gap-3">
