@@ -50,4 +50,35 @@ router.post("/register", async (req, res) => {
   }
 });
 
+//post route for logining in users
+router.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    //get the user details by checking the username
+    const query = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+    //if there are no users associated with the given username
+
+    if (query.rows.length === 0) {
+      return res.json({ success: false, message: "User Email or Password is incorrect" });
+    } else {
+      const savedHashPassword = query.rows[0].password;
+      await bycrypt.compare(password, savedHashPassword, function (err, isMatch) {
+        if (err) {
+          throw err;
+        } else if (!isMatch) {
+          return res.json({ success: false, message: "User Email or Password is incorrect" });
+        } else {
+          //passwrods match so we should authenticate user
+          const token = jwtGenerator(query.rows[0].user_id);
+
+          return res.json({ success: true, token });
+        }
+      });
+    }
+  } catch (error) {
+    console.log(error.message);
+  }
+});
+
 module.exports = router;
