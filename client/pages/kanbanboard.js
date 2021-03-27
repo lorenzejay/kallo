@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { DragDropContext, Droppable } from "react-beautiful-dnd";
-import Column from "../components/column";
-import { initalData2, dummyColumns } from "../dummyData/initialData";
-import { resetServerContext } from "react-beautiful-dnd";
+import { useEffect, useState } from "react";
+import { DragDropContext, Droppable, resetServerContext } from "react-beautiful-dnd";
+import KanbanColumnArray from "../components/kanbanColArray";
+import { dummyItemsInArrayFormat } from "../dummyData/initialData";
 import Layout from "../components/layout";
-const KanbanBoard = () => {
+const Kanbanboard2 = () => {
+  //makes something can load before d&d checks a fail
   const [winReady, setWinReady] = useState(false);
 
   //to make sure it wokrs
@@ -12,134 +12,106 @@ const KanbanBoard = () => {
     setWinReady(true);
     resetServerContext();
   }, []);
-  // resetServerContext();
 
-  const [data, setData] = useState(initalData2);
-  console.log(data);
-  const [dummyData, setDummyData] = useState(dummyColumns);
-  console.log(dummyData);
+  const [columns, setColumns] = useState(dummyItemsInArrayFormat);
+
+  // console.log("column:", columns);
   const handleOnDragEnd = (result) => {
-    console.log(result);
-    const { destination, source, draggableId, type } = result;
-    if (!destination) {
-      return;
-    }
-    //checks if the item got dtagged to a new location by checking the source index and the desination id
-    if (destination.droppableId === source.index && destination.index === source.index) {
-      return;
-    }
-    console.log(result);
+    // console.log("result:", result);
+    const { source, destination, type } = result;
 
-    //check if we are reording columns by its type
+    if (!destination) return; //if the card or column doesnt go anywhere do nothing
+    //moving columns here
     if (type === "column") {
-      const newColumnOrder = Array.from(data.columnOrder);
-      newColumnOrder.splice(source.index, 1);
-      newColumnOrder.splice(destination.index, 0, draggableId);
+      const columnCopy = columns.slice(0);
 
-      return setData({
-        ...data,
-        columnOrder: newColumnOrder,
-      });
+      if (source.index === destination.index) return;
+      const [removed] = columnCopy.splice(source.index, 1);
+      //   return console.log("moved", removed);
+      columnCopy.splice(destination.index, 0, removed);
+      // return console.log("colsInarray", columns);
+      // console.log("columnCopy:", columnCopy);
+
+      setColumns(columnCopy);
+      return console.log(columns);
     }
 
-    //if we want to move between different columns
-    const start = data.columns[source.droppableId];
-    const finish = data.columns[destination.droppableId];
-    console.log("start", start);
-    // if we are moving from the same column
-    if (start === finish) {
-      const newTaskIds = start.taskIds;
+    // //moving cards here
+    // if we are moving items to a different column
+    if (source.droppableId !== destination.droppableId && type !== "column") {
+      const sourceColumn = columns.find((col) => col.id == source.droppableId);
+      // console.log("src col", source);
+      const destinationColumn = columns.find((col) => col.id == destination.droppableId);
+      // console.log("destination col", destination);
+      const sourceItems = sourceColumn.items;
+      //console.log(sourceItems);
+      const destinationItems = destinationColumn.items;
+      // console.log("destination items", destinationItems);
+      // console.log(source.index);
+      const [removed] = sourceItems.splice(source.index, 1);
+      // console.log("removedTask", removed);
+      //add in what was removed from the source col
+      // console.log(destinationItems);
+      if (destinationItems.length === 0) {
+        destinationItems.push(removed);
+      } else {
+        destinationItems.splice(destination.index, 0, removed);
+      }
+      const updatedBoardState = columns;
+      setColumns(updatedBoardState);
+    } else {
+      const column = columns.find((col) => col.id === source.droppableId);
+      const copiedItems = [...column.items]; //copy of the tasks inside items array
 
-      // return console.log("destination", source);
-      const moved = newTaskIds.splice(source.index, 1); //from this index we want to remove this one item
-      console.log("moved", moved);
-      console.log("newTasksIds", newTaskIds);
+      const [removed] = copiedItems.splice(source.index, 1);
+      copiedItems.splice(destination.index, 0, removed); //add the removed item
+      // console.log("copieditems", copiedItems);
+      //array without this column
 
-      newTaskIds.splice(destination.index, 0, moved[0]); //start from destination index, remove nothing, insert dragable id
-      console.log(newTaskIds);
-      const newColumn = {
-        ...start,
-        taskIds: newTaskIds,
-      };
-      // console.log(newColumn);
+      for (var i in columns) {
+        if (columns[i].id == column.id) {
+          columns[i].items = copiedItems;
+          break; //Stop this loop, we found it!
+        }
+      }
+      const updatedBoardState = columns;
 
-      return setData({
-        ...data,
-        columns: {
-          ...data.columns,
-          [newColumn.id]: newColumn,
-        },
-      });
+      setColumns([...updatedBoardState]);
     }
-
-    //if we are moving from one column to the other column
-    const startTaskIds = [...start.taskIds];
-    const fromPrevCol = startTaskIds.splice(source.index, 1);
-
-    const newStart = {
-      ...start,
-      taskIds: startTaskIds,
-    };
-    const finishTaskIds = [...finish.taskIds];
-    finishTaskIds.splice(destination.index, 0, fromPrevCol[0]);
-    const newFinish = {
-      ...finish,
-      taskIds: finishTaskIds,
-    };
-
-    return setData({
-      ...data,
-      columns: {
-        ...data.columns,
-        [newStart.id]: newStart,
-        [newFinish.id]: newFinish,
-      },
-    });
   };
-  // console.log(data);
+
   return (
     <Layout>
-      <main className="text-white w-auto px-3">
-        <h2>Kaban Board</h2>
-        <div>this is where your board / columns go</div>
-
-        {winReady && (
-          <DragDropContext onDragEnd={handleOnDragEnd}>
-            <Droppable droppableId={"all-columns"} direction="horizontal" type="column">
-              {(provided) => (
-                <div
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                  className="flex overflow-x-auto h-auto mb-10"
-                >
-                  {data.columnOrder.map((columnId, i) => {
-                    const column = data.columns[columnId];
-                    // const tasks = column.taskIds.map((taskId) => data.tasks[taskId]);
-
-                    const tasks = column.taskIds.map((task) => task);
-
-                    // return console.log(tasks);
-
-                    return (
-                      <Column
-                        setData={setData}
-                        data={data}
-                        key={column.id}
+      {winReady && (
+        <DragDropContext onDragEnd={(result) => handleOnDragEnd(result)}>
+          <Droppable droppableId={"columns"} type="column" direction="horizontal">
+            {(provided) => (
+              <div
+                ref={provided.innerRef}
+                className="flex flex-row overflow-x-auto h-auto mb-10 w-auto"
+              >
+                {columns.map((column, index) => {
+                  // console.log("id:", id); // console.log("mappedColumn:", column);
+                  return (
+                    <div className="m-1 flex flex-col column-color bg-gray-800" key={index}>
+                      <KanbanColumnArray
+                        id={column.id}
                         column={column}
-                        index={i}
-                        tasks={tasks}
+                        index={index}
+                        setColumns={setColumns}
+                        columns={columns}
                       />
-                    );
-                  })}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
-        )}
-      </main>
+                    </div>
+                  );
+                })}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
+      )}
     </Layout>
   );
 };
 
-export default KanbanBoard;
+export default Kanbanboard2;
