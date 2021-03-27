@@ -78,6 +78,24 @@ export const dummyColumns = {
   },
 };
 
+export const dummyItemsInArrayFormat = [
+  {
+    id: uuid(),
+    name: "Todo",
+    items: dummyItems,
+  },
+  {
+    id: uuid(),
+    name: "In Progress",
+    items: [],
+  },
+  {
+    id: uuid(),
+    name: "Completed",
+    items: [],
+  },
+];
+
 // export const initialTasks = [
 //   { id: 1, content: "Take out the garbage" },
 //   { id: 2, content: "Go for a run" },
