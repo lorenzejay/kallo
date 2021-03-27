@@ -1,7 +1,8 @@
 import Link from "next/link";
 import React from "react";
 
-const Sidebar = () => {
+const Sidebar = ({ className, sidebarOpen }) => {
+  console.log(sidebarOpen);
   return (
     // <nav className="sidebar absolute left-0 top-0 h-screen w-64 ">
     //   <h2 className="px-3 py-5 text-center text-4xl h-24 text-white">Freelancinn</h2>
@@ -15,7 +16,11 @@ const Sidebar = () => {
     //     <li className="hover:bg-gray-600 w-full p-3">Todos</li>
     //   </ul>
     // </nav>
-    <div className="w-64 bg-white rounded-lg absolute left-0 hidden md:block">
+    <div
+      className={`absolute w-64 bg-white rounded-lg  left-0 hidden md:block ${className} ${
+        sidebarOpen === true ? "md:hidden" : "md:block"
+      }`}
+    >
       <Link href="/">
         <div className="flex items-center justify-center pt-6">
           <img src={"/samplelogo.jpg"} className="w-12 h-12 rounded-full object-cover" />
@@ -49,7 +54,7 @@ const Sidebar = () => {
                   width="20"
                   height="20"
                   fill="currentColor"
-                  class="m-auto"
+                  className="m-auto"
                   viewBox="0 0 2048 1792"
                   xmlns="http://www.w3.org/2000/svg"
                 >
@@ -60,7 +65,7 @@ const Sidebar = () => {
             </div>
           </Link>
           <a
-            class="w-full font-thin uppercase text-gray-500 dark:text-gray-200 flex items-center p-4 my-2 transition-colors duration-200 justify-start hover:text-blue-500"
+            className="w-full font-thin uppercase text-gray-500 dark:text-gray-200 flex items-center p-4 my-2 transition-colors duration-200 justify-start hover:text-blue-500"
             href="#"
           >
             <span className="text-left">
@@ -68,7 +73,7 @@ const Sidebar = () => {
                 width="20"
                 height="20"
                 fill="currentColor"
-                class="m-auto"
+                className="m-auto"
                 viewBox="0 0 2048 1792"
                 xmlns="http://www.w3.org/2000/svg"
               >
@@ -81,12 +86,12 @@ const Sidebar = () => {
             className="w-full font-thin uppercase text-gray-500 dark:text-gray-200 flex items-center p-4 my-2 transition-colors duration-200 justify-start hover:text-blue-500"
             href="#"
           >
-            <span clasNames="text-left">
+            <span className="text-left">
               <svg
                 width="20"
                 height="20"
                 fill="currentColor"
-                class="m-auto"
+                className="m-auto"
                 viewBox="0 0 2048 1792"
                 xmlns="http://www.w3.org/2000/svg"
               >
@@ -99,7 +104,7 @@ const Sidebar = () => {
             className="w-full font-thin uppercase text-gray-500 dark:text-gray-200 flex items-center p-4 my-2 transition-colors duration-200 justify-start hover:text-blue-500"
             href="#"
           >
-            <span class="text-left">
+            <span className="text-left">
               <svg
                 width="20"
                 height="20"
@@ -114,7 +119,7 @@ const Sidebar = () => {
             <span className="mx-4 text-sm font-normal">Time manage</span>
           </a>
           <a
-            class="w-full font-thin uppercase text-gray-500 dark:text-gray-200 flex items-center p-4 my-2 transition-colors duration-200 justify-start hover:text-blue-500"
+            className="w-full font-thin uppercase text-gray-500 dark:text-gray-200 flex items-center p-4 my-2 transition-colors duration-200 justify-start hover:text-blue-500"
             href="#"
           >
             <span className="text-left">
