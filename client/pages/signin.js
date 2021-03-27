@@ -1,20 +1,37 @@
 import Link from "next/link";
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { useDispatch, useSelector } from "react-redux";
 import Button from "../components/button";
 import Googlesigninbutton from "../components/googlesigninbutton";
 import Input from "../components/input";
 import Layout from "../components/layout";
+import { login } from "../redux/Actions/userActions";
 
 const Signin = () => {
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const userLogin = useSelector((state) => state.userLogin);
+  const { loading, userInfo, error } = userLogin;
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  useEffect(() => {
+    if (userInfo) {
+      router.push("/projects");
+    }
+  }, [userInfo, router]);
   const handleSignIn = (e) => {
     e.preventDefault();
+    dispatch(login(email, password));
   };
+
   return (
-    <Layout>
+    <Layout isSignInOrSignOutPage={true}>
       <section>
+        {loading && <p>loading....</p>}
+        {error && <p className="text-red">{error}</p>}
         <form className="flex items-center justify-center flex-col" onSubmit={handleSignIn}>
           <h2 className="text-3xl font-bold uppercase">Sign In</h2>
           <Input

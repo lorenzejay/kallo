@@ -1,11 +1,18 @@
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import Button from "../components/button";
 import Googlesigninbutton from "../components/googlesigninbutton";
 import Input from "../components/input";
 import Layout from "../components/layout";
+import { register } from "../redux/Actions/userActions";
 
 const Signup = () => {
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const userLogin = useSelector((state) => state.userLogin);
+  const { loading, userInfo, error } = userLogin;
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -13,10 +20,30 @@ const Signup = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [password, setPassword] = useState("");
   const [formError, setFormError] = useState("");
-  const handleSignUp = () => {};
+  const handleSignUp = (e) => {
+    e.preventDefault();
+    setFormError("");
+    if (password === confirmPassword) {
+      if (username !== "" && firstName !== "" && lastName !== "" && password !== "" && email !== "")
+        dispatch(register(email, username, firstName, lastName, password));
+      else {
+        return setFormError("Nothing must be blank.");
+      }
+    } else {
+      setFormError("The passwords do not match");
+    }
+  };
+  useEffect(() => {
+    if (userInfo) {
+      router.push("/projects");
+    }
+  }, [userInfo]);
   return (
     <Layout>
       <form className="flex items-center justify-center flex-col" onSubmit={handleSignUp}>
+        <h2 className="text-3xl font-bold uppercase text-white">Register</h2>
+        {formError && <p className="text-red-500">{formError}</p>}
+        {error && <p className="text-red-500">{error}</p>}
         <Input
           placeholder="First Name"
           type="text"
