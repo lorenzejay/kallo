@@ -13,6 +13,7 @@ app.get("/", (req, res) => {
 
 //routes
 app.use("/api/users", require("./routes/users"));
+app.use("/api/projects", require("./routes/projects"));
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
