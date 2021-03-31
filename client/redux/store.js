@@ -1,11 +1,13 @@
 import { createStore, applyMiddleware, combineReducers } from "redux";
 import thunk from "redux-thunk";
 import { composeWithDevTools } from "redux-devtools-extension";
-import { userLoginReducer, userRegisterReducer } from "./Reducers/userReducers";
+import { userLoginReducer } from "./Reducers/userReducers";
+import { projectAddReducer, projectGetUserOwnedReducer } from "./Reducers/projectReducers";
 
 const reducers = combineReducers({
   userLogin: userLoginReducer,
-  userRegister: userRegisterReducer,
+  projectAdd: projectAddReducer,
+  projectGetUsers: projectGetUserOwnedReducer,
 });
 const middlewares = [thunk];
 const ISSERVER = typeof window === "undefined";
