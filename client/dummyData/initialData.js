@@ -94,6 +94,11 @@ export const dummyItemsInArrayFormat = [
     name: "Completed",
     items: [],
   },
+  {
+    id: uuid(),
+    name: "extra",
+    items: [],
+  },
 ];
 
 // export const initialTasks = [

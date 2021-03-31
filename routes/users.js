@@ -81,4 +81,19 @@ router.post("/login", async (req, res) => {
   }
 });
 
+//get user details
+router.get("/user-details", authorization, async (req, res) => {
+  try {
+    const user_id = req.user;
+    const query = await pool.query("SELECT * FROM users where user_id = $1", [user_id]);
+
+    if (query.rowCount === 0) {
+      return res.status(404).json({ error: "Something went wrong, please try again." });
+    }
+    res.status(200).json(query.rows[0]);
+  } catch (error) {
+    console.log(error.message);
+  }
+});
+
 module.exports = router;
