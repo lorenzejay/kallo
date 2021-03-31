@@ -94,7 +94,7 @@ const Signup = () => {
         />
         <Googlesigninbutton />
         <Button className="w-3/4 uppercase" type="submit">
-          Start Sizzzlin
+          Register
         </Button>
         <Link href="/signin" className="mt-5">
           <p>

@@ -3,7 +3,7 @@ const { default: Header } = require("./header");
 const { default: Sidebar } = require("./sidebar");
 
 const Layout = ({ children, isSignInOrSignOutPage }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   return (
     <div>
       <Header setSidebarOpen={setSidebarOpen} sidebarOpen={sidebarOpen} />
@@ -11,7 +11,11 @@ const Layout = ({ children, isSignInOrSignOutPage }) => {
         className={isSignInOrSignOutPage === true ? "md:hidden" : "md:block"}
         sidebarOpen={sidebarOpen}
       />
-      <div className={`${isSignInOrSignOutPage ? "ml-0" : ""} ${sidebarOpen ? "ml-0" : "ml-72"}`}>
+      <div
+        className={`lg:px-16 ${isSignInOrSignOutPage ? "ml-0" : ""} ${
+          sidebarOpen ? "ml-64 lg:px-0" : ""
+        }`}
+      >
         {children}
       </div>
     </div>

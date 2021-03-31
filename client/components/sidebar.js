@@ -2,7 +2,6 @@ import Link from "next/link";
 import React from "react";
 
 const Sidebar = ({ className, sidebarOpen }) => {
-  console.log(sidebarOpen);
   return (
     // <nav className="sidebar absolute left-0 top-0 h-screen w-64 ">
     //   <h2 className="px-3 py-5 text-center text-4xl h-24 text-white">Freelancinn</h2>
@@ -17,9 +16,10 @@ const Sidebar = ({ className, sidebarOpen }) => {
     //   </ul>
     // </nav>
     <div
-      className={`absolute w-64 bg-white rounded-lg  left-0 hidden md:block ${className} ${
-        sidebarOpen === true ? "md:hidden" : "md:block"
+      className={`absolute w-64 bg-white rounded-lg  left-0 hidden md:block  ${className} ${
+        sidebarOpen === true ? "md:block" : "md:hidden"
       }`}
+      style={{ zIndex: 100 }}
     >
       <Link href="/">
         <div className="flex items-center justify-center pt-6">

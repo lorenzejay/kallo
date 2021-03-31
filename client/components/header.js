@@ -5,15 +5,15 @@ import { FaBars } from "react-icons/fa";
 const Header = ({ setSidebarOpen, sidebarOpen }) => {
   const dispatch = useDispatch();
   const userLogin = useSelector((state) => state.userLogin);
-  const { loading, userInfo, error } = userLogin;
+  const { userInfo } = userLogin;
 
   return (
-    <header className="flex justify-between items-center h-24 px-10 text-white">
+    <header className="flex justify-between items-center h-24 lg:px-16 text-white">
       {/* <Link href="/">
         <h2 className="text-3xl font-bold">FREELANCIN</h2>
       </Link> */}
-      <button onClick={() => setSidebarOpen(!sidebarOpen)} className="outline-none border-0">
-        <FaBars size={30} />
+      <button onClick={() => setSidebarOpen(!sidebarOpen)} className="outline-none border-none">
+        <FaBars size={30} className="outline-none border-none" />
       </button>
       {!userInfo && (
         <ul className="flex justify-between items-center w-64 ">
