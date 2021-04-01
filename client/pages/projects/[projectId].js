@@ -30,7 +30,11 @@ const Projects = () => {
     <Layout>
       <main className="text-white">
         <h2 className="text-4xl font-bold mb-2">{data.title}</h2>
-        {data.message ? <h3>You do not have access to this file</h3> : <Kanban />}
+        {data.message ? (
+          <h3>You do not have access to this file</h3>
+        ) : (
+          <Kanban headerImage={data.header_img} />
+        )}
       </main>
     </Layout>
   );

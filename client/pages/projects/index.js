@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { AiOutlineClose } from "react-icons/ai";
 import { addProject, getLoggedInUserProjects } from "../../redux/Actions/projectActions";
+import UnsplashImageSearch from "../../components/unsplashImageSearch";
 
 const Projects = () => {
   const router = useRouter();
@@ -19,6 +20,9 @@ const Projects = () => {
   //set is private
   const [isPrivateProject, setIsPrivateProject] = useState(false);
   const [openPrivacyOptions, setOpenPrivacyOptions] = useState(false);
+
+  const [revealImageSearch, setRevealImageSearch] = useState(false);
+  // const [unsplashImg, setUnsplashImg] = useState("");
 
   const dispatch = useDispatch();
   const userLogin = useSelector((state) => state.userLogin);
@@ -68,17 +72,30 @@ const Projects = () => {
             openModal={openModal}
             setOpenModal={setOpenModal}
           >
-            <img src={"sample-card-img.jpg"} className="rounded-md" />
+            <img src={projectHeader || "sample-card-img.jpg"} className="rounded-md" />
             <input
               placeholder="Add project title"
               className="my-3 px-3 py-1 w-full rounded-sm text-black"
               onChange={(e) => setProjectTitle(e.target.value)}
             />
             <div className="flex justify-between items-center text-base">
-              <button className="bg-gray-300 px-12 py-1 rounded-sm my-2 flex items-center">
-                <BsFillImageFill size={12} className="mr-2" />
-                Cover
-              </button>
+              <div>
+                <button
+                  className="bg-gray-300 px-12 py-1 rounded-sm my-2 flex items-center relative"
+                  onClick={() => setRevealImageSearch(!revealImageSearch)}
+                >
+                  <BsFillImageFill size={12} className="mr-2" />
+                  Cover
+                </button>
+                {revealImageSearch && (
+                  <UnsplashImageSearch
+                    setProjectHeader={setProjectHeader}
+                    projectHeader={projectHeader}
+                    setRevealImageSearch={setRevealImageSearch}
+                    revealImageSearch={revealImageSearch}
+                  />
+                )}
+              </div>
               <div className="">
                 <button
                   className={`${
@@ -151,8 +168,9 @@ const Projects = () => {
                 <Link href={`/projects/${project.project_id}`} key={project.project_id}>
                   <div className="card-color shadow-xl border rounded-md h-auto cursor-pointer w-72 relative p-2 pb-10 mt-3 hover:transform hover:shadow-lg transition-all duration-500 ease-in-out">
                     <img
-                      src={project.headerImg || "sample-card-img.jpg"}
-                      className="rounded-md mb-2"
+                      src={project.header_img || "sample-card-img.jpg"}
+                      className="rounded-md mb-2 w-full h-44 object-cover"
+                      alt={project.title}
                     />
                     <h3 className=" border-black text-white font-semibold w-full ">
                       {project.title}
