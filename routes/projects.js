@@ -17,7 +17,10 @@ router.get("/project/:project_id", authorization, async (req, res) => {
     //private = false anyone can see
     //private = true only owner can see for now and then shared future
     if (is_private === false || project_owner === user_id) {
-      const query = await pool.query("SELECT * FROM projects WHERE project_id = $1", [project_id]);
+      const query = await pool.query(
+        "SELECT * FROM projects WHERE project_id = $1 ORDER BY created_at DESC",
+        [project_id]
+      );
       return res.status(200).json(query.rows[0]);
     }
     res.send({ message: "You do not have access to see this project." });
@@ -65,14 +68,47 @@ router.get("/get-user-projects", authorization, async (req, res) => {
 });
 
 //add a column to the project board
-router.post("/add-column/:project_id", authorization, async (req, res) => {
+router.put("/add-column/:project_id", authorization, async (req, res) => {
   try {
     const user_id = req.user;
     //need to be an array of objects
     const { columns } = req.body;
-    //await JSON.stringify(columns);
     const { project_id } = req.params;
     //verify we are thje owner or a member of the project
+    const verifyQuery = await pool.query(
+      "SELECT project_owner FROM projects WHERE project_id = $1",
+      [project_id]
+    );
+    const { project_owner } = verifyQuery.rows[0];
+
+    if (project_owner !== user_id) {
+      return res.send({
+        success: false,
+        message: "You do either do not have authorization to modify this project.",
+      });
+    }
+
+    //convert to json as we are passing to a json format
+    const columnsInJsonFormat = JSON.stringify(columns);
+
+    //update the column
+    await pool.query("UPDATE projects SET columns = $1 WHERE project_id = $2", [
+      columnsInJsonFormat,
+      project_id,
+    ]);
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+//just get the columns from the project
+router.get("/get-board-columns/:project_id", authorization, async (req, res) => {
+  try {
+    const user_id = req.user;
+    const { project_id } = req.params;
+    //make sure we allowed to see the project
     const verifyQuery = await pool.query(
       "SELECT project_owner FROM projects WHERE project_id = $1",
       [project_id]
@@ -84,16 +120,13 @@ router.post("/add-column/:project_id", authorization, async (req, res) => {
         message: "You do either do not have authorization to modify this project.",
       });
     }
-
-    //update the column
-    await pool.query("UPDATE projects SET columns = $1 WHERE project_id = $2", [
-      columns,
+    //else show the columns only - because kanban board only needs access to the columns
+    const query = await pool.query("SELECT columns FROM projects WHERE project_id = $1", [
       project_id,
     ]);
-
-    res.status(200).json({ success: true });
+    res.json(query.rows[0]);
   } catch (error) {
-    console.log(error);
+    console.log(error.message);
   }
 });
 

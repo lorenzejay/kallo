@@ -23,8 +23,8 @@ const Projects = () => {
 
     setData(data);
   }, [projectId]);
-
-  data && console.log(data.columns);
+  // console.log("projectId", projectId);
+  // data && console.log(data);
   //   console.log(paths);
   return (
     <Layout>
@@ -33,7 +33,7 @@ const Projects = () => {
         {data.message ? (
           <h3>You do not have access to this file</h3>
         ) : (
-          <Kanban headerImage={data.header_img} columns={data.columns} />
+          <Kanban headerImage={data.header_img} columnsData={data.columns} projectId={projectId} />
         )}
       </main>
     </Layout>

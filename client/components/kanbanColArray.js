@@ -3,22 +3,23 @@ import { Draggable, Droppable } from "react-beautiful-dnd";
 import { v4 as uuid } from "uuid";
 import KanbanItemFromArr from "./kanbanItemFromArr";
 import NewItem from "./newItem";
-const KanbanColumnArray = ({ column, id, index, setColumns, columns }) => {
+const KanbanColumnArray = ({ column, id, index, setColumns, columns, projectId }) => {
   const [columnCopy, setColumnCopy] = useState(column);
   const [openNewItem, setOpenNewItem] = useState(false);
   const [newItemTitle, setNewItemTitle] = useState("");
-  const handleAddCard = () => {
-    //find the length of all the cards
-    const columnItemsCopy = column.items;
-    columnItemsCopy.push({ id: uuid(), content: "" });
-    // console.log(column);
-    // console.log(columnItemsCopy);
-    // console.log("columns", columns);
 
-    // setColumns({ ...columns, [id]: { ...column, items: column.items } });
-    setColumns([...columns]);
-    console.log("columnsAftersettingItToColumns", columnCopy);
-  };
+  // const handleAddCard = () => {
+  //   //find the length of all the cards
+  //   const columnItemsCopy = column.items;
+  //   columnItemsCopy.push({ id: uuid(), content: "" });
+  //   // console.log(column);
+  //   // console.log(columnItemsCopy);
+  //   // console.log("columns", columns);
+
+  //   // setColumns({ ...columns, [id]: { ...column, items: column.items } });
+  //   setColumns([...columns]);
+  //   console.log("columnsAftersettingItToColumns", columnCopy);
+  // };
 
   return (
     <Draggable draggableId={column.id} index={index} key={id}>

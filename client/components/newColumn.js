@@ -1,3 +1,6 @@
+import axios from "axios";
+import { useEffect } from "react";
+import { useSelector } from "react-redux";
 import { v4 as uuid } from "uuid";
 
 const NewColumn = ({
@@ -7,11 +10,15 @@ const NewColumn = ({
   setNewColumnTitle,
   columns,
   setColumns,
+  projectId,
 }) => {
-  const handleAddNewColumn = () => {
+  const userLogin = useSelector((state) => state.userLogin);
+  const { userInfo } = userLogin;
+
+  const handleAddNewColumn = async () => {
     if (newColumnTitle === "") return;
     //create the column object
-    setColumns([
+    await setColumns([
       ...columns,
       {
         id: uuid(),
@@ -19,9 +26,22 @@ const NewColumn = ({
         items: [],
       },
     ]);
+
     setOpenNewColumn(false);
     setNewColumnTitle("");
   };
+  //every time column changes we push to the db
+  useEffect(() => {
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        token: userInfo.token,
+      },
+    };
+
+    axios.put(`/api/projects/add-column/${projectId}`, { columns }, config);
+  }, [columns]);
+
   return (
     <div
       className={`rounded-md card-color absolute h-auto top-0 p-3 transition-all duration-500  ${

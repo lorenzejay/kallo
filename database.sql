@@ -21,8 +21,10 @@ CREATE TABLE projects (
 );
 alter table projects add foreign key(project_owner) references users(user_id) on delete cascade;
 -- test
---alter table projects add columns jsonb DEFAULT '{}'::jsonb;
-alter table projects add columns text[] DEFAULT '{}';
+--delete column 
+-- alter table projects drop column columns;
+alter table projects add columns json DEFAULT '{}'::json;
+-- alter table projects add columns text[] DEFAULT '{}';
 
 -- CREATE TABLE columns (
 --     column_id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),

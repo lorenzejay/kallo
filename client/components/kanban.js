@@ -1,25 +1,60 @@
+import axios from "axios";
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, resetServerContext } from "react-beautiful-dnd";
+import { useSelector } from "react-redux";
 import KanbanColumnArray from "../components/kanbanColArray";
-import { dummyItemsInArrayFormat } from "../dummyData/initialData";
 import NewColumn from "./newColumn";
 
-const Kanban = ({ headerImage }) => {
+const Kanban = ({ headerImage, projectId }) => {
+  const userLogin = useSelector((state) => state.userLogin);
+  const { userInfo } = userLogin;
   //makes something can load before d&d checks a fail
   const [winReady, setWinReady] = useState(false);
   const [openNewColumn, setOpenNewColumn] = useState(false);
   const [newColumnTitle, setNewColumnTitle] = useState("");
   const [columns, setColumns] = useState([]);
 
+  //call the get columns data here
+
   //to make sure it wokrs
-  useEffect(() => {
+  useEffect(async () => {
     setWinReady(true);
     resetServerContext();
   }, []);
 
+  //get data from the db here
+  useEffect(async () => {
+    if (!projectId && !userInfo) return;
+    // console.log("projectId:", projectId);
+    // console.log("userInfo:", userInfo.token);
+
+    console.log("token:", userInfo.token);
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        token: userInfo.token,
+      },
+    };
+    const { data } = await axios.get(`/api/projects/get-board-columns/${projectId}`, config);
+    setColumns(data.columns);
+  }, [userInfo, projectId]);
+
   // console.log("column:", columns);
-  const handleOnDragEnd = (result) => {
-    // console.log("result:", result);
+  // console.log("projectId:", projectId);
+  // console.log("userInfo:", userInfo);
+  const pushColumnsToDB = async () => {
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        token: userInfo.token,
+      },
+    };
+
+    await axios.put(`/api/projects/add-column/${projectId}`, { columns }, config);
+  };
+
+  const handleOnDragEnd = async (result) => {
+    console.log("result:", result);
     const { source, destination, type } = result;
 
     if (!destination) return; //if the card or column doesnt go anywhere do nothing
@@ -34,13 +69,12 @@ const Kanban = ({ headerImage }) => {
       // return console.log("colsInarray", columns);
       // console.log("columnCopy:", columnCopy);
 
-      setColumns(columnCopy);
-      return console.log(columns);
+      return setColumns(columnCopy);
     }
 
     // //moving cards here
     // if we are moving items to a different column
-    if (source.droppableId !== destination.droppableId && type !== "column") {
+    if (source.droppableId !== destination.droppableId) {
       const sourceColumn = columns.find((col) => col.id == source.droppableId);
       // console.log("src col", source);
       const destinationColumn = columns.find((col) => col.id == destination.droppableId);
@@ -61,8 +95,12 @@ const Kanban = ({ headerImage }) => {
       }
       const updatedBoardState = columns;
       setColumns(updatedBoardState);
-    } else {
+      pushColumnsToDB();
+    }
+    //re-ordering columns from the same column
+    else {
       const column = columns.find((col) => col.id === source.droppableId);
+
       const copiedItems = [...column.items]; //copy of the tasks inside items array
 
       const [removed] = copiedItems.splice(source.index, 1);
@@ -79,16 +117,20 @@ const Kanban = ({ headerImage }) => {
       const updatedBoardState = columns;
 
       setColumns([...updatedBoardState]);
+      pushColumnsToDB();
     }
   };
-  // console.log(columns);
+  //whenever columns is updated we update the db
+
   return (
     <main className="relative flex-col">
-      <img
-        src={headerImage || "/sample-card-img.jpg"}
-        className="rounded-md w-full overflow-hidden h-64 object-cover"
-        alt="Board header img"
-      />
+      {headerImage && (
+        <img
+          src={headerImage}
+          className="rounded-md w-full overflow-hidden h-64 object-cover"
+          alt="Board header img"
+        />
+      )}
       {winReady && (
         <DragDropContext onDragEnd={(result) => handleOnDragEnd(result)}>
           <Droppable droppableId={"columns"} type="column" direction="horizontal">
@@ -105,6 +147,7 @@ const Kanban = ({ headerImage }) => {
                           index={index}
                           setColumns={setColumns}
                           columns={columns}
+                          projectId={projectId}
                         />
                       </div>
                     );
@@ -124,6 +167,7 @@ const Kanban = ({ headerImage }) => {
                     setNewColumnTitle={setNewColumnTitle}
                     columns={columns}
                     setColumns={setColumns}
+                    projectId={projectId}
                   />
                 </div>
               </div>

@@ -3,18 +3,6 @@ import React from "react";
 
 const Sidebar = ({ className, sidebarOpen }) => {
   return (
-    // <nav className="sidebar absolute left-0 top-0 h-screen w-64 ">
-    //   <h2 className="px-3 py-5 text-center text-4xl h-24 text-white">Freelancinn</h2>
-    //   <ul
-    //     className="flex items-center justify-center flex-col text-white"
-    //     style={{ backgroundColor: "#373c3f" }}
-    //   >
-    //     <li className="hover:bg-gray-600 w-full p-3">Dashboard</li>
-    //     <li className="hover:bg-gray-600 w-full p-3">Projects</li>
-    //     <li className="hover:bg-gray-600 w-full p-3">Calendar</li>
-    //     <li className="hover:bg-gray-600 w-full p-3">Todos</li>
-    //   </ul>
-    // </nav>
     <div
       className={`absolute w-64 bg-white rounded-lg  left-0 hidden md:block  ${className} ${
         sidebarOpen === true ? "md:block" : "md:hidden"
@@ -29,7 +17,7 @@ const Sidebar = ({ className, sidebarOpen }) => {
       <nav className="w-64 bg-white">
         <div>
           <a
-            className="w-full font-thin uppercase text-blue-500 flex items-center p-4 my-2 transition-colors duration-200 justify-start bg-gradient-to-r from-white to-blue-100 border-r-4 border-blue-500 dark:from-gray-700 dark:to-gray-800 border-r-4 border-blue-500"
+            className="w-full font-thin uppercase text-blue-500 flex items-center p-4 my-2 transition-colors duration-200 justify-start bg-gradient-to-r from-white to-blue-100  border-blue-500 dark:from-gray-700 dark:to-gray-800 border-r-4 "
             href="#"
           >
             <span className="text-left">
