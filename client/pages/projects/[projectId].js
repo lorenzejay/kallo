@@ -24,7 +24,7 @@ const Projects = () => {
     setData(data);
   }, [projectId]);
 
-  console.log(data);
+  data && console.log(data.columns);
   //   console.log(paths);
   return (
     <Layout>
@@ -33,7 +33,7 @@ const Projects = () => {
         {data.message ? (
           <h3>You do not have access to this file</h3>
         ) : (
-          <Kanban headerImage={data.header_img} />
+          <Kanban headerImage={data.header_img} columns={data.columns} />
         )}
       </main>
     </Layout>

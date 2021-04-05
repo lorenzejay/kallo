@@ -2,18 +2,20 @@ import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, resetServerContext } from "react-beautiful-dnd";
 import KanbanColumnArray from "../components/kanbanColArray";
 import { dummyItemsInArrayFormat } from "../dummyData/initialData";
+import NewColumn from "./newColumn";
 
 const Kanban = ({ headerImage }) => {
   //makes something can load before d&d checks a fail
   const [winReady, setWinReady] = useState(false);
+  const [openNewColumn, setOpenNewColumn] = useState(false);
+  const [newColumnTitle, setNewColumnTitle] = useState("");
+  const [columns, setColumns] = useState([]);
 
   //to make sure it wokrs
   useEffect(() => {
     setWinReady(true);
     resetServerContext();
   }, []);
-
-  const [columns, setColumns] = useState(dummyItemsInArrayFormat);
 
   // console.log("column:", columns);
   const handleOnDragEnd = (result) => {
@@ -79,7 +81,7 @@ const Kanban = ({ headerImage }) => {
       setColumns([...updatedBoardState]);
     }
   };
-
+  // console.log(columns);
   return (
     <main className="relative flex-col">
       <img
@@ -92,21 +94,38 @@ const Kanban = ({ headerImage }) => {
           <Droppable droppableId={"columns"} type="column" direction="horizontal">
             {(provided) => (
               <div ref={provided.innerRef} className="flex flex-row overflow-x-auto h-auto mb-10">
-                {columns.map((column, index) => {
-                  // console.log("id:", id); // console.log("mappedColumn:", column);
-                  return (
-                    <div className="flex flex-col column-color bg-gray-800" key={index}>
-                      <KanbanColumnArray
-                        id={column.id}
-                        column={column}
-                        index={index}
-                        setColumns={setColumns}
-                        columns={columns}
-                      />
-                    </div>
-                  );
-                })}
+                {Array.isArray(columns) &&
+                  columns.map((column, index) => {
+                    // console.log("id:", id); // console.log("mappedColumn:", column);
+                    return (
+                      <div className="flex flex-col column-color bg-gray-800" key={index}>
+                        <KanbanColumnArray
+                          id={column.id}
+                          column={column}
+                          index={index}
+                          setColumns={setColumns}
+                          columns={columns}
+                        />
+                      </div>
+                    );
+                  })}
                 {provided.placeholder}
+                <div className="relative self-start h-96">
+                  <button
+                    className=" text-white text-xl my-3 hover:bg-gray-700 rounded-sm p-1"
+                    onClick={() => setOpenNewColumn(!openNewColumn)}
+                  >
+                    + New Column
+                  </button>
+                  <NewColumn
+                    openNewColumn={openNewColumn}
+                    setOpenNewColumn={setOpenNewColumn}
+                    newColumnTitle={newColumnTitle}
+                    setNewColumnTitle={setNewColumnTitle}
+                    columns={columns}
+                    setColumns={setColumns}
+                  />
+                </div>
               </div>
             )}
           </Droppable>

@@ -79,26 +79,16 @@ export const dummyColumns = {
 };
 
 export const dummyItemsInArrayFormat = [
-  {
-    id: uuid(),
-    name: "Todo",
-    items: dummyItems,
-  },
-  {
-    id: uuid(),
-    name: "In Progress",
-    items: [],
-  },
-  {
-    id: uuid(),
-    name: "Completed",
-    items: [],
-  },
-  {
-    id: uuid(),
-    name: "extra",
-    items: [],
-  },
+  // {
+  //   id: uuid(),
+  //   name: "Todo",
+  //   items: dummyItems,
+  // },
+  // {
+  //   id: uuid(),
+  //   name: "In Progress",
+  //   items: [],
+  // },
 ];
 
 // export const initialTasks = [

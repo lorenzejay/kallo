@@ -1,4 +1,7 @@
 import {
+  PROJECT_BOARD_LIST_ADD_FAIL,
+  PROJECT_BOARD_LIST_ADD_REQUEST,
+  PROJECT_BOARD_LIST_ADD_SUCCESS,
   PROJECT_CREATE_FAIL,
   PROJECT_CREATE_REQUEST,
   PROJECT_CREATE_SUCCESS,
@@ -27,6 +30,19 @@ export const projectGetUserOwnedReducer = (state = { projects: [] }, action) => 
     case PROJECT_GET_USERS_OWNED_SUCCESS:
       return { loading: false, projects: action.payload };
     case PROJECT_GET_USERS_OWNED_FAIL:
+      return { loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};
+
+export const projectsBoardReducer = (state = { projectBoard: [] }, action) => {
+  switch (action.type) {
+    case PROJECT_BOARD_LIST_ADD_REQUEST:
+      return { loading: true };
+    case PROJECT_BOARD_LIST_ADD_SUCCESS:
+      return { loading: false, projectBoard: action.payload };
+    case PROJECT_BOARD_LIST_ADD_FAIL:
       return { loading: false, error: action.payload };
     default:
       return state;

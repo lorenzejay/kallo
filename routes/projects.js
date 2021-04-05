@@ -64,4 +64,37 @@ router.get("/get-user-projects", authorization, async (req, res) => {
   }
 });
 
+//add a column to the project board
+router.post("/add-column/:project_id", authorization, async (req, res) => {
+  try {
+    const user_id = req.user;
+    //need to be an array of objects
+    const { columns } = req.body;
+    //await JSON.stringify(columns);
+    const { project_id } = req.params;
+    //verify we are thje owner or a member of the project
+    const verifyQuery = await pool.query(
+      "SELECT project_owner FROM projects WHERE project_id = $1",
+      [project_id]
+    );
+    const { project_owner } = verifyQuery.rows[0];
+    if (project_owner !== user_id) {
+      return res.send({
+        success: false,
+        message: "You do either do not have authorization to modify this project.",
+      });
+    }
+
+    //update the column
+    await pool.query("UPDATE projects SET columns = $1 WHERE project_id = $2", [
+      columns,
+      project_id,
+    ]);
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 module.exports = router;
