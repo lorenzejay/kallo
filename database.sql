@@ -26,6 +26,16 @@ alter table projects add foreign key(project_owner) references users(user_id) on
 alter table projects add columns json DEFAULT '{}'::json;
 -- alter table projects add columns text[] DEFAULT '{}';
 
+CREATE TABLE shared_users(
+    shared_id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    shared_user uuid NOT NULL,
+    shared_project uuid NOT NULL,
+    can_edit boolean NOT NULL DEFAULT false
+);
+alter table shared_users add foreign key(shared_user) references users(user_id) on delete cascade;
+alter table shared_users add foreign key(shared_project) references projects(project_id) on delete cascade;
+
+
 -- CREATE TABLE columns (
 --     column_id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
 --     column_name VARCHAR(55) NOT NULL,

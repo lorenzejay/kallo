@@ -9,6 +9,8 @@ import { useRouter } from "next/router";
 import { AiOutlineClose } from "react-icons/ai";
 import { addProject, getLoggedInUserProjects } from "../../redux/Actions/projectActions";
 import UnsplashImageSearch from "../../components/unsplashImageSearch";
+import PrivacyOptions from "../../components/privacyOptions";
+import { getUserId } from "../../redux/Actions/userActions";
 
 const Projects = () => {
   const router = useRouter();
@@ -54,6 +56,7 @@ const Projects = () => {
   };
   useEffect(() => {
     dispatch(getLoggedInUserProjects());
+    dispatch(getUserId());
   }, [created]);
 
   return (
@@ -116,37 +119,12 @@ const Projects = () => {
                   )}
                 </button>
                 {openPrivacyOptions && (
-                  <div
-                    className="  text-white absolute w-72 rounded-md p-3 z-10"
-                    style={{ background: "#2f3437" }}
-                  >
-                    <button
-                      className="absolute right-1 top-0"
-                      onClick={() => setOpenPrivacyOptions(false)}
-                    >
-                      <AiOutlineClose size={30} />
-                    </button>
-                    <p className="text-2xl">Visibility</p>
-                    <p className="text-base">Choose who is able to see this board.</p>
-                    <button
-                      className={`${
-                        isPrivateProject ? "" : "bg-green-300"
-                      } hover:bg-green-300 transition-all duration-500 rounded-md my-2 p-1`}
-                      onClick={() => setIsPrivateProject(false)}
-                    >
-                      <p>Public</p>
-                      <p>Anyone can see this board. Only board members can edit</p>
-                    </button>
-                    <button
-                      className={`${
-                        isPrivateProject ? "bg-red-300" : ""
-                      } hover:bg-red-300 transition-all duration-500 rounded-md my-2 p-1`}
-                      onClick={() => setIsPrivateProject(true)}
-                    >
-                      <p>Private</p>
-                      <p>Only board members can see and edit this board.</p>
-                    </button>
-                  </div>
+                  <PrivacyOptions
+                    openPrivacyOptions={openPrivacyOptions}
+                    setIsPrivateProject={setIsPrivateProject}
+                    isPrivateProject={isPrivateProject}
+                    setOpenPrivacyOptions={setOpenPrivacyOptions}
+                  />
                 )}
               </div>
             </div>

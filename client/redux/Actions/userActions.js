@@ -1,5 +1,13 @@
 import axios from "axios";
 import {
+  USER_DETAILS_FAIL,
+  USER_DETAILS_REQUEST,
+  USER_DETAILS_RESET,
+  USER_DETAILS_SUCCESS,
+  USER_IDENTIFICATION_FAIL,
+  USER_IDENTIFICATION_REQUEST,
+  USER_IDENTIFICATION_RESET,
+  USER_IDENTIFICATION_SUCCESS,
   USER_LOGIN_FAIL,
   USER_LOGIN_REQUEST,
   USER_LOGIN_SUCCESS,
@@ -9,6 +17,7 @@ import {
   USER_REGISTER_SUCCESS,
 } from "../Types/userTypes";
 const ISSERVER = typeof window === "undefined";
+
 export const login = (email, password) => async (dispatch) => {
   try {
     dispatch({ type: USER_LOGIN_REQUEST });
@@ -38,6 +47,8 @@ export const logout = () => async (dispatch) => {
   if (!ISSERVER) {
     localStorage.removeItem("userInfo");
     dispatch({ type: USER_LOGOUT });
+    dispatch({ type: USER_DETAILS_RESET });
+    dispatch({ type: USER_IDENTIFICATION_RESET });
   }
 };
 
@@ -70,5 +81,47 @@ export const register = (email, username, first_name, last_name, password) => as
   } catch (error) {
     console.log(error.message);
     dispatch({ type: USER_REGISTER_FAIL, payload: error.message });
+  }
+};
+
+export const getUserId = () => async (dispatch, getState) => {
+  try {
+    dispatch({ type: USER_IDENTIFICATION_REQUEST });
+    const {
+      userLogin: { userInfo },
+    } = getState();
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        token: userInfo.token,
+      },
+    };
+
+    const { data } = await axios.get("/api/users/identification", config);
+    dispatch({ type: USER_IDENTIFICATION_SUCCESS, payload: data });
+  } catch (error) {
+    console.log(error);
+    dispatch({ type: USER_IDENTIFICATION_FAIL, payload: error.messsage });
+  }
+};
+
+export const getUserDetails = () => async (dispatch, getState) => {
+  try {
+    dispatch({ type: USER_DETAILS_REQUEST });
+    const {
+      userLogin: { userInfo },
+    } = getState();
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        token: userInfo.token,
+      },
+    };
+
+    const { data } = await axios.get("/api/users/details", config);
+    dispatch({ type: USER_DETAILS_SUCCESS, payload: data });
+  } catch (error) {
+    console.log(error);
+    dispatch({ type: USER_DETAILS_FAIL, payload: error.messsage });
   }
 };

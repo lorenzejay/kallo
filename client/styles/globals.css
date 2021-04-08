@@ -23,6 +23,12 @@ body {
   background-color: #2f3437;
 }
 
+button:focus,
+input:focus,
+option:focus {
+  outline: none;
+}
+
 /* kanban board */
 
 /* .react-kanban-column {

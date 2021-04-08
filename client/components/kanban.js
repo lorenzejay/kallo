@@ -28,7 +28,7 @@ const Kanban = ({ headerImage, projectId }) => {
     // console.log("projectId:", projectId);
     // console.log("userInfo:", userInfo.token);
 
-    console.log("token:", userInfo.token);
+    // console.log("token:", userInfo.token);
     const config = {
       headers: {
         "Content-Type": "application/json",
@@ -127,7 +127,7 @@ const Kanban = ({ headerImage, projectId }) => {
       {headerImage && (
         <img
           src={headerImage}
-          className="rounded-md w-full overflow-hidden h-64 object-cover"
+          className="rounded-md w-full h-64 object-cover"
           alt="Board header img"
         />
       )}

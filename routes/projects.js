@@ -130,4 +130,120 @@ router.get("/get-board-columns/:project_id", authorization, async (req, res) => 
   }
 });
 
+//update the privacy settings of the project
+router.put("/update-privacy/:project_id", authorization, async (req, res) => {
+  try {
+    const user_id = req.user;
+    const { project_id } = req.params;
+    const { is_private } = req.body;
+
+    const verifyQuery = await pool.query(
+      "SELECT project_owner FROM projects WHERE project_id = $1",
+      [project_id]
+    );
+    const { project_owner } = verifyQuery.rows[0];
+    if (project_owner !== user_id) {
+      return res.send({
+        success: false,
+        message: "You do not have authorization to modify this project.",
+      });
+    }
+
+    //else we update the is_private column
+    const query = await pool.query(
+      "UPDATE projects SET is_private = $1 WHERE project_id = $2 RETURNING * ",
+      [is_private, project_id]
+    );
+    res.json(query.rows[0]);
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+//get all the users that are shared to on your project
+router.get("/shared-users/:project_id", authorization, async (req, res) => {
+  try {
+    const user_id = req.user;
+    const { project_id } = req.params;
+    if (!user_id) return;
+    const getUserName = await pool.query("SELECT username, user_id FROM users WHERE user_id = $1", [
+      user_id,
+    ]);
+    const query = await pool.query(
+      "SELECT username, user_id FROM users WHERE user_id IN (SELECT shared_user FROM shared_users WHERE shared_project = $1)",
+      [project_id]
+    );
+    // const query = await pool.query("SELECT shared_id FROM shared_users WHERE shared_project = $1", [
+    //   project_id,
+    // ]);
+    const projectOwner = getUserName.rows[0];
+    const sharedUsers = query.rows;
+
+    res.json([projectOwner, ...sharedUsers]);
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+//invite users
+router.post("/share/:project_id", authorization, async (req, res) => {
+  try {
+    const user_id = req.user;
+    const { project_id } = req.params;
+    const { shared_user_email, can_edit } = req.body;
+
+    //1. check if the user_id is the owner
+    const verifyQuery = await pool.query(
+      "SELECT project_owner FROM projects WHERE project_id = $1",
+      [project_id]
+    );
+    const { project_owner } = verifyQuery.rows[0];
+    if (project_owner !== user_id) {
+      return res.send({
+        success: false,
+        message: "You do not have authorization to modify this project.",
+      });
+    }
+    //2. if false return no authorization / else true we need to verify that the user we sent the share access to is a user in our app
+
+    const checkIsAUser = await pool.query("SELECT user_id, username FROM users WHERE email = $1", [
+      shared_user_email,
+    ]);
+    if (!checkIsAUser.rows[0]) {
+      return res.send({ success: false, message: "There is no user associated with that email." });
+    }
+    //make sure you dont share it to yourself or to someone already added on the project
+    const checkedSharedUsers = await pool.query(
+      "SELECT shared_user FROM shared_users WHERE shared_user = $1",
+      [checkIsAUser.rows[0].user_id]
+    );
+    //check if you shared to yourself
+    if (checkIsAUser.rows[0].user_id === user_id) {
+      return res.send({ success: false, message: "You cannot share the project to yourself." });
+    }
+
+    //check if you shared to someone already shared
+    if (checkedSharedUsers.rows[0]) {
+      return res.send({
+        success: false,
+        message: `This project is already being shared with the user associated with ${shared_user_email}.`,
+      });
+    }
+
+    await pool.query(
+      "INSERT INTO shared_users (shared_user, shared_project, can_edit) VALUES ($1, $2, $3)",
+      [checkIsAUser.rows[0].user_id, project_id, can_edit]
+    );
+
+    return res.json({
+      success: true,
+      message: `${checkIsAUser.rows[0].username} now access to your project.`,
+    });
+
+    //3. if was shared to a user thats not themselves and does exist => insert else send back error message
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 module.exports = router;
