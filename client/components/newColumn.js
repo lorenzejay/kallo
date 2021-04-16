@@ -2,6 +2,9 @@ import axios from "axios";
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { v4 as uuid } from "uuid";
+import { GrFormClose } from "react-icons/gr";
+import { AiOutlineClose } from "react-icons/ai";
+import { configWithToken } from "../functions";
 
 const NewColumn = ({
   openNewColumn,
@@ -32,12 +35,7 @@ const NewColumn = ({
   };
   //every time column changes we push to the db
   useEffect(() => {
-    const config = {
-      headers: {
-        "Content-Type": "application/json",
-        token: userInfo.token,
-      },
-    };
+    const config = configWithToken(userInfo.token);
 
     axios.put(`/api/projects/add-column/${projectId}`, { columns }, config);
   }, [columns]);
@@ -56,11 +54,13 @@ const NewColumn = ({
         className="my-2 bg-gray-800 p-2 "
       />
 
-      <div className="flex justify-between">
-        <button className="p-2 bg-blue-500" onClick={handleAddNewColumn}>
+      <div className="flex float-right">
+        <button onClick={() => setOpenNewColumn(false)} className="mr-1">
+          <AiOutlineClose className="text-white" size={20} />
+        </button>
+        <button className="p-2 bg-blue-500 rounded-md" onClick={handleAddNewColumn}>
           Add Column
         </button>
-        <button onClick={() => setOpenNewColumn(false)}>X</button>
       </div>
     </div>
   );

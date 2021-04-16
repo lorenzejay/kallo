@@ -4,6 +4,10 @@ import { getUserDetails, logout } from "../redux/Actions/userActions";
 import { FaBars } from "react-icons/fa";
 import { useEffect } from "react";
 import Dropdown from "./dropdown";
+import { AiOutlineUser } from "react-icons/ai";
+import { FiLogOut } from "react-icons/fi";
+import { RiTodoLine } from "react-icons/ri";
+
 const Header = ({ setSidebarOpen, sidebarOpen }) => {
   const dispatch = useDispatch();
   const userLogin = useSelector((state) => state.userLogin);
@@ -15,7 +19,7 @@ const Header = ({ setSidebarOpen, sidebarOpen }) => {
       dispatch(getUserDetails());
     }
   }, [userInfo]);
-  console.log(userDetails);
+  // console.log(userDetails);
   return (
     <header className="flex justify-between items-center h-24 lg:px-16 text-white">
       {/* <Link href="/">
@@ -34,11 +38,45 @@ const Header = ({ setSidebarOpen, sidebarOpen }) => {
           </li>
         </ul>
       )}
-      {userInfo && userDetails && (
+      {userDetails && userDetails.username && (
         <ul className="flex justify-between items-center w-64 ">
-          <li>{userDetails.username.slice(0, 1).toUpperCase()}</li>
-          <li className="hover:bg-gray-300 hover:text-black transition-all duration-500 ease-in-out p-2 rounded-md">
-            <Dropdown title={userDetails.email}>dask </Dropdown>
+          <li className="bg-gray-400 rounded-md px-2 py-1 w-9 h-9 flex justify-center items-center text-xl font-medium">
+            {userDetails.username.slice(0, 1).toUpperCase()}
+          </li>
+          <li className="">
+            <Dropdown title={userDetails.email} className="right-0">
+              <ul>
+                <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-1 border-gray-50">
+                  <Link href="/projects">
+                    <div className="flex items-center">
+                      <RiTodoLine className="text-white mr-2" color={"white"} /> My Projects
+                    </div>
+                  </Link>
+                </li>
+                <hr />
+                <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-1 border-gray-50">
+                  <Link href="/sharedProjects">
+                    <div className="flex items-center">
+                      <RiTodoLine className="text-white mr-2" color={"white"} /> Shared Projects
+                    </div>
+                  </Link>
+                </li>
+                <hr />
+                <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-1 border-gray-50">
+                  <Link href="/profile">
+                    <div className="flex items-center">
+                      <AiOutlineUser className="mr-2" /> My Profile
+                    </div>
+                  </Link>
+                </li>
+                <hr />
+                <li className="hover:bg-gray-300 hover:text-black rounded-md my-3 p-1 ">
+                  <button onClick={() => dispatch(logout())} className="flex items-center">
+                    <FiLogOut className="mr-2" /> Logout
+                  </button>
+                </li>
+              </ul>
+            </Dropdown>
           </li>
 
           {/* <li>

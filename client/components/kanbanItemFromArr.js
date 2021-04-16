@@ -36,7 +36,7 @@ const KanbanItemFromArr = ({ item, index, columns, setColumns, column, columnId 
       {(provided, snapshot) => {
         return (
           <div
-            className={`border card-color rounded-md border-black border-solid p-4 mb-4 w-64 border-rounded z-10  ${
+            className={`border card-color rounded-md border-black border-solid p-4 mb-4 w-64 border-rounded z-8  ${
               snapshot.isDragging ? "opacity-50" : "opacity-100"
             }`}
             ref={provided.innerRef}
@@ -44,11 +44,12 @@ const KanbanItemFromArr = ({ item, index, columns, setColumns, column, columnId 
             {...provided.dragHandleProps}
             style={{ userSelect: "none", ...provided.draggableProps.style }}
           >
-            <input
+            {/* <input
               className="text-base bg-transparent outline-none z-0"
               value={itemText || ""}
               onChange={(e) => handleChangeItemContent(e.target.value)}
-            />
+            /> */}
+            <p>{itemText || ""}</p>
           </div>
         );
       }}

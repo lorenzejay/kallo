@@ -2,6 +2,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { AiOutlineClose } from "react-icons/ai";
 import { useSelector } from "react-redux";
+import { configWithToken } from "../functions";
 
 const PrivacyOptions = ({
   openPrivacyOptions,
@@ -33,12 +34,7 @@ const PrivacyOptions = ({
       //pass privacy and projectId to be updated.
       // console.log("isPrivateProject", isPrivateProject);
 
-      const config = {
-        headers: {
-          "Content-Type": "application/json",
-          token: userInfo.token,
-        },
-      };
+      const config = configWithToken(userInfo.token);
       const { data } = await axios.put(
         `/api/projects/update-privacy/${projectId}`,
         { is_private: projectIsPrivate },
@@ -50,7 +46,7 @@ const PrivacyOptions = ({
       console.log(error.message);
     }
   };
-  console.log(response);
+  // console.log(response);
   useEffect(() => {
     if (response && response.success === false) {
       window.alert(response.message);

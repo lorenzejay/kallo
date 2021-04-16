@@ -2,25 +2,27 @@ import axios from "axios";
 import { useState } from "react";
 import { AiOutlineClose } from "react-icons/ai";
 import { useSelector } from "react-redux";
+import { configWithToken } from "../functions";
 
-const InviteUsers = ({ openInviteUsers, setOpenInviteUsers, projectId }) => {
+const InviteUsers = ({
+  openInviteUsers,
+  setOpenInviteUsers,
+  projectId,
+  formResult,
+  setFormResult,
+}) => {
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
 
   const [canEdit, setCanEdit] = useState(false);
   const [sharedUser, setSharedUser] = useState("");
-  const [formResult, setFormResult] = useState({});
+  // const [formResult, setFormResult] = useState({});
 
   const handleInviteUsers = async (e) => {
     e.preventDefault();
     if (sharedUser === "") return;
 
-    const config = {
-      headers: {
-        "Content-Type": "application/json",
-        token: userInfo.token,
-      },
-    };
+    const config = configWithToken(userInfo.token);
     const { data } = await axios.post(
       `/api/projects/share/${projectId}`,
       { shared_user_email: sharedUser, can_edit: canEdit },

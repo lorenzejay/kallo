@@ -31,7 +31,7 @@ const Sidebar = ({ className, sidebarOpen }) => {
                 <path d="M1070 1178l306-564h-654l-306 564h654zm722-282q0 182-71 348t-191 286-286 191-348 71-348-71-286-191-191-286-71-348 71-348 191-286 286-191 348-71 348 71 286 191 191 286 71 348z"></path>
               </svg>
             </span>
-            <Link href="/kanbanboard">
+            <Link href="/">
               <span className="mx-4 text-sm font-normal">Dashboard</span>
             </Link>
           </a>

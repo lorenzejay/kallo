@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, resetServerContext } from "react-beautiful-dnd";
 import { useSelector } from "react-redux";
 import KanbanColumnArray from "../components/kanbanColArray";
+import { configWithToken } from "../functions";
 import NewColumn from "./newColumn";
 
 const Kanban = ({ headerImage, projectId }) => {
@@ -15,26 +16,18 @@ const Kanban = ({ headerImage, projectId }) => {
   const [columns, setColumns] = useState([]);
 
   //call the get columns data here
-
   //to make sure it wokrs
   useEffect(async () => {
     setWinReady(true);
     resetServerContext();
   }, []);
 
-  //get data from the db here
+  // console.log("projectId", projectId);
+  // get data from the db here
   useEffect(async () => {
     if (!projectId && !userInfo) return;
-    // console.log("projectId:", projectId);
-    // console.log("userInfo:", userInfo.token);
 
-    // console.log("token:", userInfo.token);
-    const config = {
-      headers: {
-        "Content-Type": "application/json",
-        token: userInfo.token,
-      },
-    };
+    const config = configWithToken(userInfo.token);
     const { data } = await axios.get(`/api/projects/get-board-columns/${projectId}`, config);
     setColumns(data.columns);
   }, [userInfo, projectId]);
@@ -43,18 +36,16 @@ const Kanban = ({ headerImage, projectId }) => {
   // console.log("projectId:", projectId);
   // console.log("userInfo:", userInfo);
   const pushColumnsToDB = async () => {
-    const config = {
-      headers: {
-        "Content-Type": "application/json",
-        token: userInfo.token,
-      },
-    };
-
-    await axios.put(`/api/projects/add-column/${projectId}`, { columns }, config);
+    const config = configWithToken(userInfo.token);
+    const { data } = await axios.put(`/api/projects/add-column/${projectId}`, { columns }, config);
+    // console.log(data);
+    if (!data.success || data.message) {
+      window.alert(data.message);
+    }
   };
 
   const handleOnDragEnd = async (result) => {
-    console.log("result:", result);
+    // console.log("result:", result);
     const { source, destination, type } = result;
 
     if (!destination) return; //if the card or column doesnt go anywhere do nothing
@@ -127,7 +118,7 @@ const Kanban = ({ headerImage, projectId }) => {
       {headerImage && (
         <img
           src={headerImage}
-          className="rounded-md w-full h-64 object-cover"
+          className="rounded-md w-screen h-64 object-cover mb-3"
           alt="Board header img"
         />
       )}
@@ -136,7 +127,7 @@ const Kanban = ({ headerImage, projectId }) => {
           <Droppable droppableId={"columns"} type="column" direction="horizontal">
             {(provided) => (
               <div ref={provided.innerRef} className="flex flex-row overflow-x-auto h-auto mb-10">
-                {Array.isArray(columns) &&
+                {columns &&
                   columns.map((column, index) => {
                     // console.log("id:", id); // console.log("mappedColumn:", column);
                     return (

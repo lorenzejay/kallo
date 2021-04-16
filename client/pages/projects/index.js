@@ -6,7 +6,7 @@ import Modal from "../../components/modal";
 import { BsUnlock, BsLock, BsFillImageFill } from "react-icons/bs";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { AiOutlineClose } from "react-icons/ai";
+// import { AiOutlineClose } from "react-icons/ai";
 import { addProject, getLoggedInUserProjects } from "../../redux/Actions/projectActions";
 import UnsplashImageSearch from "../../components/unsplashImageSearch";
 import PrivacyOptions from "../../components/privacyOptions";
@@ -15,7 +15,7 @@ import { getUserId } from "../../redux/Actions/userActions";
 const Projects = () => {
   const router = useRouter();
 
-  const [openModal, setOpenModal] = useState(false);
+  // const [openModal, setOpenModal] = useState(false);
   const [projectTitle, setProjectTitle] = useState("");
   const [projectHeader, setProjectHeader] = useState("");
 
@@ -44,11 +44,15 @@ const Projects = () => {
   const handleAddProject = async () => {
     //project image, title to server
     try {
-      dispatch(addProject(projectTitle, projectHeader, isPrivateProject));
-      setProjectTitle("");
-      setProjectHeader("");
-      setIsPrivateProject(false);
-      setOpenModal(false);
+      if (projectTitle !== "") {
+        dispatch(addProject(projectTitle, projectHeader, isPrivateProject));
+        setProjectTitle("");
+        setProjectHeader("");
+        setIsPrivateProject(false);
+        setOpenModal(false);
+      } else {
+        window.alert("You must include a project title.");
+      }
     } catch (error) {
       console.log(error.message);
     }
@@ -69,12 +73,7 @@ const Projects = () => {
             {projects && <p className="mb-5">Items: {projects.length || 0}</p>}
           </div>
 
-          <Modal
-            modalName="ADD +"
-            bgColor={"bg-blue-400"}
-            openModal={openModal}
-            setOpenModal={setOpenModal}
-          >
+          <Modal modalName="ADD +" bgColor={"bg-blue-400"}>
             <img src={projectHeader || "sample-card-img.jpg"} className="rounded-md" />
             <input
               placeholder="Add project title"
@@ -96,6 +95,7 @@ const Projects = () => {
                     projectHeader={projectHeader}
                     setRevealImageSearch={setRevealImageSearch}
                     revealImageSearch={revealImageSearch}
+                    className="top-72 "
                   />
                 )}
               </div>

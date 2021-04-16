@@ -25,7 +25,9 @@ body {
 
 button:focus,
 input:focus,
-option:focus {
+option:focus,
+textarea:focus,
+select:focus {
   outline: none;
 }
 

@@ -8,6 +8,7 @@ const UnsplashImageSearch = ({
   projectHeader,
   setRevealImageSearch,
   revealImageSearch,
+  className,
 }) => {
   const [keywords, setKeywords] = useState("");
   const [images, setImages] = useState([]);
@@ -18,7 +19,10 @@ const UnsplashImageSearch = ({
 
   const handleSearchImageFromUnsplash = async () => {
     try {
-      const result = await unsplash.search.getPhotos({ query: keywords, orientation: "landscape" });
+      const result = await unsplash.search.getPhotos({
+        query: keywords,
+        orientation: "landscape",
+      });
       setImages(result);
     } catch (error) {
       console.log(error.message);
@@ -27,9 +31,9 @@ const UnsplashImageSearch = ({
 
   return (
     <div
-      className={`z-10 absolute top-48 w-96 rounded-md p-3 text-white h-auto  ${
+      className={`z-10 shadow-md card-color absolute top-48 w-72 rounded-md p-3 text-white h-auto  ${
         revealImageSearch ? "block" : "hidden"
-      }`}
+      } ${className}`}
       style={{ background: "#2f3437" }}
     >
       <button className="absolute right-2 top-1" onClick={() => setRevealImageSearch(false)}>
@@ -39,7 +43,7 @@ const UnsplashImageSearch = ({
       <p className="mb-3 text-gray-300">Search for photos from Unsplash</p>
       <div className="flex items-center ">
         <input
-          className="bg-gray-700 rounded-md px-4 py-1 flex-grow"
+          className="bg-gray-700 rounded-md px-4 py-1 flex-grow mr-3"
           type="text"
           placeholder="keywords"
           value={keywords}
@@ -50,9 +54,9 @@ const UnsplashImageSearch = ({
         </button>
       </div>
       {images.response && (
-        <section className="grid grid-cols-4 gap-1 mt-3 overflow-x-hidden ">
-          {images.response.results.map((image) => (
-            <div className="flex flex-col">
+        <section className="grid grid-cols-3 gap-1 mt-3 overflow-x-hidden ">
+          {images.response.results.map((image, i) => (
+            <div className="flex flex-col" key={i}>
               <img
                 key={image.id}
                 src={image.urls.regular}

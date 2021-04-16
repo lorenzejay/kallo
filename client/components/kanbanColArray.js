@@ -72,7 +72,7 @@ const KanbanColumnArray = ({ column, id, index, setColumns, columns, projectId }
                     column={column}
                   />
                   <button
-                    className="border card-color rounded-md border-black border-solid p-1 mb-4 w-64 border-rounded z-10"
+                    className="border card-color rounded-md border-black border-solid p-1 mb-4 w-64 border-rounded z-8"
                     onClick={() => setOpenNewItem(!openNewItem)}
                   >
                     +

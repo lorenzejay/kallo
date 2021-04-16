@@ -1,14 +1,16 @@
 import axios from "axios";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { AiOutlineEllipsis, AiOutlinePlus } from "react-icons/ai";
-
+import { AiOutlinePlus } from "react-icons/ai";
 import { BsLock, BsUnlock } from "react-icons/bs";
 import { useSelector } from "react-redux";
 import InviteUsers from "../../components/inviteUsers";
 import Kanban from "../../components/kanban";
 import Layout from "../../components/layout";
 import PrivacyOptions from "../../components/privacyOptions";
+import ProjectDetailsPopup from "../../components/projectDetailsPopup";
+
+import { configWithToken } from "../../functions";
 
 const Projects = () => {
   const router = useRouter();
@@ -20,12 +22,17 @@ const Projects = () => {
   const { userId } = userIdentification;
 
   const [data, setData] = useState({});
+  const [projectOwner, setProjectOwner] = useState();
   //set is private
   const [isPrivateProject, setIsPrivateProject] = useState(false);
   const [openPrivacyOptions, setOpenPrivacyOptions] = useState(false);
   const [openInviteUsers, setOpenInviteUsers] = useState(false);
   const [sharedUsers, setSharedUsers] = useState([]);
   const [doesUserHaveAccess, setDoesUserHaveAcess] = useState(true);
+  //sharing to other users so we can call on this to refresh the shared user list
+  const [formResult, setFormResult] = useState({});
+
+  const [projectHeader, setProjectHeader] = useState(data.header_img);
 
   //gets the project info on load
   useEffect(() => {
@@ -33,29 +40,34 @@ const Projects = () => {
       router.push("/signin");
     }
   }, [userInfo]);
-  useEffect(async () => {
-    const config = {
-      headers: {
-        "Content-Type": "application/json",
-        token: userInfo.token,
-      },
-    };
-    const { data } = await axios.get(`/api/projects/project/${projectId}`, config);
 
+  //get the project owner
+  useEffect(async () => {
+    try {
+      if (projectId) {
+        const { data } = await axios.get(`/api/projects/project-owner/${projectId}`);
+        if (data) {
+          setProjectOwner(data);
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }, [projectId]);
+
+  useEffect(async () => {
+    const config = configWithToken(userInfo.token);
+    const { data } = await axios.get(`/api/projects/project/${projectId}`, config);
+    // console.log(data);
     setData(data);
   }, [projectId, isPrivateProject]);
 
-  //gets who is
+  //gets who is available to access this file
   useEffect(async () => {
-    const config = {
-      headers: {
-        "Content-Type": "application/json",
-        token: userInfo.token,
-      },
-    };
+    const config = configWithToken(userInfo.token);
     const { data } = await axios.get(`/api/projects/shared-users/${projectId}`, config);
     setSharedUsers(data);
-  }, [projectId]);
+  }, [projectId, formResult]);
 
   //make sure you have access to this page
   useEffect(() => {
@@ -72,10 +84,25 @@ const Projects = () => {
       }
     }
   }, [sharedUsers, data, userId]);
-  console.log("sharedUsers", sharedUsers);
+
+  useEffect(async () => {
+    // console.log(projectHeader);
+    if (!projectHeader) return;
+    const config = configWithToken(userInfo.token);
+    //update the projectHeader on change
+    await axios.put(
+      `/api/projects/update-header-img/${projectId}`,
+      { header_img: projectHeader },
+      config
+    );
+  }, [projectHeader]);
+  // console.log("sharedUsers", sharedUsers);
+  // console.log("data", data);
+  // console.log("doesUserHaveAccess", doesUserHaveAccess);
 
   //  console.log(data);
-  if (!doesUserHaveAccess) {
+
+  if (doesUserHaveAccess === false) {
     return (
       <Layout>
         <h2>User does not have access to view this project.</h2>
@@ -85,7 +112,7 @@ const Projects = () => {
   return (
     <Layout>
       <main className="text-white">
-        {data && (
+        {data && !data.message && (
           <>
             <div className="flex justify-between items-center">
               <div className="flex items-center">
@@ -106,7 +133,10 @@ const Projects = () => {
                 <div className="flex">
                   {sharedUsers &&
                     sharedUsers.map((user) => (
-                      <p className="ml-5 bg-gray-400 rounded-md p-1 w-9 h-9 flex justify-center items-center text-xl font-medium">
+                      <p
+                        className="ml-5 bg-gray-400 rounded-md p-1 w-9 h-9 flex justify-center items-center text-xl font-medium"
+                        key={user.user_id}
+                      >
                         {user.username.substring(0, 1).toUpperCase()}
                       </p>
                     ))}
@@ -121,12 +151,21 @@ const Projects = () => {
                   openInviteUsers={openInviteUsers}
                   setOpenInviteUsers={setOpenInviteUsers}
                   projectId={projectId}
+                  formResult={formResult}
+                  setFormResult={setFormResult}
                 />
               </div>
 
-              <button>
-                <AiOutlineEllipsis size={30} />
-              </button>
+              {data && (
+                <ProjectDetailsPopup
+                  data={data}
+                  projectId={projectId}
+                  projectOwner={projectOwner}
+                  sharedUsers={sharedUsers}
+                  projectHeader={projectHeader}
+                  setProjectHeader={setProjectHeader}
+                />
+              )}
             </div>
             {openPrivacyOptions && (
               <PrivacyOptions
@@ -142,9 +181,13 @@ const Projects = () => {
         )}
         <h2 className="text-4xl font-bold mb-2">{data.title}</h2>
         {data.message ? (
-          <h3>You do not have access to this file</h3>
+          <h3>{data.message}</h3>
         ) : (
-          <Kanban headerImage={data.header_img} columnsData={data.columns} projectId={projectId} />
+          <Kanban
+            headerImage={projectHeader || data.header_img}
+            columnsData={data.columns}
+            projectId={projectId}
+          />
         )}
       </main>
     </Layout>

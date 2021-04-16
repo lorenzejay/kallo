@@ -1,3 +1,5 @@
+import { AiOutlineClose } from "react-icons/ai";
+import { GrFormClose } from "react-icons/gr";
 import { v4 as uuid } from "uuid";
 
 const NewItem = ({
@@ -24,20 +26,22 @@ const NewItem = ({
   };
   return (
     <div
-      className={`card-color my-3 p-3 rounded-md ${openNewItem ? "block" : "hidden"}`}
+      className={`card-color my-3 p-3 w-64 rounded-md ${openNewItem ? "block" : "hidden"}`}
       style={{ zIndex: 20 }}
     >
-      <input
+      <textarea
         placeholder="Enter Title"
         value={newItemTitle}
         onChange={(e) => setNewItemTitle(e.target.value)}
-        className="p-1 my-3 card-color"
+        className="p-1 my-3 w-full card-color"
       />
-      <div className="flex justify-between">
-        <button onClick={handleAddItem} className="p-2 bg-blue-500 rounded-sm">
+      <div className="flex float-right">
+        <button onClick={() => setOpenNewItem(false)} className="mr-1">
+          <AiOutlineClose className="text-white" size={20} />
+        </button>
+        <button onClick={handleAddItem} className="p-2 bg-blue-500 rounded-md">
           Add Item
         </button>
-        <button onClick={() => setOpenNewItem(false)}>X</button>
       </div>
     </div>
   );
