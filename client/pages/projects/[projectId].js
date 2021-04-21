@@ -52,6 +52,7 @@ const Projects = () => {
       }
     } catch (error) {
       console.log(error);
+      throw new Error("error in getting the owner of the project");
     }
   }, [projectId]);
 
@@ -100,7 +101,7 @@ const Projects = () => {
   // console.log("data", data);
   // console.log("doesUserHaveAccess", doesUserHaveAccess);
 
-  //  console.log(data);
+  console.log("projectId", projectId);
 
   if (doesUserHaveAccess === false) {
     return (

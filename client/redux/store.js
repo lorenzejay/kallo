@@ -6,7 +6,11 @@ import {
   userIdentificationReducer,
   userLoginReducer,
 } from "./Reducers/userReducers";
-import { projectAddReducer, projectGetUserOwnedReducer } from "./Reducers/projectReducers";
+import {
+  projectAddReducer,
+  projectGetUserOwnedReducer,
+  projectsColumnsReducer,
+} from "./Reducers/projectReducers";
 
 const reducers = combineReducers({
   userLogin: userLoginReducer,
@@ -14,6 +18,7 @@ const reducers = combineReducers({
   userDeets: userDetailsReducer,
   projectAdd: projectAddReducer,
   projectGetUsers: projectGetUserOwnedReducer,
+  projectColumns: projectsColumnsReducer,
 });
 const middlewares = [thunk];
 const ISSERVER = typeof window === "undefined";

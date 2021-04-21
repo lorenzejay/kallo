@@ -15,11 +15,12 @@ const NewColumn = ({
   setColumns,
   projectId,
 }) => {
+  // console.log("projectId", projectId);
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
 
   const handleAddNewColumn = async () => {
-    if (newColumnTitle === "") return;
+    if (newColumnTitle === "" && !projectId) return;
     //create the column object
     await setColumns([
       ...columns,
@@ -32,9 +33,12 @@ const NewColumn = ({
 
     setOpenNewColumn(false);
     setNewColumnTitle("");
+    console.log("added a new column");
   };
+  console.log("newColumnTitle", newColumnTitle);
   //every time column changes we push to the db
   useEffect(() => {
+    if (!projectId) return;
     const config = configWithToken(userInfo.token);
 
     axios.put(`/api/projects/add-column/${projectId}`, { columns }, config);

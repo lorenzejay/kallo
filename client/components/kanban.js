@@ -1,14 +1,18 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { DragDropContext, Droppable, resetServerContext } from "react-beautiful-dnd";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import KanbanColumnArray from "../components/kanbanColArray";
 import { configWithToken } from "../functions";
+import { getBoardColumns } from "../redux/Actions/projectActions";
 import NewColumn from "./newColumn";
 
 const Kanban = ({ headerImage, projectId }) => {
+  const dispatch = useDispatch();
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
+  const projectColumns = useSelector((state) => state.projectColumns);
+  const { boardColumns } = projectColumns;
   //makes something can load before d&d checks a fail
   const [winReady, setWinReady] = useState(false);
   const [openNewColumn, setOpenNewColumn] = useState(false);
@@ -22,19 +26,6 @@ const Kanban = ({ headerImage, projectId }) => {
     resetServerContext();
   }, []);
 
-  // console.log("projectId", projectId);
-  // get data from the db here
-  useEffect(async () => {
-    if (!projectId && !userInfo) return;
-
-    const config = configWithToken(userInfo.token);
-    const { data } = await axios.get(`/api/projects/get-board-columns/${projectId}`, config);
-    setColumns(data.columns);
-  }, [userInfo, projectId]);
-
-  // console.log("column:", columns);
-  // console.log("projectId:", projectId);
-  // console.log("userInfo:", userInfo);
   const pushColumnsToDB = async () => {
     const config = configWithToken(userInfo.token);
     const { data } = await axios.put(`/api/projects/add-column/${projectId}`, { columns }, config);
@@ -43,6 +34,27 @@ const Kanban = ({ headerImage, projectId }) => {
       window.alert(data.message);
     }
   };
+  // console.log("projectId", projectId);
+  // get data from the db here
+  useEffect(() => {
+    if (projectId) {
+      // const config = configWithToken(userInfo.token);
+      // const { data } = await axios.get(`/api/projects/get-board-columns/${projectId}`, config);
+
+      dispatch(getBoardColumns(projectId));
+      console.log("dispatched getBoardcols", projectId);
+      // if (boardColumns && boardColumns.columns !== null) {
+      //   console.log(boardColumns.columns);
+      // } else {
+      //   setColumns([]);
+      // }
+    }
+  }, [projectId, pushColumnsToDB]);
+
+  boardColumns && console.log("boardColumns:", boardColumns);
+  console.log("columns:", columns);
+  // console.log("projectId:", projectId);
+  // console.log("userInfo:", userInfo);
 
   const handleOnDragEnd = async (result) => {
     // console.log("result:", result);
@@ -112,7 +124,7 @@ const Kanban = ({ headerImage, projectId }) => {
     }
   };
   //whenever columns is updated we update the db
-
+  console.log(columns);
   return (
     <main className="relative flex-col">
       {headerImage && (

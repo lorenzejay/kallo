@@ -18,12 +18,12 @@ export const intialData = {
 };
 
 export const dummyTasks = [
-  { id: uuid(), content: "Take out the garbage" },
-  { id: uuid(), content: "Go for a run" },
-  { id: uuid(), content: "Take kids to school play" },
-  { id: uuid(), content: "Cook dinner" },
-  { id: uuid(), content: "second to last" },
-  { id: uuid(), content: "Last todo" },
+  { id: uuid(), content: "Take out the garbage", tags: [] },
+  { id: uuid(), content: "Go for a run", tags: [] },
+  { id: uuid(), content: "Take kids to school play", tags: [] },
+  { id: uuid(), content: "Cook dinner", tags: [] },
+  { id: uuid(), content: "second to last", tags: [] },
+  { id: uuid(), content: "Last todo", tags: [] },
 ];
 export const initalData2 = {
   // tasks: {

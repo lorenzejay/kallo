@@ -1,4 +1,7 @@
 import {
+  PROJECT_BOARD_COLUMNS_FAIL,
+  PROJECT_BOARD_COLUMNS_REQUEST,
+  PROJECT_BOARD_COLUMNS_SUCCESS,
   PROJECT_BOARD_LIST_ADD_FAIL,
   PROJECT_BOARD_LIST_ADD_REQUEST,
   PROJECT_BOARD_LIST_ADD_SUCCESS,
@@ -43,6 +46,19 @@ export const projectsBoardReducer = (state = { projectBoard: [] }, action) => {
     case PROJECT_BOARD_LIST_ADD_SUCCESS:
       return { loading: false, projectBoard: action.payload };
     case PROJECT_BOARD_LIST_ADD_FAIL:
+      return { loading: false, error: action.payload };
+    default:
+      return state;
+  }
+};
+
+export const projectsColumnsReducer = (state = { boardColumns: [] }, action) => {
+  switch (action.type) {
+    case PROJECT_BOARD_COLUMNS_REQUEST:
+      return { loading: true };
+    case PROJECT_BOARD_COLUMNS_SUCCESS:
+      return { loading: false, boardColumns: action.payload };
+    case PROJECT_BOARD_COLUMNS_FAIL:
       return { loading: false, error: action.payload };
     default:
       return state;

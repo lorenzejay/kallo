@@ -134,6 +134,49 @@ router.put("/add-column/:project_id", authorization, async (req, res) => {
   }
 });
 
+// adding a new task to the kanban board
+router.post("/add-new-task/:project_id", authorization, async (req, res) => {
+  try {
+    const user_id = req.user;
+    // we are manually creating the task_id and title
+    const { task_id, title } = req.body;
+    const { project_id } = req.params;
+    //verify we are thje owner or a member of the project
+    const verifyQuery = await pool.query(
+      "SELECT project_owner FROM projects WHERE project_id = $1",
+      [project_id]
+    );
+    const { project_owner } = verifyQuery.rows[0];
+
+    const sharedToMeChecker = await pool.query(
+      "SELECT shared_user, can_edit FROM shared_users WHERE shared_project = $1",
+      [project_id]
+    );
+    const isSharedToUserAlreadyChecker = sharedToMeChecker.rows.find(
+      (x) => x.shared_user === user_id
+    );
+
+    if (
+      project_owner !== user_id &&
+      isSharedToUserAlreadyChecker &&
+      !isSharedToUserAlreadyChecker.can_edit
+    ) {
+      return res.send({
+        success: false,
+        message: "Modifications to this project will not be saved.",
+      });
+    }
+    //now we insert to the db
+    await pool.query("INSERT INTO tasks(task_id, title, project) VALUES ($1, $2, $3)", [
+      task_id,
+      title,
+      project_id,
+    ]);
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 //just get the columns from the project
 router.get("/get-board-columns/:project_id", authorization, async (req, res) => {
   try {

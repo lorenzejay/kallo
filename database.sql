@@ -36,6 +36,16 @@ alter table shared_users add foreign key(shared_user) references users(user_id) 
 alter table shared_users add foreign key(shared_project) references projects(project_id) on delete cascade;
 
 
+CREATE TABLE tasks (
+    task_id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title VARCHAR(55) NOT NULL,
+    project uuid NOT NULL,
+    markdown TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+alter table tasks add foreign key(project) references projects(project_id) on delete cascade;
+
+
 -- CREATE TABLE columns (
 --     column_id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
 --     column_name VARCHAR(55) NOT NULL,

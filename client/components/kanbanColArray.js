@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Draggable, Droppable } from "react-beautiful-dnd";
-import { v4 as uuid } from "uuid";
 import KanbanItemFromArr from "./kanbanItemFromArr";
 import NewItem from "./newItem";
 const KanbanColumnArray = ({ column, id, index, setColumns, columns, projectId }) => {
@@ -20,7 +19,7 @@ const KanbanColumnArray = ({ column, id, index, setColumns, columns, projectId }
   //   setColumns([...columns]);
   //   console.log("columnsAftersettingItToColumns", columnCopy);
   // };
-
+  // console.log(columns);
   return (
     <Draggable draggableId={column.id} index={index} key={id}>
       {(provided, snapshot) => (
@@ -35,7 +34,7 @@ const KanbanColumnArray = ({ column, id, index, setColumns, columns, projectId }
             <h2 className="text-white text-xl my-3 p-1 w-auto hover:bg-gray-700 rounded-sm mr-1">
               {column.name}
             </h2>
-            <p>{column.items.length}</p>
+            {column.items && <p>{column.items.length}</p>}
           </div>
           <Droppable droppableId={id} key={id}>
             {(provided, snapshot) => {
@@ -47,6 +46,7 @@ const KanbanColumnArray = ({ column, id, index, setColumns, columns, projectId }
                   style={{ background: snapshot.isDraggingOver ? "" : "#2f3437" }}
                 >
                   {column &&
+                    column.items &&
                     column.items.map((item, index) => {
                       //console.log(task);
                       return (
@@ -62,15 +62,18 @@ const KanbanColumnArray = ({ column, id, index, setColumns, columns, projectId }
                       );
                     })}
                   {provided.placeholder}
-                  <NewItem
-                    columns={columns}
-                    setColumns={setColumns}
-                    newItemTitle={newItemTitle}
-                    setNewItemTitle={setNewItemTitle}
-                    openNewItem={openNewItem}
-                    setOpenNewItem={setOpenNewItem}
-                    column={column}
-                  />
+                  {projectId && (
+                    <NewItem
+                      columns={columns}
+                      setColumns={setColumns}
+                      newItemTitle={newItemTitle}
+                      setNewItemTitle={setNewItemTitle}
+                      openNewItem={openNewItem}
+                      setOpenNewItem={setOpenNewItem}
+                      column={column}
+                      projectId={projectId}
+                    />
+                  )}
                   <button
                     className="border card-color rounded-md border-black border-solid p-1 mb-4 w-64 border-rounded z-8"
                     onClick={() => setOpenNewItem(!openNewItem)}
