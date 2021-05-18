@@ -26,11 +26,11 @@ const ProjectCard = ({ projectId, title, headerImg, projectOwner }) => {
           alt={title}
         />
         <h3 className=" border-black text-white font-semibold w-full ">{title}</h3>
-        <div className=" mt-3">
+        <div className="mt-3 flex flex-grow justify-start ">
           {sharedUsers &&
             sharedUsers.length !== 0 &&
             sharedUsers.map((user) => (
-              <p className=" bg-gray-400 rounded-md p-1 w-9 h-9 flex justify-center items-center text-xl font-medium">
+              <p className=" bg-gray-400 rounded-md mr-3 p-1 w-9 h-9 flex justify-center items-center text-xl font-medium">
                 {user.username.substring(0, 1)}
               </p>
             ))}

@@ -1,4 +1,5 @@
 import axios from "axios";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { AiOutlinePlus } from "react-icons/ai";
@@ -102,7 +103,7 @@ const Projects = () => {
     );
   }, [projectHeader]);
   // console.log("sharedUsers", sharedUsers);
-  // console.log("data", data);
+  console.log("data", data);
   // console.log("doesUserHaveAccess", doesUserHaveAccess);
 
   // console.log("projectId", projectId);
@@ -115,89 +116,92 @@ const Projects = () => {
     );
   }
   return (
-    <Layout>
-      <main className="text-white">
-        {data && !data.message && (
-          <>
-            <div className="flex justify-between items-center">
-              <div className="flex items-center">
-                <button
-                  className="bg-gray-500 rounded-md px-2 py-1 w-24 my-2"
-                  onClick={() => setOpenPrivacyOptions(true)}
-                >
-                  {data.is_private ? (
-                    <span className="flex items-center justify-between">
-                      <BsLock /> Private
-                    </span>
-                  ) : (
-                    <span className="flex items-center justify-between">
-                      <BsUnlock /> Public
-                    </span>
-                  )}
-                </button>
-                <div className="flex">
-                  {sharedUsers &&
-                    sharedUsers.map((user) => (
-                      <p
-                        className="ml-5 bg-gray-400 rounded-md p-1 w-9 h-9 flex justify-center items-center text-xl font-medium"
-                        key={user.user_id}
-                      >
-                        {user.username.substring(0, 1).toUpperCase()}
-                      </p>
-                    ))}
+    <>
+      <Head>{data && <title>{data.title} | Kallo</title>}</Head>
+      <Layout>
+        <main className="text-white">
+          {data && !data.message && (
+            <>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center">
                   <button
-                    className="bg-blue-500 ml-3 p-1 w-9 h-9 rounded-md flex justify-center items-center"
-                    onClick={() => setOpenInviteUsers(!openInviteUsers)}
+                    className="bg-gray-500 rounded-md px-2 py-1 w-24 my-2"
+                    onClick={() => setOpenPrivacyOptions(true)}
                   >
-                    <AiOutlinePlus size={21} />
+                    {data.is_private ? (
+                      <span className="flex items-center justify-between">
+                        <BsLock /> Private
+                      </span>
+                    ) : (
+                      <span className="flex items-center justify-between">
+                        <BsUnlock /> Public
+                      </span>
+                    )}
                   </button>
+                  <div className="flex">
+                    {sharedUsers &&
+                      sharedUsers.map((user) => (
+                        <p
+                          className="ml-5 bg-gray-400 rounded-md p-1 w-9 h-9 flex justify-center items-center text-xl font-medium"
+                          key={user.user_id}
+                        >
+                          {user.username.substring(0, 1).toUpperCase()}
+                        </p>
+                      ))}
+                    <button
+                      className="bg-blue-500 ml-3 p-1 w-9 h-9 rounded-md flex justify-center items-center"
+                      onClick={() => setOpenInviteUsers(!openInviteUsers)}
+                    >
+                      <AiOutlinePlus size={21} />
+                    </button>
+                  </div>
+                  <InviteUsers
+                    openInviteUsers={openInviteUsers}
+                    setOpenInviteUsers={setOpenInviteUsers}
+                    projectId={projectId}
+                    formResult={formResult}
+                    setFormResult={setFormResult}
+                  />
                 </div>
-                <InviteUsers
-                  openInviteUsers={openInviteUsers}
-                  setOpenInviteUsers={setOpenInviteUsers}
-                  projectId={projectId}
-                  formResult={formResult}
-                  setFormResult={setFormResult}
-                />
-              </div>
 
-              {data && (
-                <ProjectDetailsPopup
-                  data={data}
+                {data && (
+                  <ProjectDetailsPopup
+                    data={data}
+                    projectId={projectId}
+                    projectOwner={projectOwner}
+                    sharedUsers={sharedUsers}
+                    projectHeader={projectHeader}
+                    setProjectHeader={setProjectHeader}
+                  />
+                )}
+              </div>
+              {openPrivacyOptions && (
+                <PrivacyOptions
+                  is_private={data.is_private}
+                  setIsPrivateProject={setIsPrivateProject}
+                  openPrivacyOptions={openPrivacyOptions}
+                  setOpenPrivacyOptions={setOpenPrivacyOptions}
+                  isPrivateProject={isPrivateProject}
                   projectId={projectId}
-                  projectOwner={projectOwner}
-                  sharedUsers={sharedUsers}
-                  projectHeader={projectHeader}
-                  setProjectHeader={setProjectHeader}
                 />
               )}
-            </div>
-            {openPrivacyOptions && (
-              <PrivacyOptions
-                is_private={data.is_private}
-                setIsPrivateProject={setIsPrivateProject}
-                openPrivacyOptions={openPrivacyOptions}
-                setOpenPrivacyOptions={setOpenPrivacyOptions}
-                isPrivateProject={isPrivateProject}
-                projectId={projectId}
-              />
-            )}
-          </>
-        )}
-        <h2 className="text-4xl font-bold mb-2">{data.title}</h2>
-        {data.message ? (
-          <h3>{data.message}</h3>
-        ) : projectId ? (
-          <Kanban
-            headerImage={projectHeader || data.header_img}
-            columnsData={data.columns}
-            projectId={projectId}
-          />
-        ) : (
-          ""
-        )}
-      </main>
-    </Layout>
+            </>
+          )}
+          <h2 className="text-4xl font-bold mb-2">{data.title}</h2>
+          {data.message ? (
+            <h3>{data.message}</h3>
+          ) : projectId ? (
+            <Kanban
+              headerImage={projectHeader || data.header_img}
+              columnsData={data.columns}
+              projectId={projectId}
+            />
+          ) : (
+            ""
+          )}
+        </main>
+      </Layout>
+    </>
   );
 };
 

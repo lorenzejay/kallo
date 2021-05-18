@@ -7,16 +7,16 @@ export default function Home() {
   return (
     <div>
       <Head>
-        <title>Custom CRM</title>
-        <link rel="icon" href="/favicon.ico" />
+        <title>Kallo</title>
+        <link rel="icon" href="/home-1.png" />
       </Head>
       <Layout>
         <main className="flex flex-col lg:flex-row justify-center items-center lg:justify-between text-white pt-20">
           <section className="flex flex-col items-center justify-center lg:justify-start lg:items-start">
-            <h1 className="text-2xl text-center lg:text-left font-bold lg:font-medium md:text-3xl xl:text-7xl">
+            <h1 className="text-2xl text-center lg:text-left font-bold lg:font-medium md:text-5xl 2xl:text-7xl">
               Kello helps teams move work forward.
             </h1>
-            <p className="text-lg leading-relaxed mt-2 xl:text-xl xl:w-3/4 xl:leading-loose text-center lg:text-left">
+            <p className="text-lg leading-relaxed mt-2 xl:w-3/4 xl:text-xl  xl:leading-loose text-center lg:text-left">
               Collaborate, manage projects, and reach new productivity peaks. From high rises to the
               home office, the way your team works is unique—accomplish it all with Trello.
             </p>
@@ -25,8 +25,8 @@ export default function Home() {
             </button>
           </section>
           <img
-            src="/home-1.png"
-            className="w-full md:max-w-md lg:max-w-sm xl:max-w-lg 2xl:max-w-3xl rounded-md bg-black lg:ml-5"
+            src="/kanbanimg.png"
+            className="w-full md:max-w-md xl:max-w-lg 2xl:max-w-3xl rounded-md lg:ml-5"
           />
         </main>
 
