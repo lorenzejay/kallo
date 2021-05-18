@@ -1,10 +1,10 @@
 import axios from "axios";
 import { useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { v4 as uuid } from "uuid";
-import { GrFormClose } from "react-icons/gr";
 import { AiOutlineClose } from "react-icons/ai";
 import { configWithToken } from "../functions";
+import { getBoardColumns } from "../redux/Actions/projectActions";
 
 const NewColumn = ({
   openNewColumn,
@@ -18,11 +18,11 @@ const NewColumn = ({
   // console.log("projectId", projectId);
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
-
-  const handleAddNewColumn = async () => {
+  const dispatch = useDispatch();
+  const handleAddNewColumn = () => {
     if (newColumnTitle === "" && !projectId) return;
-    //create the column object
-    await setColumns([
+    // create the column object
+    setColumns([
       ...columns,
       {
         id: uuid(),
@@ -31,18 +31,16 @@ const NewColumn = ({
       },
     ]);
 
+    // const config = configWithToken(userInfo.token);
+    // console.log(columns);
+    // await axios.put(`/api/projects/add-column/${projectId}`, { columns }, config);
     setOpenNewColumn(false);
     setNewColumnTitle("");
-    console.log("added a new column");
   };
-  console.log("newColumnTitle", newColumnTitle);
-  //every time column changes we push to the db
-  useEffect(() => {
-    if (!projectId) return;
-    const config = configWithToken(userInfo.token);
 
-    axios.put(`/api/projects/add-column/${projectId}`, { columns }, config);
-  }, [columns]);
+  // console.log("newColumnTitle", newColumnTitle);
+  // console.log("columns", columns);
+  //every time column changes we push to the db
 
   return (
     <div

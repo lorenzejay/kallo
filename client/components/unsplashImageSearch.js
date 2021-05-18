@@ -41,16 +41,16 @@ const UnsplashImageSearch = ({
       </button>
       <h2 className="text-xl w-72">Photo Search</h2>
       <p className="mb-3 text-gray-300">Search for photos from Unsplash</p>
-      <div className="flex items-center ">
+      <div className="flex items-center w-auto">
         <input
-          className="bg-gray-700 rounded-md px-4 py-1 flex-grow mr-3"
+          className="bg-gray-700 rounded-md px-4 py-1 w-full mr-3"
           type="text"
           placeholder="keywords"
           value={keywords}
           onChange={(e) => setKeywords(e.target.value)}
         />
-        <button className="bg-blue-500 rounded-md" onClick={handleSearchImageFromUnsplash}>
-          <AiOutlineSearch size={30} />
+        <button className="bg-blue-500 p-1 rounded-md" onClick={handleSearchImageFromUnsplash}>
+          <AiOutlineSearch size={22} />
         </button>
       </div>
       {images.response && (

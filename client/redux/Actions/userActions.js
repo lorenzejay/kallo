@@ -1,4 +1,5 @@
 import axios from "axios";
+import { PROJECT_BOARD_COLUMNS_RESET, PROJECT_GET_USERS_OWNED_RESET } from "../Types/projectTypes";
 import {
   USER_DETAILS_FAIL,
   USER_DETAILS_REQUEST,
@@ -49,6 +50,8 @@ export const logout = () => async (dispatch) => {
     dispatch({ type: USER_LOGOUT });
     dispatch({ type: USER_DETAILS_RESET });
     dispatch({ type: USER_IDENTIFICATION_RESET });
+    dispatch({ type: PROJECT_GET_USERS_OWNED_RESET });
+    dispatch({ type: PROJECT_BOARD_COLUMNS_RESET });
   }
 };
 

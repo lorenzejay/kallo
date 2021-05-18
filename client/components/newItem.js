@@ -1,9 +1,11 @@
 import axios from "axios";
 import { AiOutlineClose } from "react-icons/ai";
 import { GrFormClose } from "react-icons/gr";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { v4 as uuid } from "uuid";
 import { configWithToken } from "../functions";
+import { getBoardColumns } from "../redux/Actions/projectActions";
+const initialBlock = { id: uuid(), html: "", tag: "p" };
 
 const NewItem = ({
   openNewItem,
@@ -15,30 +17,24 @@ const NewItem = ({
   column,
   projectId,
 }) => {
-  const userLogin = useSelector((state) => state.userLogin);
-  const { userInfo } = userLogin;
-  const handleAddItem = async () => {
+  const handleAddItem = () => {
     if (!column && !projectId) return;
     const generateManualUuid = uuid();
     const columnItemsCopy = column.items;
-    // console.log(columnItemsCopy);
     // console.log(columns);
-    await columnItemsCopy.push({ id: generateManualUuid, content: newItemTitle, tags: [] });
-    await setColumns([...columns]);
-    // const config = configWithToken(userInfo.token);
-    // console.log("column", columns);
-    // await axios.post(
-    //   `/api/projects/add-new-task/${projectId}`,
-    //   { task_id: generateManualUuid, title: newItemTitle },
-    //   config
-    // );
-    console.log("new item added");
-    await setOpenNewItem(false);
-    await setNewItemTitle("");
-    // console.log(columnItemsCopy);
-    // console.log("columns", columns);
 
-    // setColumns({ ...columns, [id]: { ...column, items: column.items } });
+    columnItemsCopy.push({
+      id: generateManualUuid,
+      content: newItemTitle,
+      tags: [],
+      markdown: [initialBlock],
+    });
+
+    setColumns([...columns]);
+    setOpenNewItem(false);
+    setNewItemTitle("");
+    // console.log("columns", columns);
+    // console.log("columnItemsCopy", columnItemsCopy);
   };
   return (
     <div

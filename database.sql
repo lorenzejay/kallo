@@ -23,7 +23,7 @@ alter table projects add foreign key(project_owner) references users(user_id) on
 -- test
 --delete column 
 -- alter table projects drop column columns;
-alter table projects add columns json DEFAULT '{}'::json;
+alter table projects add columns json DEFAULT '[]'::json not null;
 -- alter table projects add columns text[] DEFAULT '{}';
 
 CREATE TABLE shared_users(

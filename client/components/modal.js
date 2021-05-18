@@ -1,10 +1,24 @@
-import { useState } from "react";
+import { useRef } from "react";
 import { AiOutlineClose } from "react-icons/ai";
-const Modal = ({ modalName, children, bgColor, contentWidth }) => {
-  const [openModal, setOpenModal] = useState(false);
+import useComponentVisible from "../hooks/useComponentVisible";
+const Modal = ({
+  modalName,
+  children,
+  bgColor,
+  contentWidth,
+  contentHeight,
+  openModal,
+  setOpenModal,
+}) => {
+  const ref = useRef();
+  const closeModal = (e) => {
+    if (ref.current === e.target) {
+      setOpenModal(false);
+    }
+  };
   return (
     <>
-      <button onClick={() => setOpenModal(true)} className={`h-7 px-3 p-1 ${bgColor}`}>
+      <button onClick={() => setOpenModal(true)} className={`h-7 px-3 py-1 ${bgColor}`}>
         {modalName}
       </button>
       <div
@@ -12,10 +26,13 @@ const Modal = ({ modalName, children, bgColor, contentWidth }) => {
           openModal ? "block" : "hidden"
         } flex `}
         style={{ backgroundColor: "rgba(0,0,0,0.75)" }}
+        onClick={closeModal}
       >
-        <div className={`modal-content w-full h-full flex items-center justify-center `}>
+        <div className={`modal-content w-full h-full flex items-center justify-center `} ref={ref}>
           <div
-            className="relative w-96 pb-20 m-auto opacity-100 h-3/4 overflow-y-auto p-3 z-10 rounded-md"
+            className={`relative w-96 pb-20 m-auto opacity-100 overflow-y-auto p-3 z-10 rounded-md  ${
+              contentHeight || "h-3/4"
+            }`}
             style={{ backgroundColor: "#3f4447", width: contentWidth }}
           >
             <button

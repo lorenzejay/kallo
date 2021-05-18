@@ -58,16 +58,20 @@ const Projects = () => {
 
   useEffect(async () => {
     const config = configWithToken(userInfo.token);
-    const { data } = await axios.get(`/api/projects/project/${projectId}`, config);
-    // console.log(data);
-    setData(data);
+    if (projectId) {
+      const { data } = await axios.get(`/api/projects/project/${projectId}`, config);
+      // console.log(data);
+      setData(data);
+    }
   }, [projectId, isPrivateProject]);
 
   //gets who is available to access this file
   useEffect(async () => {
     const config = configWithToken(userInfo.token);
-    const { data } = await axios.get(`/api/projects/shared-users/${projectId}`, config);
-    setSharedUsers(data);
+    if (projectId) {
+      const { data } = await axios.get(`/api/projects/shared-users/${projectId}`, config);
+      setSharedUsers(data);
+    }
   }, [projectId, formResult]);
 
   //make sure you have access to this page
@@ -101,7 +105,7 @@ const Projects = () => {
   // console.log("data", data);
   // console.log("doesUserHaveAccess", doesUserHaveAccess);
 
-  console.log("projectId", projectId);
+  // console.log("projectId", projectId);
 
   if (doesUserHaveAccess === false) {
     return (
@@ -183,12 +187,14 @@ const Projects = () => {
         <h2 className="text-4xl font-bold mb-2">{data.title}</h2>
         {data.message ? (
           <h3>{data.message}</h3>
-        ) : (
+        ) : projectId ? (
           <Kanban
             headerImage={projectHeader || data.header_img}
             columnsData={data.columns}
             projectId={projectId}
           />
+        ) : (
+          ""
         )}
       </main>
     </Layout>

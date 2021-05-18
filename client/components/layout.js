@@ -12,7 +12,7 @@ const Layout = ({ children, isSignInOrSignOutPage }) => {
         sidebarOpen={sidebarOpen}
       />
       <div
-        className={`lg:px-16 ${isSignInOrSignOutPage ? "ml-0" : ""} ${
+        className={`px-7 lg:px-16 xl:px-24 ${isSignInOrSignOutPage ? "ml-0" : ""} ${
           sidebarOpen ? "ml-64 lg:px-0" : ""
         }`}
       >

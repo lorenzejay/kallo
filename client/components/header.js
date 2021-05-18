@@ -1,14 +1,13 @@
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
 import { getUserDetails, logout } from "../redux/Actions/userActions";
-import { FaBars } from "react-icons/fa";
 import { useEffect } from "react";
 import Dropdown from "./dropdown";
 import { AiOutlineUser } from "react-icons/ai";
 import { FiLogOut } from "react-icons/fi";
 import { RiTodoLine } from "react-icons/ri";
 
-const Header = ({ setSidebarOpen, sidebarOpen }) => {
+const Header = () => {
   const dispatch = useDispatch();
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
@@ -19,21 +18,20 @@ const Header = ({ setSidebarOpen, sidebarOpen }) => {
       dispatch(getUserDetails());
     }
   }, [userInfo]);
-  // console.log(userDetails);
   return (
-    <header className="flex justify-between items-center h-24 lg:px-16 text-white">
-      {/* <Link href="/">
-        <h2 className="text-3xl font-bold">FREELANCIN</h2>
-      </Link> */}
-      <button onClick={() => setSidebarOpen(!sidebarOpen)} className="outline-none border-none">
+    <header className="flex justify-between items-center h-24 px-7 lg:px-16 xl:px-24 text-white">
+      <Link href="/">
+        <h2 className="text-3xl font-bold cursor-pointer">Kallo</h2>
+      </Link>
+      {/* <button onClick={() => setSidebarOpen(!sidebarOpen)} className="outline-none border-none">
         <FaBars size={30} className="outline-none border-none" />
-      </button>
+      </button> */}
       {!userInfo && (
-        <ul className="flex justify-between items-center w-64 ">
+        <ul className="flex justify-between items-center w-40 ">
           <li>
             <Link href="/signin">Sign In</Link>
           </li>
-          <li>
+          <li className="bg-blue-500 px-4 py-1 rounded-sm">
             <Link href="/signup">Sign Up</Link>
           </li>
         </ul>

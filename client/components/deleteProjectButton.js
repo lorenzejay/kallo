@@ -1,21 +1,18 @@
-import axios from "axios";
 import { useRouter } from "next/router";
 import { FaTrash } from "react-icons/fa";
-import { useSelector } from "react-redux";
-import { configWithToken } from "../functions";
+import { useDispatch } from "react-redux";
+import { deleteProject } from "../redux/Actions/projectActions";
 
 const DeleteProjectButton = ({ projectId }) => {
   const router = useRouter();
-  const userLogin = useSelector((state) => state.userLogin);
-  const { userInfo } = userLogin;
+  const dispatch = useDispatch();
   const handleDeleteProject = async () => {
     try {
-      const config = configWithToken(userInfo.token);
       const continueDelete = window.confirm(
         "Are you sure you want to delete? This action cannot be undone."
       );
       if (continueDelete) {
-        await axios.delete(`/api/projects/delete-project/${projectId}`, config);
+        dispatch(deleteProject(projectId));
         return router.push("/projects");
       }
       return;
@@ -25,7 +22,7 @@ const DeleteProjectButton = ({ projectId }) => {
   };
   return (
     <button
-      className="flex items-center  hover:bg-gray-300 hover:text-black w-full p-1"
+      className="flex items-center mt-2 bg-gray-300 text-black w-36 p-1 hover:bg-red-500 hover:text-white transition-all duration-500 rounded-md"
       onClick={handleDeleteProject}
     >
       <FaTrash className="mr-3" /> Delete

@@ -93,6 +93,8 @@ router.put("/add-column/:project_id", authorization, async (req, res) => {
     //need to be an array of objects
     const { columns } = req.body;
     const { project_id } = req.params;
+    if (!project_id) return;
+    console.log("columns", columns);
     //verify we are thje owner or a member of the project
     const verifyQuery = await pool.query(
       "SELECT project_owner FROM projects WHERE project_id = $1",
@@ -121,7 +123,7 @@ router.put("/add-column/:project_id", authorization, async (req, res) => {
 
     //convert to json as we are passing to a json format
     const columnsInJsonFormat = JSON.stringify(columns);
-
+    // console.log(columnsInJsonFormat);
     //update the column
     await pool.query("UPDATE projects SET columns = $1 WHERE project_id = $2", [
       columnsInJsonFormat,
@@ -188,6 +190,7 @@ router.get("/get-board-columns/:project_id", authorization, async (req, res) => 
       "SELECT project_owner FROM projects WHERE project_id = $1",
       [project_id]
     );
+    // return res.json(verifyQuery.rows[0]);
     const { project_owner } = verifyQuery.rows[0];
 
     const sharedToMeChecker = await pool.query(
@@ -208,7 +211,8 @@ router.get("/get-board-columns/:project_id", authorization, async (req, res) => 
     const query = await pool.query("SELECT columns FROM projects WHERE project_id = $1", [
       project_id,
     ]);
-    res.json(query.rows[0]);
+
+    res.json(query.rows[0].columns);
   } catch (error) {
     console.log(error.message);
   }

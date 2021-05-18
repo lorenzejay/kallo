@@ -11,11 +11,15 @@ import { addProject, getLoggedInUserProjects } from "../../redux/Actions/project
 import UnsplashImageSearch from "../../components/unsplashImageSearch";
 import PrivacyOptions from "../../components/privacyOptions";
 import { getUserId } from "../../redux/Actions/userActions";
+import Loader from "../../components/loader";
+import { configWithToken } from "../../functions";
+import axios from "axios";
+import ProjectCard from "../../components/projectCard";
 
 const Projects = () => {
   const router = useRouter();
 
-  // const [openModal, setOpenModal] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
   const [projectTitle, setProjectTitle] = useState("");
   const [projectHeader, setProjectHeader] = useState("");
 
@@ -32,6 +36,7 @@ const Projects = () => {
   //project redux state
   const projectAdd = useSelector((state) => state.projectAdd);
   const { created } = projectAdd;
+  //get users projects not get projects shared users
   const projectGetUsers = useSelector((state) => state.projectGetUsers);
   const { loading, error, projects } = projectGetUsers;
 
@@ -45,11 +50,11 @@ const Projects = () => {
     //project image, title to server
     try {
       if (projectTitle !== "") {
-        dispatch(addProject(projectTitle, projectHeader, isPrivateProject));
         setProjectTitle("");
         setProjectHeader("");
         setIsPrivateProject(false);
         setOpenModal(false);
+        dispatch(addProject(projectTitle, projectHeader, isPrivateProject));
       } else {
         window.alert("You must include a project title.");
       }
@@ -65,7 +70,7 @@ const Projects = () => {
 
   return (
     <Layout>
-      {loading && <h2>loading....</h2>}
+      {loading && <Loader />}
       <section className="relative flex flex-col justify-center text-white">
         <div className="flex justify-between">
           <div>
@@ -73,7 +78,14 @@ const Projects = () => {
             {projects && <p className="mb-5">Items: {projects.length || 0}</p>}
           </div>
 
-          <Modal modalName="ADD +" bgColor={"bg-blue-400"}>
+          <Modal
+            modalName="ADD +"
+            bgColor={"bg-blue-500"}
+            openModal={openModal}
+            setOpenModal={setOpenModal}
+            contentHeight="h-auto"
+            contentWidth="w-full"
+          >
             <img src={projectHeader || "sample-card-img.jpg"} className="rounded-md" />
             <input
               placeholder="Add project title"
@@ -124,6 +136,7 @@ const Projects = () => {
                     setIsPrivateProject={setIsPrivateProject}
                     isPrivateProject={isPrivateProject}
                     setOpenPrivacyOptions={setOpenPrivacyOptions}
+                    className="right-10 shadow-2xl"
                   />
                 )}
               </div>
@@ -140,41 +153,18 @@ const Projects = () => {
         </div>
 
         {Array.isArray(projects) ? (
-          <div className="flex flex-col lg:grid grid-cols-3 gap-5">
+          <div className="flex flex-col items-center md:grid md:grid-cols-2 lg:items-start lg:grid-cols-3 2xl:grid-cols-4 gap-5">
             {projects &&
-              projects.map((project) => (
-                <Link href={`/projects/${project.project_id}`} key={project.project_id}>
-                  <div className="card-color shadow-xl border rounded-md h-auto cursor-pointer w-72 relative p-2 pb-10 mt-3 hover:transform hover:shadow-lg transition-all duration-500 ease-in-out">
-                    <img
-                      src={project.header_img || "sample-card-img.jpg"}
-                      className="rounded-md mb-2 w-full h-44 object-cover"
-                      alt={project.title}
-                    />
-                    <h3 className=" border-black text-white font-semibold w-full ">
-                      {project.title}
-                    </h3>
-                    <div className=" my-3">
-                      {/* <div className="rounded bg-gray-300 p-1 text-gray-900 flex items-center justify-center w-8 h-8 text-lg">
-                    {project.project_owner.substring(0, 1)}
-                  </div> */}
-                      {/* {project.sharedWith.map((person) => {
-                    <div>{person}</div>;
-                  })} */}
-                    </div>
-
-                    {/* <div className="p-5 text-white card-color">
-                <p className="font-medium">Client Name:</p>
-                <p className="text-gray-500 mb-3">{project.clientName}</p>
-                <p>{project.email}</p>
-                <p className="font-medium">Phone Number:</p>
-                <p className="text-gray-400">{project.phoneNumber}</p>
-            </div> */}
-                    <button className="absolute right-2 bottom-3 bg-green-600 px-3 text-white">
-                      -----
-                    </button>
-                  </div>
-                </Link>
-              ))}
+              projects.map((project) => {
+                return (
+                  <ProjectCard
+                    projectId={project.project_id}
+                    title={project.title}
+                    headerImg={project.header_img}
+                    projectOwner={project.project_owner}
+                  />
+                );
+              })}
           </div>
         ) : (
           <>{projects && <h2>{projects.message}</h2>}</>

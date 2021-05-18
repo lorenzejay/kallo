@@ -80,3 +80,22 @@ export const getBoardColumns = (projectId) => async (dispatch, getState) => {
     dispatch({ type: PROJECT_BOARD_COLUMNS_FAIL, payload: error.message });
   }
 };
+
+export const deleteProject = (projectId) => async (dispatch, getState) => {
+  try {
+    const {
+      userLogin: { userInfo },
+    } = getState();
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        token: userInfo.token,
+      },
+    };
+    await axios.delete(`/api/projects/delete-project/${projectId}`, config);
+    //after deleting, empty out board columns
+    dispatch({ type: PROJECT_BOARD_COLUMNS_SUCCESS, payload: [] });
+  } catch (error) {
+    console.log(error.message);
+  }
+};

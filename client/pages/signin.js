@@ -28,40 +28,51 @@ const Signin = () => {
   };
 
   return (
-    <Layout isSignInOrSignOutPage={true}>
-      <section>
-        {loading && <p>loading....</p>}
-        {error && <p className="text-red">{error}</p>}
-        <form className="flex items-center justify-center flex-col" onSubmit={handleSignIn}>
-          <h2 className="text-3xl font-bold uppercase">Sign In</h2>
-          <Input
-            placeholder="Email"
-            type="email"
-            value={email}
-            name="email"
-            className="w-3/4 "
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <Input
-            placeholder="Password"
-            type="password"
-            value={password}
-            name="password"
-            className=" w-3/4"
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <Googlesigninbutton />
-          <Button type="submit" className="w-3/4 mx-auto">
-            Sign In
-          </Button>
-          <Link href="/signup" className="mt-5">
-            <p>
-              If you don't have an account, <span style={{ color: "#ff0078" }}>Sign Up</span>
-            </p>
-          </Link>
-        </form>
+    // <Layout isSignInOrSignOutPage={true}>
+    <main className="mt-24 flex flex-col items-center justify-center px-7 lg:px-16 text-white">
+      <h1 className="text-5xl font-semibold ">Kallo</h1>
+      {loading && <p>loading....</p>}
+      {error && <p className="text-red">{error}</p>}
+      <form
+        className="card-color mt-5 py-10 px-2 flex items-center justify-center flex-col text-black shadow-lg w-full lg:w-1/4 rounded-md"
+        onSubmit={handleSignIn}
+      >
+        <p className="mb-4 text-white text-xl">Log in.</p>
+        <Input
+          placeholder="Email"
+          type="email"
+          value={email}
+          name="email"
+          className="w-3/4 "
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <Input
+          placeholder="Password"
+          type="password"
+          value={password}
+          name="password"
+          className=" w-3/4"
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        {/* <Googlesigninbutton /> */}
+        <Button
+          type="submit"
+          className="w-3/4 mx-auto rounded-sm mt-3 column-color hover:bg-blue-500 transition-all duration-500"
+        >
+          Sign In
+        </Button>
+        <Link href="/signup">
+          <p className="text-white mt-5 cursor-pointer">
+            If you don't have an account, <span className="text-blue-500">Sign Up</span>
+          </p>
+        </Link>
+      </form>
+      <section className="hidden lg:flex justify-between items-center mt-48 w-full">
+        <img src="/kallo-sign-in.svg" className="lg:w-96 object-cover" />
+        <img src="/kallo-sign-in2.svg" className="lg:w-96 object-cover" />
       </section>
-    </Layout>
+    </main>
+    // </Layout>
   );
 };
 

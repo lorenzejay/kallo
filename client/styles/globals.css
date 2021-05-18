@@ -22,13 +22,135 @@ body {
 .column-color {
   background-color: #2f3437;
 }
+input::placeholder,
+textarea::placeholder {
+  color: white;
+}
+input:-ms-input-placeholder,
+textarea:-ms-input-placeholder {
+  /* Internet Explorer 10-11 */
+  color: white;
+}
 
+input::-ms-input-placeholder,
+textarea::-ms-input-placeholder {
+  /* Microsoft Edge */
+  color: white;
+}
 button:focus,
 input:focus,
 option:focus,
 textarea:focus,
 select:focus {
   outline: none;
+}
+
+.loader,
+.loader:before,
+.loader:after {
+  border-radius: 50%;
+  width: 2.5em;
+  height: 2.5em;
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+  -webkit-animation: load7 1.8s infinite ease-in-out;
+  animation: load7 1.8s infinite ease-in-out;
+}
+.loader {
+  color: #ffffff;
+  font-size: 10px;
+  margin: 80px auto;
+  position: relative;
+  text-indent: -9999em;
+  -webkit-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-animation-delay: -0.16s;
+  animation-delay: -0.16s;
+}
+.loader:before,
+.loader:after {
+  content: "";
+  position: absolute;
+  top: 0;
+}
+.loader:before {
+  left: -3.5em;
+  -webkit-animation-delay: -0.32s;
+  animation-delay: -0.32s;
+}
+.loader:after {
+  left: 3.5em;
+}
+@-webkit-keyframes load7 {
+  0%,
+  80%,
+  100% {
+    box-shadow: 0 2.5em 0 -1.3em;
+  }
+  40% {
+    box-shadow: 0 2.5em 0 0;
+  }
+}
+@keyframes load7 {
+  0%,
+  80%,
+  100% {
+    box-shadow: 0 2.5em 0 -1.3em;
+  }
+  40% {
+    box-shadow: 0 2.5em 0 0;
+  }
+}
+.Block {
+  margin: 0.25rem 0;
+  padding: 0.5rem 0.5rem 0.5rem 0;
+  /* background: #fafafa; */
+  outline: none;
+  border-radius: 0.25rem;
+}
+/* .Block:hover {
+  background: #f8f8f8;
+  outline-color: #f5f6fb;
+}
+*/
+.Block:focus {
+  background: #2f3437;
+}
+
+.SelectMenu .Items {
+  background: #2f3437;
+  box-shadow: rgba(15, 15, 15, 0.05) 0px 0px 0px 1px, rgba(15, 15, 15, 0.1) 0px 3px 6px,
+    rgba(15, 15, 15, 0.2) 0px 9px 24px;
+  border-radius: 0.5rem;
+}
+.SelectMenu .Items div[role="button"] {
+  font-size: 0.875rem;
+  font-weight: 400;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid f5f6fb;
+}
+.SelectMenu .Items div[role="button"]:hover {
+  background: #f5f6fb;
+  cursor: pointer;
+}
+.SelectMenu .Items div[role="button"]:last-of-type {
+  border-bottom: none;
+}
+.SelectMenu .Items div[role="button"]:hover,
+.SelectMenu .Items div[role="button"]:focus {
+  background: #f5f6fb;
+  cursor: pointer;
+}
+.SelectMenu .Items div[role="button"]:first-of-type:hover,
+.SelectMenu .Items div[role="button"]:first-of-type:focus {
+  border-top-right-radius: 0.5rem;
+  border-top-left-radius: 0.5rem;
+}
+.SelectMenu .Items div[role="button"]:last-of-type:hover,
+.SelectMenu .Items div[role="button"]:last-of-type:focus {
+  border-bottom-right-radius: 0.5rem;
+  border-bottom-left-radius: 0.5rem;
 }
 
 /* kanban board */

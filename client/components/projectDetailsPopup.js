@@ -4,6 +4,7 @@ import DeleteProjectButton from "./deleteProjectButton";
 import UsernameDisplay from "./userNameDisplay";
 import Modal from "./modal";
 import UnsplashImageSearch from "./unsplashImageSearch";
+import Dropdown from "./dropdown";
 
 const ProjectDetailsPopup = ({
   data,
@@ -14,31 +15,37 @@ const ProjectDetailsPopup = ({
   setProjectHeader,
 }) => {
   const [revealImageSearch, setRevealImageSearch] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
   return (
-    <Modal modalName={<AiOutlineEllipsis size={30} />} contentWidth="450px">
-      <p className="text-xl my-3">
-        <span>Title:</span> {data.title}
+    <Dropdown
+      title={<AiOutlineEllipsis size={30} />}
+      className={"w-64 right-0"}
+      hoverable={false}
+      showArrow={false}
+    >
+      <p className="text-2xl my-3">
+        <span className="font-bold">Title:</span> {data.title}
       </p>
       {projectOwner && (
         <p className="flex flex-col">
-          Made by: <span>{projectOwner.username}</span>
+          Made by: <span className="font-bold">{projectOwner.username}</span>
         </p>
       )}
       {data.created_at && (
         <p className="my-2 flex flex-col">
-          <span>Created On:</span>
+          <span className="font-bold">Created On:</span>
           {data.created_at.substring(0, 10)}
         </p>
       )}
       <div className="flex flex-col">
-        <p className="border-b">Team:</p>
+        <span className="font-bold">Team:</span>
         {sharedUsers.map((user) => (
           <UsernameDisplay username={user.username} width={"w-3/4"} key={user.user_id} />
         ))}
       </div>
       <button
         onClick={() => setRevealImageSearch(!revealImageSearch)}
-        className="rounded-md mt-3 px-2 py-1 hover:bg-gray-400 hover:text-black"
+        className="rounded-md my-3 px-2 py-1 bg-gray-400 hover:bg-blue-500 hover:text-white text-black transition-all duration-500 "
       >
         Update Header
       </button>
@@ -49,13 +56,14 @@ const ProjectDetailsPopup = ({
         setProjectHeader={setProjectHeader}
         className="right-20 top-5"
       />
-      <p className="text-red-500 border-t flex items-center mt-3">
+      <hr />
+      <p className="text-red-500  flex items-center mt-3">
         <span className="mr-3">Danger Zone</span>
         <AiOutlineWarning />
       </p>
 
       <DeleteProjectButton projectId={projectId} />
-    </Modal>
+    </Dropdown>
   );
 };
 

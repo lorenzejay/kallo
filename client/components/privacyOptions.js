@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AiOutlineClose } from "react-icons/ai";
 import { useSelector } from "react-redux";
 import { configWithToken } from "../functions";
@@ -11,9 +11,11 @@ const PrivacyOptions = ({
   setIsPrivateProject,
   is_private = null,
   projectId,
+  className,
 }) => {
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
+  const ref = useRef();
 
   const [response, setResponse] = useState();
 
@@ -26,14 +28,6 @@ const PrivacyOptions = ({
   //update privacy
   const handleUpdatePrivacy = async (projectIsPrivate) => {
     try {
-      // console.log("is_private", is_private);
-      //x console.log("isPrivateProject", isPrivateProject);
-      // console.log("projectIsPrivate", projectIsPrivate);
-      // console.log("projectIsPrivate", projectIsPrivate);
-
-      //pass privacy and projectId to be updated.
-      // console.log("isPrivateProject", isPrivateProject);
-
       const config = configWithToken(userInfo.token);
       const { data } = await axios.put(
         `/api/projects/update-privacy/${projectId}`,
@@ -52,10 +46,24 @@ const PrivacyOptions = ({
       window.alert(response.message);
     }
   }, [response]);
+
+  const closePrivacyOptions = () => {
+    if (ref.current === null) return;
+    document.addEventListener("click", (e) => {
+      if (!ref.current.contains(e.target)) {
+        setOpenPrivacyOptions(false);
+      }
+    });
+  };
+  useEffect(() => {
+    closePrivacyOptions();
+  }, [ref]);
   return (
     <div
-      className="  text-white absolute w-72 rounded-md p-3 z-10"
+      className={`card-color text-white absolute w-72 rounded-md p-3 z-10 ${className}`}
       style={{ background: "#3F4447" }}
+      ref={ref}
+      onClick={closePrivacyOptions}
     >
       <button className="absolute right-1 top-1" onClick={() => setOpenPrivacyOptions(false)}>
         <AiOutlineClose size={24} />

@@ -17,19 +17,19 @@ const Profile = () => {
 
   return (
     <Layout>
-      <main className="flex items-center justify-center flex-col w-full text-white">
+      <main className="flex flex-col items-center justify-center w-full text-white">
         <h1 className="text-5xl">Your Profile</h1>
         {userDetails && (
-          <form className="w-full flex flex-col justify-center mt-20">
-            <p className="flex w-1/2 mx-auto text-2xl my-3">
+          <form className="w-full flex flex-col justify-between lg:justify-center mt-20 lg:w-1/2">
+            <p className="flex mx-auto w-full text-2xl my-3 text-left">
               <span className="uppercase flex-grow">Full Name:</span>
               {userDetails.first_name} {userDetails.last_name}
             </p>
-            <p className="flex  w-1/2 mx-auto text-2xl my-3">
+            <p className="flex mx-auto w-full text-2xl my-3">
               <span className="uppercase flex-grow">Username:</span>
               {userDetails.username}
             </p>
-            <p className="flex w-1/2 mx-auto text-2xl my-3">
+            <p className="flex mx-auto w-full text-2xl my-3">
               <span className="uppercase flex-grow">Email:</span>
               {userDetails.email}
             </p>

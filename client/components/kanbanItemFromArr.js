@@ -2,7 +2,7 @@ import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { Draggable } from "react-beautiful-dnd";
 
-const KanbanItemFromArr = ({ item, index, columns, setColumns, column, columnId }) => {
+const KanbanItemFromArr = ({ item, index, columns, setColumns, column, columnId, projectId }) => {
   //   console.log("index", index);
   const [itemText, setItemText] = useState(item.content || "");
   const [openTask, setOpenTask] = useState(false);
@@ -31,14 +31,15 @@ const KanbanItemFromArr = ({ item, index, columns, setColumns, column, columnId 
   //     //     columnId: { ...columns, items: [...column.items, { [item.id]: itemText }] },
   //     //   });
   //   }, [itemText]);
-  //   console.log(columns[columnId].items);
+  // console.log(item.tags);
+
   return (
     <Draggable key={item.id} draggableId={item.id} index={index}>
       {(provided, snapshot) => {
         return (
-          <Link href={`/project-tasks/${item.id}`} className="w-full">
+          <Link href={`/project-tasks/${projectId}?taskId=${item.id}`} className="w-full">
             <div
-              className={`border card-color rounded-md border-black border-solid p-4 mb-4 w-64 flex justify-start border-rounded z-8  ${
+              className={`border card-color rounded-md border-black border-solid p-4 mb-4 w-64 flex flex-col justify-start border-rounded z-8 ${
                 snapshot.isDragging ? "opacity-50" : "opacity-100"
               }`}
               ref={provided.innerRef}
@@ -52,6 +53,21 @@ const KanbanItemFromArr = ({ item, index, columns, setColumns, column, columnId 
               onChange={(e) => handleChangeItemContent(e.target.value)}
             /> */}
               <p className="text-left w-full">{itemText || ""}</p>
+              <div>
+                {item && item.tags.length > 0 && (
+                  <div className="flex flex-wrap w-auto h-auto justify-start">
+                    {item.tags.map((t, i) => (
+                      <div
+                        className="rounded-sm mr-2 my-2 text-sm"
+                        style={{ background: t.labelColor, padding: "1px 10px" }}
+                        key={i}
+                      >
+                        {t.labelName}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </Link>
         );
