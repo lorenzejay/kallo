@@ -1,6 +1,5 @@
 import { useRef } from "react";
 import { AiOutlineClose } from "react-icons/ai";
-import useComponentVisible from "../hooks/useComponentVisible";
 const Modal = ({
   modalName,
   children,
@@ -18,7 +17,7 @@ const Modal = ({
   };
   return (
     <>
-      <button onClick={() => setOpenModal(true)} className={`h-7 px-3 py-1 ${bgColor}`}>
+      <button onClick={() => setOpenModal(true)} className={`h-7 px-3 py-1 ${bgColor} rounded-sm`}>
         {modalName}
       </button>
       <div
