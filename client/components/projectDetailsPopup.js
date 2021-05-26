@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { AiOutlineEllipsis, AiOutlineWarning } from "react-icons/ai";
 import DeleteProjectButton from "./deleteProjectButton";
 import UsernameDisplay from "./userNameDisplay";
-import Modal from "./modal";
 import UnsplashImageSearch from "./unsplashImageSearch";
 import Dropdown from "./dropdown";
 
@@ -15,11 +14,11 @@ const ProjectDetailsPopup = ({
   setProjectHeader,
 }) => {
   const [revealImageSearch, setRevealImageSearch] = useState(false);
-  const [openModal, setOpenModal] = useState(false);
+
   return (
     <Dropdown
       title={<AiOutlineEllipsis size={30} />}
-      className={"w-64 right-0"}
+      className={"w-64 right-0 z-10"}
       hoverable={false}
       showArrow={false}
     >
