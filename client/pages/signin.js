@@ -1,14 +1,15 @@
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
 import Button from "../components/button";
-import Googlesigninbutton from "../components/googlesigninbutton";
 import Input from "../components/input";
-import Layout from "../components/layout";
 import { login } from "../redux/Actions/userActions";
+import { DarkModeContext } from "../context/darkModeContext";
 
 const Signin = () => {
+  const { isDarkMode } = useContext(DarkModeContext);
+
   const router = useRouter();
   const dispatch = useDispatch();
   const userLogin = useSelector((state) => state.userLogin);
@@ -29,21 +30,29 @@ const Signin = () => {
 
   return (
     // <Layout isSignInOrSignOutPage={true}>
-    <main className="mt-24 flex flex-col items-center justify-center px-7 lg:px-16 text-white">
-      <h1 className="text-5xl font-semibold ">Kallo</h1>
+    <main
+      className={`${
+        isDarkMode ? "darkBody text-white" : "lightBody text-black"
+      } min-h-screen flex flex-col items-center justify-center px-7 lg:px-16 `}
+    >
+      <h1 className={`text-5xl font-semibold  ${isDarkMode ? " text-white" : " text-black"}`}>
+        Kallo
+      </h1>
       {loading && <p>loading....</p>}
-      {error && <p className="text-red">{error}</p>}
+      {error && <p className="text-red-500">{error}</p>}
       <form
-        className="card-color mt-5 py-10 px-2 flex items-center justify-center flex-col text-black shadow-lg w-full lg:w-1/4 rounded-md"
+        className={`${
+          isDarkMode ? "card-color text-white" : "bg-gray-100 text-black"
+        } mt-5 py-10 px-2 flex items-center justify-center flex-col  shadow-lg w-full lg:w-1/4 rounded-md`}
         onSubmit={handleSignIn}
       >
-        <p className="mb-4 text-white text-xl">Log in.</p>
+        <p className={`mb-4  text-xl `}>Log in.</p>
         <Input
           placeholder="Email"
           type="email"
           value={email}
           name="email"
-          className="w-3/4 "
+          className={`w-3/4 `}
           onChange={(e) => setEmail(e.target.value)}
         />
         <Input
@@ -51,7 +60,7 @@ const Signin = () => {
           type="password"
           value={password}
           name="password"
-          className=" w-3/4"
+          className={`w-3/4 `}
           onChange={(e) => setPassword(e.target.value)}
         />
         {/* <Googlesigninbutton /> */}
@@ -62,7 +71,7 @@ const Signin = () => {
           Sign In
         </Button>
         <Link href="/signup">
-          <p className="text-white mt-5 cursor-pointer">
+          <p className=" mt-5 cursor-pointer">
             If you don't have an account, <span className="text-blue-500">Sign Up</span>
           </p>
         </Link>

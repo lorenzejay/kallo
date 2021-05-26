@@ -1,28 +1,25 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Layout from "../../components/layout";
 import Modal from "../../components/modal";
-// import { AiFillFileImage } from "react-icons/ai";
 import { BsUnlock, BsLock, BsFillImageFill } from "react-icons/bs";
-import Link from "next/link";
 import { useRouter } from "next/router";
-// import { AiOutlineClose } from "react-icons/ai";
 import { addProject, getLoggedInUserProjects } from "../../redux/Actions/projectActions";
 import UnsplashImageSearch from "../../components/unsplashImageSearch";
 import PrivacyOptions from "../../components/privacyOptions";
 import { getUserId } from "../../redux/Actions/userActions";
 import Loader from "../../components/loader";
-import { configWithToken } from "../../functions";
-import axios from "axios";
 import ProjectCard from "../../components/projectCard";
 import Head from "next/head";
+import { DarkModeContext } from "../../context/darkModeContext";
 
 const Projects = () => {
+  const { isDarkMode } = useContext(DarkModeContext);
   const router = useRouter();
 
   const [openModal, setOpenModal] = useState(false);
   const [projectTitle, setProjectTitle] = useState("");
-  const [projectHeader, setProjectHeader] = useState("");
+  const [projectHeader, setProjectHeader] = useState("https://source.unsplash.com/random/1600x900");
 
   //set is private
   const [isPrivateProject, setIsPrivateProject] = useState(false);
@@ -76,7 +73,10 @@ const Projects = () => {
       </Head>
       <Layout>
         {loading && <Loader />}
-        <section className="relative flex flex-col justify-center text-white">
+        <section
+          className="relative flex flex-col justify-start transition-all duration-300 ease-in-out lg:min-h-screen pt-0 mt-0 pb-20 z-20"
+          style={{ background: isDarkMode ? "darkBody" : "lightBody" }}
+        >
           <div className="flex justify-between">
             <div>
               <h1 className="text-4xl font-bold uppercase ">Projects</h1>
@@ -100,7 +100,7 @@ const Projects = () => {
               <div className="flex justify-between items-center text-base">
                 <div>
                   <button
-                    className="bg-gray-300 px-12 py-1 rounded-sm my-2 flex items-center relative"
+                    className="bg-gray-300 px-12 py-1 rounded-sm my-2 flex items-center relative hover:shadow-2xl"
                     onClick={() => setRevealImageSearch(!revealImageSearch)}
                   >
                     <BsFillImageFill size={12} className="mr-2" />
@@ -120,7 +120,7 @@ const Projects = () => {
                   <button
                     className={`${
                       isPrivateProject ? "bg-red-300" : "bg-green-300"
-                    } px-12 py-1 rounded-sm my-2 flex items-center relative`}
+                    } px-12 py-1 rounded-sm my-2 flex items-center relative hover:shadow-2xl`}
                     onClick={() => setOpenPrivacyOptions(!openPrivacyOptions)}
                   >
                     {isPrivateProject ? (
@@ -147,10 +147,16 @@ const Projects = () => {
                 </div>
               </div>
               <div className="absolute bottom-3 right-3">
-                <button className="px-2 py-1 rounded-sm " onClick={() => setOpenModal(false)}>
+                <button
+                  className="px-2 py-1 rounded-sm hover:bg-red-400 transition-all duration-500 ease-in-out mr-3"
+                  onClick={() => setOpenModal(false)}
+                >
                   cancel
                 </button>
-                <button className="px-2 py-1 rounded-sm bg-blue-600" onClick={handleAddProject}>
+                <button
+                  className="px-2 py-1 rounded-sm bg-blue-500 hover:shadow-2xl transition-all duration-500 ease-in-out"
+                  onClick={handleAddProject}
+                >
                   + create
                 </button>
               </div>
@@ -163,6 +169,7 @@ const Projects = () => {
                 projects.map((project) => {
                   return (
                     <ProjectCard
+                      key={project.project_id}
                       projectId={project.project_id}
                       title={project.title}
                       headerImg={project.header_img}

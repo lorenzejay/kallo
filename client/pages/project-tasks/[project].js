@@ -1,7 +1,7 @@
 import axios from "axios";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { FaEllipsisH, FaTrash } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import EditablePage from "../../components/editablePage";
@@ -10,10 +10,12 @@ import Layout from "../../components/layout";
 import Loader from "../../components/loader";
 import Modal from "../../components/modal";
 import SidePanel from "../../components/sidePanel";
+import { DarkModeContext } from "../../context/darkModeContext";
 import { configWithToken } from "../../functions";
 import { getBoardColumns } from "../../redux/Actions/projectActions";
 
 const Tasks = () => {
+  const { isDarkMode } = useContext(DarkModeContext);
   const dispatch = useDispatch();
   const router = useRouter();
   const userLogin = useSelector((state) => state.userLogin);
@@ -104,8 +106,8 @@ const Tasks = () => {
       <Layout>
         {loading && <Loader />}
         {task && tasksColumn && !loading && (
-          <>
-            <div className="px-2 lg:px-0 text-white flex flex-row">
+          <main className={`bg-blue min-h-screen ${isDarkMode ? "text-white" : "text-black"}`}>
+            <div className="px-2 lg:px-0  flex flex-row ">
               <section className="flex-grow">
                 {itemName}
                 <p>
@@ -172,7 +174,7 @@ const Tasks = () => {
                 boardColumns={boardColumns}
               />
             </div>
-          </>
+          </main>
         )}
       </Layout>
     </>

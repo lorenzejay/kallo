@@ -1,14 +1,15 @@
 import axios from "axios";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { v4 as uuid } from "uuid";
 import { configWithToken } from "../functions";
 import { setCaretToEnd } from "../utils/caretHelpers";
 import EditableBlock from "./editableBlock";
+import { DarkModeContext } from "../context/darkModeContext";
 const initialBlock = { id: uuid(), html: "", tag: "p" };
 
 const EditablePage = ({ task, setTask, boardColumns, projectId }) => {
-  //   console.log("taskMarkdown", task.markdown);
+  const { isDarkMode } = useContext(DarkModeContext);
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
   const [blocks, setBlocks] = useState();
@@ -156,6 +157,7 @@ const EditablePage = ({ task, setTask, boardColumns, projectId }) => {
               deleteBlock={deleteBlockHandler}
               updateBlock={updateBlockHandler}
               task={task}
+              isDarkMode={isDarkMode}
             />
           );
         })}

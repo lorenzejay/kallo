@@ -1,24 +1,26 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { DarkModeContext } from "../context/darkModeContext";
 const { default: Header } = require("./header");
 const { default: Sidebar } = require("./sidebar");
 
 const Layout = ({ children, isSignInOrSignOutPage }) => {
+  const { isDarkMode, toggleDarkMode } = useContext(DarkModeContext);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   return (
-    <div>
+    <>
       <Header setSidebarOpen={setSidebarOpen} sidebarOpen={sidebarOpen} />
       <Sidebar
         className={isSignInOrSignOutPage === true ? "md:hidden" : "md:block"}
         sidebarOpen={sidebarOpen}
       />
       <div
-        className={`px-7 lg:px-16 xl:px-24 ${isSignInOrSignOutPage ? "ml-0" : ""} ${
-          sidebarOpen ? "ml-64 lg:px-0" : ""
-        }`}
+        className={`px-7 lg:px-16 xl:px-24 2xl:min-h-screen ${
+          isSignInOrSignOutPage ? "ml-0" : ""
+        }  ${isDarkMode ? "darkBody" : "lightBody"}`}
       >
         {children}
       </div>
-    </div>
+    </>
   );
 };
 

@@ -1,7 +1,7 @@
 import axios from "axios";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AiOutlinePlus } from "react-icons/ai";
 import { BsLock, BsUnlock } from "react-icons/bs";
 import { useSelector } from "react-redux";
@@ -10,12 +10,14 @@ import Kanban from "../../components/kanban";
 import Layout from "../../components/layout";
 import PrivacyOptions from "../../components/privacyOptions";
 import ProjectDetailsPopup from "../../components/projectDetailsPopup";
+import { DarkModeContext } from "../../context/darkModeContext";
 
 import { configWithToken } from "../../functions";
 
 const Projects = () => {
   const router = useRouter();
   const { projectId } = router.query;
+  const { isDarkMode } = useContext(DarkModeContext);
 
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
@@ -103,7 +105,7 @@ const Projects = () => {
     );
   }, [projectHeader]);
   // console.log("sharedUsers", sharedUsers);
-  console.log("data", data);
+  // console.log("data", data);
   // console.log("doesUserHaveAccess", doesUserHaveAccess);
 
   // console.log("projectId", projectId);
@@ -119,7 +121,7 @@ const Projects = () => {
     <>
       <Head>{data && <title>{data.title} | Kallo</title>}</Head>
       <Layout>
-        <main className="text-white">
+        <main className="text-white min-h-screen">
           {data && !data.message && (
             <>
               <div className="flex justify-between items-center">
@@ -187,7 +189,9 @@ const Projects = () => {
               )}
             </>
           )}
-          <h2 className="text-4xl font-bold mb-2">{data.title}</h2>
+          <h2 className={`text-4xl font-bold mb-2 ${isDarkMode ? "text-white" : "text-black"}`}>
+            {data.title}
+          </h2>
           {data.message ? (
             <h3>{data.message}</h3>
           ) : projectId ? (

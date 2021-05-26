@@ -99,3 +99,25 @@ export const deleteProject = (projectId) => async (dispatch, getState) => {
     console.log(error.message);
   }
 };
+
+export const updateCols = (columns, projectId) => async (dispatch, getState) => {
+  try {
+    dispatch({ type: PROJECT_BOARD_COLUMNS_REQUEST });
+    const {
+      userLogin: { userInfo },
+    } = getState();
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        token: userInfo.token,
+      },
+    };
+    await axios.put(`/api/projects/add-column/${projectId}`, { columns }, config);
+    const { data } = await axios.get(`/api/projects/get-board-columns/${projectId}`, config);
+    //after deleting, empty out board columns
+    dispatch({ type: PROJECT_BOARD_COLUMNS_SUCCESS, payload: data });
+  } catch (error) {
+    console.log(error.message);
+    dispatch({ type: PROJECT_BOARD_COLUMNS_FAIL, payload: error.message });
+  }
+};

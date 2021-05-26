@@ -1,14 +1,16 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { DragDropContext, Droppable, resetServerContext } from "react-beautiful-dnd";
 import { useDispatch, useSelector } from "react-redux";
 import KanbanColumnArray from "../components/kanbanColArray";
 import { configWithToken } from "../functions";
-import { getBoardColumns } from "../redux/Actions/projectActions";
+import { getBoardColumns, updateCols } from "../redux/Actions/projectActions";
 import Loader from "./loader";
 import NewColumn from "./newColumn";
+import { DarkModeContext } from "../context/darkModeContext";
 
 const Kanban = ({ headerImage, projectId }) => {
+  const { isDarkMode } = useContext(DarkModeContext);
   const dispatch = useDispatch();
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
@@ -29,17 +31,18 @@ const Kanban = ({ headerImage, projectId }) => {
 
   const pushColumnsToDB = async () => {
     if (!userInfo) return;
-    const config = configWithToken(userInfo.token);
+    // const config = configWithToken(userInfo.token);
     if (projectId) {
-      const { data } = await axios.put(
-        `/api/projects/add-column/${projectId}`,
-        { columns },
-        config
-      );
+      dispatch(updateCols(columns, projectId));
+      // const { data } = await axios.put(
+      //   `/api/projects/add-column/${projectId}`,
+      //   { columns },
+      //   config
+      // );
       // console.log(data);
-      if (!data.success || data.message) {
-        window.alert(data.message);
-      }
+      // if (!data.success || data.message) {
+      //   window.alert(data.message);
+      // }
     }
   };
   // console.log("projectId", projectId);
@@ -68,6 +71,7 @@ const Kanban = ({ headerImage, projectId }) => {
     const config = configWithToken(userInfo.token);
     // console.log("columns", columns);
     // console.log("Updated in the db");
+    // await dispatch(updateCols(columns, projectId));
     await axios.put(`/api/projects/add-column/${projectId}`, { columns }, config);
     // dispatch(getBoardColumns(projectId));
   }, [columns]);
@@ -149,7 +153,7 @@ const Kanban = ({ headerImage, projectId }) => {
   // console.log(columns);
   return (
     <main className="relative flex-col">
-      {loading && <Loader />}
+      {loading && <Loader isDarkMode={isDarkMode} />}
       {!loading && (
         <>
           {headerImage && (
@@ -165,13 +169,18 @@ const Kanban = ({ headerImage, projectId }) => {
                 {(provided) => (
                   <div
                     ref={provided.innerRef}
-                    className="flex flex-row overflow-x-auto h-auto mb-10"
+                    className={`flex flex-row overflow-x-auto h-auto mb-10 ${
+                      isDarkMode ? "darkBody" : "lightBody"
+                    }`}
                   >
                     {columns &&
                       columns.map((column, index) => {
                         // console.log("id:", id); // console.log("mappedColumn:", column);
                         return (
-                          <div className="flex flex-col column-color bg-gray-800" key={index}>
+                          <div
+                            className={`flex flex-col  ${isDarkMode ? "darkBody" : "lightBody"}`}
+                            key={index}
+                          >
                             <KanbanColumnArray
                               id={column.id}
                               column={column}
@@ -186,7 +195,9 @@ const Kanban = ({ headerImage, projectId }) => {
                     {provided.placeholder}
                     <div className="relative self-start h-96">
                       <button
-                        className=" text-white text-xl my-3 hover:bg-gray-700 rounded-sm p-1"
+                        className={`  text-xl my-3  rounded-sm p-1 ${
+                          isDarkMode ? "bg-gray-700" : "bg-gray-300"
+                        }`}
                         onClick={() => setOpenNewColumn(!openNewColumn)}
                       >
                         + New Column

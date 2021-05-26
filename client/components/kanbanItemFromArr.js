@@ -1,11 +1,12 @@
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import { Draggable } from "react-beautiful-dnd";
+import { DarkModeContext } from "../context/darkModeContext";
 
 const KanbanItemFromArr = ({ item, index, columns, setColumns, column, columnId, projectId }) => {
-  //   console.log("index", index);
+  const { isDarkMode } = useContext(DarkModeContext);
   const [itemText, setItemText] = useState(item.content || "");
-  const [openTask, setOpenTask] = useState(false);
+
   const changeText = (text) => {
     const objIndex = column.items.findIndex((obj) => obj.id == item.id);
     column.items[objIndex].content = text;
@@ -39,7 +40,9 @@ const KanbanItemFromArr = ({ item, index, columns, setColumns, column, columnId,
         return (
           <Link href={`/project-tasks/${projectId}?taskId=${item.id}`} className="w-full">
             <div
-              className={`border card-color rounded-md border-black border-solid p-4 mb-4 w-64 flex flex-col justify-start border-rounded z-8 ${
+              className={` ${
+                isDarkMode ? "border card-color" : "bg-gray-200"
+              } rounded-md border-black border-solid p-4 mb-4 w-64 flex flex-col justify-start border-rounded z-8 ${
                 snapshot.isDragging ? "opacity-50" : "opacity-100"
               }`}
               ref={provided.innerRef}

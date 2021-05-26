@@ -1,12 +1,11 @@
-import axios from "axios";
+import { useContext } from "react";
 import { AiOutlineClose } from "react-icons/ai";
-import { GrFormClose } from "react-icons/gr";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { v4 as uuid } from "uuid";
-import { configWithToken } from "../functions";
-import { getBoardColumns } from "../redux/Actions/projectActions";
-const initialBlock = { id: uuid(), html: "", tag: "p" };
+import { DarkModeContext } from "../context/darkModeContext";
+import { updateCols } from "../redux/Actions/projectActions";
 
+const initialBlock = { id: uuid(), html: "", tag: "p" };
 const NewItem = ({
   openNewItem,
   setOpenNewItem,
@@ -17,6 +16,8 @@ const NewItem = ({
   column,
   projectId,
 }) => {
+  const { isDarkMode } = useContext(DarkModeContext);
+  const dispatch = useDispatch();
   const handleAddItem = () => {
     if (!column && !projectId) return;
     const generateManualUuid = uuid();
@@ -31,6 +32,7 @@ const NewItem = ({
     });
 
     setColumns([...columns]);
+    dispatch(updateCols(columns, projectId));
     setOpenNewItem(false);
     setNewItemTitle("");
     // console.log("columns", columns);
@@ -38,18 +40,22 @@ const NewItem = ({
   };
   return (
     <div
-      className={`card-color my-3 p-3 w-64 rounded-md ${openNewItem ? "block" : "hidden"}`}
+      className={`${isDarkMode ? "card-color" : "bg-gray-200"} my-3 p-3 w-64 rounded-md ${
+        openNewItem ? "block" : "hidden"
+      }`}
       style={{ zIndex: 20 }}
     >
       <textarea
         placeholder="Enter Title"
         value={newItemTitle}
         onChange={(e) => setNewItemTitle(e.target.value)}
-        className="p-1 my-3 w-full card-color"
+        className={`p-2 my-3 w-full ${
+          isDarkMode ? "card-color placeholder-white" : "bg-gray-200 placeholder-black"
+        }`}
       />
       <div className="flex float-right">
         <button onClick={() => setOpenNewItem(false)} className="mr-1">
-          <AiOutlineClose className="text-white" size={20} />
+          <AiOutlineClose size={20} />
         </button>
         <button onClick={handleAddItem} className="p-2 bg-blue-500 rounded-md">
           Add Item

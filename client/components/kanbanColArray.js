@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Draggable, Droppable } from "react-beautiful-dnd";
+import { DarkModeContext } from "../context/darkModeContext";
 import KanbanItemFromArr from "./kanbanItemFromArr";
 import NewItem from "./newItem";
 const KanbanColumnArray = ({ column, id, index, setColumns, columns, projectId }) => {
+  const { isDarkMode } = useContext(DarkModeContext);
   const [openNewItem, setOpenNewItem] = useState(false);
   const [newItemTitle, setNewItemTitle] = useState("");
-
   return (
     <Draggable draggableId={column.id} index={index} key={id}>
       {(provided, snapshot) => (
@@ -17,7 +18,11 @@ const KanbanColumnArray = ({ column, id, index, setColumns, columns, projectId }
           className={`w-64 mr-10 ${snapshot.isDragging ? "opacity-50" : "opacity-100"}`}
         >
           <div className="flex items-center justify-between">
-            <h2 className="text-white text-xl my-3 p-1 hover:bg-gray-700 rounded-sm">
+            <h2
+              className={` text-xl my-3 p-1 hover:bg-gray-700 rounded-sm ${
+                isDarkMode ? "text-white" : "text-black"
+              }`}
+            >
               {column.name}
             </h2>
             {column.items && <p>{column.items.length}</p>}
@@ -26,10 +31,11 @@ const KanbanColumnArray = ({ column, id, index, setColumns, columns, projectId }
             {(provided, snapshot) => {
               return (
                 <div
-                  className=" bg-gray-800 flex flex-col items-start p-0 min-h-column h-auto"
+                  className={`flex flex-col items-start p-0 min-h-column h-auto ${
+                    isDarkMode ? "darkBody text-white" : "lightBody text-black"
+                  }`}
                   {...provided.droppableProps}
                   ref={provided.innerRef}
-                  style={{ background: snapshot.isDraggingOver ? "" : "#2f3437" }}
                 >
                   {column &&
                     column.items &&
@@ -62,7 +68,9 @@ const KanbanColumnArray = ({ column, id, index, setColumns, columns, projectId }
                     />
                   )}
                   <button
-                    className="border card-color rounded-md border-black border-solid p-1 mb-4 w-64 border-rounded z-8"
+                    className={` ${
+                      isDarkMode ? "border card-color" : "bg-gray-200"
+                    } rounded-md border-black border-solid p-1 mb-4 w-64 border-rounded z-8`}
                     onClick={() => setOpenNewItem(!openNewItem)}
                   >
                     +

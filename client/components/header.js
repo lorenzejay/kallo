@@ -1,13 +1,16 @@
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
 import { getUserDetails, logout } from "../redux/Actions/userActions";
-import { useEffect } from "react";
+import { useContext, useEffect } from "react";
 import Dropdown from "./dropdown";
 import { AiOutlineUser } from "react-icons/ai";
-import { FiLogOut } from "react-icons/fi";
+import { FiLogOut, FiMoon, FiSun } from "react-icons/fi";
 import { RiTodoLine } from "react-icons/ri";
+import { DarkModeContext } from "../context/darkModeContext";
 
 const Header = () => {
+  const { isDarkMode, toggleDarkMode } = useContext(DarkModeContext);
+
   const dispatch = useDispatch();
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
@@ -19,7 +22,11 @@ const Header = () => {
     }
   }, [userInfo]);
   return (
-    <header className="flex justify-between items-center h-24 px-7 lg:px-16 xl:px-24 text-white">
+    <header
+      className={`flex justify-between items-center h-24 px-7 lg:px-16 xl:px-24 shadow-2xl text-black ${
+        isDarkMode ? "darkBody text-white" : "lightBody "
+      }`}
+    >
       <Link href="/">
         <h2 className="text-3xl font-bold cursor-pointer">Kallo</h2>
       </Link>
@@ -47,7 +54,8 @@ const Header = () => {
                 <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-1 border-gray-50">
                   <Link href="/projects">
                     <div className="flex items-center">
-                      <RiTodoLine className="text-white mr-2" color={"white"} /> My Projects
+                      <RiTodoLine className={`${isDarkMode ? "text-white" : "text-black"} mr-2`} />
+                      My Projects
                     </div>
                   </Link>
                 </li>
@@ -55,7 +63,8 @@ const Header = () => {
                 <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-1 border-gray-50">
                   <Link href="/sharedProjects">
                     <div className="flex items-center">
-                      <RiTodoLine className="text-white mr-2" color={"white"} /> Shared Projects
+                      <RiTodoLine className={`${isDarkMode ? "text-white" : "text-black"} mr-2"`} />
+                      Shared Projects
                     </div>
                   </Link>
                 </li>
@@ -66,6 +75,12 @@ const Header = () => {
                       <AiOutlineUser className="mr-2" /> My Profile
                     </div>
                   </Link>
+                </li>
+                <hr />
+                <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-1 border-gray-50">
+                  <button onClick={toggleDarkMode} className="flex items-center">
+                    {isDarkMode ? <FiMoon /> : <FiSun />} DarkMode
+                  </button>
                 </li>
                 <hr />
                 <li className="hover:bg-gray-300 hover:text-black rounded-md my-3 p-1 ">

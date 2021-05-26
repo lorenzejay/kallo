@@ -1,10 +1,9 @@
-import axios from "axios";
-import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { v4 as uuid } from "uuid";
 import { AiOutlineClose } from "react-icons/ai";
-import { configWithToken } from "../functions";
-import { getBoardColumns } from "../redux/Actions/projectActions";
+import { updateCols } from "../redux/Actions/projectActions";
+import { useContext } from "react";
+import { DarkModeContext } from "../context/darkModeContext";
 
 const NewColumn = ({
   openNewColumn,
@@ -16,8 +15,7 @@ const NewColumn = ({
   projectId,
 }) => {
   // console.log("projectId", projectId);
-  const userLogin = useSelector((state) => state.userLogin);
-  const { userInfo } = userLogin;
+  const { isDarkMode } = useContext(DarkModeContext);
   const dispatch = useDispatch();
   const handleAddNewColumn = () => {
     if (newColumnTitle === "" && !projectId) return;
@@ -30,6 +28,7 @@ const NewColumn = ({
         items: [],
       },
     ]);
+    dispatch(updateCols(columns, projectId));
 
     // const config = configWithToken(userInfo.token);
     // console.log(columns);
@@ -44,21 +43,23 @@ const NewColumn = ({
 
   return (
     <div
-      className={`rounded-md card-color absolute h-auto top-0 p-3 transition-all duration-500  ${
-        openNewColumn ? "block" : "hidden"
-      }`}
+      className={`rounded-md shadow-md absolute h-auto w-auto top-0 p-3 transition-all duration-500  ${
+        isDarkMode ? "card-color" : "bg-gray-100"
+      } ${openNewColumn ? "block" : "hidden"}  `}
     >
       <input
         placeholder="Enter Title"
         value={newColumnTitle}
         onChange={(e) => setNewColumnTitle(e.target.value)}
-        name="new column title"
-        className="my-2 bg-gray-800 p-2 "
+        name="newTitle"
+        className={`my-2  p-2 ${
+          isDarkMode ? "placeholder-white text-white" : "placeholder-black text-black"
+        }`}
       />
 
       <div className="flex float-right">
         <button onClick={() => setOpenNewColumn(false)} className="mr-1">
-          <AiOutlineClose className="text-white" size={20} />
+          <AiOutlineClose size={20} />
         </button>
         <button className="p-2 bg-blue-500 rounded-md" onClick={handleAddNewColumn}>
           Add Column

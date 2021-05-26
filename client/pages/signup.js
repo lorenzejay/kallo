@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Button from "../components/button";
-import Googlesigninbutton from "../components/googlesigninbutton";
 import Input from "../components/input";
-import Layout from "../components/layout";
+import { DarkModeContext } from "../context/darkModeContext";
 import { register } from "../redux/Actions/userActions";
 
 const Signup = () => {
+  const { isDarkMode } = useContext(DarkModeContext);
   const router = useRouter();
   const dispatch = useDispatch();
   const userLogin = useSelector((state) => state.userLogin);
@@ -39,15 +39,23 @@ const Signup = () => {
     }
   }, [userInfo]);
   return (
-    <main className="mt-24 flex flex-col items-center justify-center px-7 lg:px-16 text-white">
-      <h1 className="text-5xl font-semibold ">Kallo</h1>
+    <main
+      className={`min-h-screen flex flex-col items-center justify-center px-7 lg:px-16 text-white ${
+        isDarkMode ? "card-color text-white" : "bg-gray-50 text-black"
+      }`}
+    >
+      <h1 className={`text-5xl font-semibold  pt-12 ${isDarkMode ? "text-white" : " text-black"}`}>
+        Kallo
+      </h1>
       {formError && <p className="text-red-500">{formError}</p>}
       {error && <p className="text-red-500">{error}</p>}
       <form
-        className="card-color mt-5 py-10 px-2 flex items-center justify-center flex-col text-black shadow-lg w-full lg:w-1/4 rounded-md"
+        className={`${
+          isDarkMode ? "card-color text-white" : "bg-gray-100 text-black"
+        } mt-5 py-10 px-2 flex items-center justify-center flex-col shadow-lg w-full lg:w-1/4 rounded-md`}
         onSubmit={handleSignUp}
       >
-        <p className="mb-4 text-white text-xl">Register.</p>
+        <p className="mb-4  text-xl">Register.</p>
         <Input
           placeholder="First Name"
           type="text"
@@ -103,8 +111,8 @@ const Signup = () => {
           Register
         </Button>
         <Link href="/signin">
-          <p className="text-white mt-5">
-            If you already have an account,{" "}
+          <p className=" mt-5">
+            If you already have an account,
             <span className="text-blue-500 cursor-pointer">Sign In</span>
           </p>
         </Link>
