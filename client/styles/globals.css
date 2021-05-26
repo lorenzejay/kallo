@@ -8,9 +8,15 @@
   margin: 0;
   font-family: Poppins;
 }
-body {
+.darkBody {
   background-color: #2f3437;
+  color: white;
 }
+.lightBody {
+  background-color: #ffffff;
+  color: black;
+}
+
 .sidebar {
   background-color: #2f3437;
 }
@@ -22,21 +28,21 @@ body {
 .column-color {
   background-color: #2f3437;
 }
-input::placeholder,
+/* input::placeholder,
 textarea::placeholder {
   color: white;
-}
-input:-ms-input-placeholder,
+} */
+/* input:-ms-input-placeholder,
 textarea:-ms-input-placeholder {
   /* Internet Explorer 10-11 */
-  color: white;
-}
+/* color: white; */
+/* } */
 
-input::-ms-input-placeholder,
+/* input::-ms-input-placeholder,
 textarea::-ms-input-placeholder {
   /* Microsoft Edge */
-  color: white;
-}
+/* color: white; */
+/* } */
 button:focus,
 input:focus,
 option:focus,
@@ -57,7 +63,6 @@ select:focus {
   animation: load7 1.8s infinite ease-in-out;
 }
 .loader {
-  color: #ffffff;
   font-size: 10px;
   margin: 80px auto;
   position: relative;
@@ -102,20 +107,11 @@ select:focus {
     box-shadow: 0 2.5em 0 0;
   }
 }
+/*  */
+
 .Block {
-  margin: 0.25rem 0;
-  padding: 0.5rem 0.5rem 0.5rem 0;
-  /* background: #fafafa; */
+  /* background: #2f3437; */
   outline: none;
-  border-radius: 0.25rem;
-}
-/* .Block:hover {
-  background: #f8f8f8;
-  outline-color: #f5f6fb;
-}
-*/
-.Block:focus {
-  background: #2f3437;
 }
 
 .SelectMenu .Items {
