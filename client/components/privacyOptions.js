@@ -50,7 +50,7 @@ const PrivacyOptions = ({
   const closePrivacyOptions = () => {
     if (ref.current === null) return;
     document.addEventListener("click", (e) => {
-      if (!ref.current.contains(e.target)) {
+      if (ref.current && !ref.current.contains(e.target)) {
         setOpenPrivacyOptions(false);
       }
     });
