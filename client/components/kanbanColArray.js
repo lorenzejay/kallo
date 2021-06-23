@@ -28,7 +28,7 @@ const KanbanColumnArray = ({ column, id, index, setColumns, columns, projectId }
             {column.items && <p>{column.items.length}</p>}
           </div>
           <Droppable droppableId={id} key={id}>
-            {(provided, snapshot) => {
+            {(provided) => {
               return (
                 <div
                   className={`flex flex-col items-start p-0 min-h-column h-auto ${

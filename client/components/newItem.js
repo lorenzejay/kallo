@@ -1,6 +1,6 @@
-import { useContext } from "react";
+import { useCallback, useContext } from "react";
 import { AiOutlineClose } from "react-icons/ai";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { v4 as uuid } from "uuid";
 import { DarkModeContext } from "../context/darkModeContext";
 import { updateCols } from "../redux/Actions/projectActions";
@@ -16,13 +16,21 @@ const NewItem = ({
   column,
   projectId,
 }) => {
+  //should give us the most up to date columns
+  const projectColumns = useSelector((state) => state.projectColumns);
+  const { boardColumns } = projectColumns;
+
+  const boardColumnsCopy = [...boardColumns];
+  const copyColumn = boardColumnsCopy.find((col) => col === column);
+
   const { isDarkMode } = useContext(DarkModeContext);
   const dispatch = useDispatch();
+
   const handleAddItem = () => {
     if (!column && !projectId) return;
     const generateManualUuid = uuid();
-    const columnItemsCopy = column.items;
-    // console.log(columns);
+
+    const columnItemsCopy = copyColumn.items;
 
     columnItemsCopy.push({
       id: generateManualUuid,
@@ -30,13 +38,11 @@ const NewItem = ({
       tags: [],
       markdown: [initialBlock],
     });
+    console.log("boardColumnsCopy", boardColumnsCopy);
 
-    setColumns([...columns]);
-    dispatch(updateCols(columns, projectId));
+    dispatch(updateCols(boardColumnsCopy, projectId));
     setOpenNewItem(false);
     setNewItemTitle("");
-    // console.log("columns", columns);
-    // console.log("columnItemsCopy", columnItemsCopy);
   };
   return (
     <div

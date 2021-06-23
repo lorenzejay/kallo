@@ -38,7 +38,7 @@ const Header = () => {
           <li>
             <Link href="/signin">Sign In</Link>
           </li>
-          <li className="bg-blue-500 px-4 py-1 rounded-sm">
+          <li className="bg-blue-500 px-4 py-1 rounded-sm text-white">
             <Link href="/signup">Sign Up</Link>
           </li>
         </ul>

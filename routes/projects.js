@@ -125,12 +125,13 @@ router.put("/add-column/:project_id", authorization, async (req, res) => {
     const columnsInJsonFormat = JSON.stringify(columns);
     // console.log(columnsInJsonFormat);
     //update the column
-    await pool.query("UPDATE projects SET columns = $1 WHERE project_id = $2", [
-      columnsInJsonFormat,
-      project_id,
-    ]);
-
-    res.status(200).json({ success: true });
+    const updatedColumns = await pool.query(
+      "UPDATE projects SET columns = $1 WHERE project_id = $2 RETURNING *",
+      [columnsInJsonFormat, project_id]
+    );
+    //return the current array
+    const cols = updatedColumns.rows;
+    res.status(200).json({ columns: cols });
   } catch (error) {
     console.log(error);
   }

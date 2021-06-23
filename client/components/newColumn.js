@@ -20,15 +20,14 @@ const NewColumn = ({
   const handleAddNewColumn = () => {
     if (newColumnTitle === "" && !projectId) return;
     // create the column object
-    setColumns([
-      ...columns,
-      {
-        id: uuid(),
-        name: newColumnTitle,
-        items: [],
-      },
-    ]);
-    dispatch(updateCols(columns, projectId));
+    const columnsCopy = [...columns];
+    columnsCopy.push({
+      id: uuid(),
+      name: newColumnTitle,
+      items: [],
+    });
+    setColumns(columnsCopy);
+    dispatch(updateCols(columnsCopy, projectId));
 
     // const config = configWithToken(userInfo.token);
     // console.log(columns);
@@ -53,7 +52,9 @@ const NewColumn = ({
         onChange={(e) => setNewColumnTitle(e.target.value)}
         name="newTitle"
         className={`my-2  p-2 ${
-          isDarkMode ? "placeholder-white text-white" : "placeholder-black text-black"
+          isDarkMode
+            ? "bg-gray-500 placeholder-white text-white"
+            : "placeholder-black text-black bg-white"
         }`}
       />
 

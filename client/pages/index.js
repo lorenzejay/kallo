@@ -17,7 +17,11 @@ export default function Home() {
           className={`flex flex-col lg:flex-row justify-center items-center lg:justify-between text-white pt-20`}
           style={{ background: isDarkMode ? "darkBody" : "lightBody" }}
         >
-          <section className="flex flex-col items-center justify-center lg:justify-start lg:items-start">
+          <section
+            className={`flex flex-col items-center justify-center lg:justify-start lg:items-start ${
+              isDarkMode ? "text-white" : "text-gray-800"
+            }`}
+          >
             <h1 className="text-2xl text-center lg:text-left font-bold lg:font-medium md:text-5xl 2xl:text-7xl">
               Kello helps teams move work forward.
             </h1>
@@ -25,7 +29,7 @@ export default function Home() {
               Collaborate, manage projects, and reach new productivity peaks. From high rises to the
               home office, the way your team works is unique—accomplish it all with Trello.
             </p>
-            <button className="bg-blue-500 w-full md:max-w-md lg:w-48 px-4 py-2 rounded-md my-5">
+            <button className="bg-blue-500 text-white  w-full md:max-w-md lg:w-48 px-4 py-2 rounded-md my-5">
               Sign Up- it's free!
             </button>
           </section>
@@ -35,7 +39,7 @@ export default function Home() {
           />
         </main>
 
-        <div className="flex flex-col justify-center items-center mt-36 pb-24 text-white xl:mt-48 text-center lg:text-left">
+        <div className="flex flex-col justify-center items-center mt-36 pb-24  xl:mt-48 text-center lg:text-left">
           <p className="font-medium text-2xl ">
             It’s more than work. It’s a way of working together.
           </p>
@@ -45,7 +49,7 @@ export default function Home() {
             place.
           </p>
           <Link href="/signup">
-            <button className="border border-white px-4 py-2 rounded-md bg-none hover:bg-blue-500 hover:border-transparent flex items-center transition-all duration-500">
+            <button className="border border-white px-4 py-2 rounded-md bg-none hover:text-white hover:bg-blue-500 hover:border-transparent flex items-center transition-all duration-500">
               <span className="mr-1">Start Doing</span>
               <FaArrowRight size={16} />
             </button>
