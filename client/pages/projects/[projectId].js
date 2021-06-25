@@ -39,7 +39,7 @@ const Projects = () => {
 
   //gets the project info on load
   useEffect(() => {
-    if (!userInfo) {
+    if (!userInfo || userInfo === null) {
       router.push("/signin");
     }
   }, [userInfo]);

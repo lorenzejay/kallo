@@ -1,17 +1,19 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { FormEvent, FormEventHandler } from "react";
 import { useContext, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Button from "../components/button";
 import Input from "../components/input";
 import { DarkModeContext } from "../context/darkModeContext";
 import { register } from "../redux/Actions/userActions";
+import { RootState } from "../redux/store";
 
 const Signup = () => {
   const { isDarkMode } = useContext(DarkModeContext);
   const router = useRouter();
   const dispatch = useDispatch();
-  const userLogin = useSelector((state) => state.userLogin);
+  const userLogin = useSelector((state: RootState) => state.userLogin);
   const { loading, userInfo, error } = userLogin;
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -20,7 +22,8 @@ const Signup = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [password, setPassword] = useState("");
   const [formError, setFormError] = useState("");
-  const handleSignUp = (e) => {
+
+  const handleSignUp = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setFormError("");
     if (password === confirmPassword) {
@@ -40,8 +43,8 @@ const Signup = () => {
   }, [userInfo]);
   return (
     <main
-      className={`min-h-screen flex flex-col items-center justify-center px-7 lg:px-16 text-white ${
-        isDarkMode ? "card-color text-white" : "bg-gray-50 text-black"
+      className={`min-h-screen flex flex-col items-center justify-center px-7 lg:px-16 lg:pt-12 text-white ${
+        isDarkMode ? "darkBody text-white" : "bg-gray-50 lightBody text-black"
       }`}
     >
       <h1 className={`text-5xl font-semibold  pt-12 ${isDarkMode ? "text-white" : " text-black"}`}>
@@ -52,7 +55,7 @@ const Signup = () => {
       <form
         className={`${
           isDarkMode ? "card-color text-white" : "bg-gray-100 text-black"
-        } mt-5 py-10 px-2 flex items-center justify-center flex-col shadow-lg w-full lg:w-1/4 rounded-md`}
+        } mt-10 py-10 px-2 flex items-center justify-center flex-col shadow-lg w-full lg:w-1/2 2xl:w-1/4 rounded-md`}
         onSubmit={handleSignUp}
       >
         <p className="mb-4  text-xl">Register.</p>
@@ -111,8 +114,8 @@ const Signup = () => {
           Register
         </Button>
         <Link href="/signin">
-          <p className=" mt-5">
-            If you already have an account,
+          <p className="mt-5 cursor-pointer">
+            If you already have an account,{" "}
             <span className="text-blue-500 cursor-pointer">Sign In</span>
           </p>
         </Link>

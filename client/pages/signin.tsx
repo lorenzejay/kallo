@@ -1,18 +1,19 @@
 import Link from "next/link";
-import { useContext, useEffect, useState } from "react";
+import { FormEvent, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
 import Button from "../components/button";
 import Input from "../components/input";
 import { login } from "../redux/Actions/userActions";
 import { DarkModeContext } from "../context/darkModeContext";
+import { RootState } from "../redux/store";
 
 const Signin = () => {
   const { isDarkMode } = useContext(DarkModeContext);
 
   const router = useRouter();
   const dispatch = useDispatch();
-  const userLogin = useSelector((state) => state.userLogin);
+  const userLogin = useSelector((state: RootState) => state.userLogin);
   const { loading, userInfo, error } = userLogin;
 
   const [email, setEmail] = useState("");
@@ -23,9 +24,13 @@ const Signin = () => {
       router.push("/projects");
     }
   }, [userInfo, router]);
-  const handleSignIn = (e) => {
+
+  const handleSignIn = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     dispatch(login(email, password));
+    if (!error) {
+      router.push("/projects");
+    }
   };
 
   return (
@@ -33,17 +38,17 @@ const Signin = () => {
     <main
       className={`${
         isDarkMode ? "darkBody text-white" : "lightBody text-black"
-      } min-h-screen flex flex-col items-center justify-center px-7 lg:px-16 `}
+      } min-h-screen flex flex-col items-center justify-center px-7 lg:px-16 lg:pt-24`}
     >
       <h1 className={`text-5xl font-semibold  ${isDarkMode ? " text-white" : " text-black"}`}>
         Kallo
       </h1>
       {loading && <p>loading....</p>}
-      {error && <p className="text-red-500">{error}</p>}
+      {error && <p className="text-red-500 my-1">{error}</p>}
       <form
         className={`${
           isDarkMode ? "card-color text-white" : "bg-gray-100 text-black"
-        } mt-5 py-10 px-2 flex items-center justify-center flex-col  shadow-lg w-full lg:w-1/4 rounded-md`}
+        } mt-5 py-10  flex items-center justify-center flex-col shadow-lg w-full lg:w-1/2 2xl:w-1/4 rounded-md`}
         onSubmit={handleSignIn}
       >
         <p className={`mb-4  text-xl `}>Log in.</p>

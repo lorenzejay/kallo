@@ -37,9 +37,9 @@ const Projects = () => {
   //get users projects not get projects shared users
   const projectGetUsers = useSelector((state) => state.projectGetUsers);
   const { loading, error, projects } = projectGetUsers;
-
+  console.log(userInfo);
   useEffect(() => {
-    if (!userInfo) {
+    if (!userInfo || userInfo === null) {
       router.push("/signin");
     }
   }, [userInfo]);
@@ -65,7 +65,7 @@ const Projects = () => {
     dispatch(getLoggedInUserProjects());
     dispatch(getUserId());
   }, [created]);
-
+  console.log(isDarkMode);
   return (
     <>
       <Head>
@@ -74,8 +74,9 @@ const Projects = () => {
       <Layout>
         {loading && <Loader />}
         <section
-          className="relative flex flex-col justify-start transition-all duration-300 ease-in-out lg:min-h-screen pt-0 mt-0 pb-20 z-20"
-          style={{ background: isDarkMode ? "darkBody" : "lightBody" }}
+          className={`relative flex flex-col justify-start transition-all duration-300 ease-in-out lg:min-h-screen pt-0 mt-0 pb-20 z-20 ${
+            isDarkMode ? "darkBody" : "lightBody"
+          }`}
         >
           <div className="flex justify-between">
             <div>

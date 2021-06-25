@@ -16,7 +16,7 @@ const Layout = ({ children, isSignInOrSignOutPage }) => {
       <div
         className={`px-7 lg:px-16 xl:px-24 2xl:min-h-screen ${
           isSignInOrSignOutPage ? "ml-0" : ""
-        }  ${isDarkMode ? "darkBody" : "lightBody"}`}
+        }  `}
       >
         {children}
       </div>

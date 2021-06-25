@@ -1,7 +1,17 @@
 import React, { useContext } from "react";
 import PropTypes from "prop-types";
 import { DarkModeContext } from "../context/darkModeContext";
-const Input = ({ placeholder, type, name, value, onChange, className }) => {
+
+interface InputProps {
+  placeholder: string;
+  type: string;
+  name: string;
+  value: string | number | readonly string[] | undefined;
+  onChange: React.ChangeEventHandler<HTMLInputElement>;
+  className: string;
+}
+
+const Input = ({ placeholder, type, name, value, onChange, className }: InputProps) => {
   const { isDarkMode } = useContext(DarkModeContext);
   return (
     <input

@@ -20,14 +20,23 @@ const reducers = combineReducers({
   projectGetUsers: projectGetUserOwnedReducer,
   projectColumns: projectsColumnsReducer,
 });
+
+export type RootState = ReturnType<typeof reducers>;
+
 const middlewares = [thunk];
 const ISSERVER = typeof window === "undefined";
 
 let initialState = {};
 if (!ISSERVER) {
-  const userInfoFromStorage = localStorage.getItem("userInfo")
-    ? JSON.parse(localStorage.getItem("userInfo"))
-    : null;
+  let userInfoFromStorage;
+
+  let storedUser = localStorage.getItem("userInfo");
+
+  if (typeof storedUser === "string") {
+    userInfoFromStorage = JSON.parse(storedUser);
+  } else {
+    userInfoFromStorage = null;
+  }
 
   initialState = {
     userLogin: {
