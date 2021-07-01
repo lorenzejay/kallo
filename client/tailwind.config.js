@@ -4,6 +4,25 @@ module.exports = {
 
   darkMode: false, // or 'media' or 'class'
   theme: {
+    extend: {
+      colors: {
+        white: {
+          150: "#FEFEFE",
+          175: "#F2F4F3",
+        },
+        gray: {
+          125: "#e0e5e3",
+          150: "#F5F9FA",
+          175: "#f4f2f3",
+        },
+        blue: {
+          125: '#6AA7B3'
+        },
+        orange: {
+          125: '#F04C0F'
+        }
+      },
+    },
     minHeight: {
       0: "0",
       "1/4": "25%",

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { FormEvent, FormEventHandler } from "react";
+import { FormEvent } from "react";
 import { useContext, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Button from "../components/button";
@@ -14,7 +14,7 @@ const Signup = () => {
   const router = useRouter();
   const dispatch = useDispatch();
   const userLogin = useSelector((state: RootState) => state.userLogin);
-  const { loading, userInfo, error } = userLogin;
+  const { userInfo, error } = userLogin;
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -27,7 +27,13 @@ const Signup = () => {
     e.preventDefault();
     setFormError("");
     if (password === confirmPassword) {
-      if (username !== "" && firstName !== "" && lastName !== "" && password !== "" && email !== "")
+      if (
+        username !== "" &&
+        firstName !== "" &&
+        lastName !== "" &&
+        password !== "" &&
+        email !== ""
+      )
         dispatch(register(email, username, firstName, lastName, password));
       else {
         return setFormError("Nothing must be blank.");
@@ -47,7 +53,11 @@ const Signup = () => {
         isDarkMode ? "darkBody text-white" : "bg-gray-50 lightBody text-black"
       }`}
     >
-      <h1 className={`text-5xl font-semibold  pt-12 ${isDarkMode ? "text-white" : " text-black"}`}>
+      <h1
+        className={`text-5xl font-semibold  pt-12 ${
+          isDarkMode ? "text-white" : " text-black"
+        }`}
+      >
         Kallo
       </h1>
       {formError && <p className="text-red-500">{formError}</p>}

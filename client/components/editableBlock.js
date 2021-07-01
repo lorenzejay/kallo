@@ -116,7 +116,9 @@ class EditableBlock extends React.Component {
         )}
         <ContentEditable
           className={`Block my-1 p-2 pl-0  rounded-md   ${
-            this.props.isDarkMode ? "focus:bg-gray-800 text-white" : "focus:bg-gray-200 text-black"
+            this.props.isDarkMode
+              ? "focus:bg-gray-800 text-white"
+              : "focus:bg-gray-200 text-black"
           }`}
           innerRef={this.contentEditable}
           data-position={this.props.position}

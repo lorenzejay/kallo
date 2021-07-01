@@ -112,4 +112,16 @@ router.get("/details", authorization, async (req, res) => {
   }
 });
 
+router.get('/username', authorization, async(req,res) => {
+  try {
+    const user_id = req.user;
+    if(!user_id)return;
+    const query = await pool.query('SELECT username FROM users WHERE user_id = $1',[user_id]);
+    if(query.rowCount === 0)return
+    res.status(200).json(query.rows[0]);
+  } catch (error) {
+    throw new Error('Unable to get username')
+  }
+})
+
 module.exports = router;

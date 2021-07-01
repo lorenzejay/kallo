@@ -1,4 +1,4 @@
-create database custom_crm;
+create database kallo;
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 

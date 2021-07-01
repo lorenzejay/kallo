@@ -8,6 +8,16 @@
   margin: 0;
   font-family: Poppins;
 }
+html {
+  background: #f2f4f3;
+}
+
+.loading-img {
+  background: transparent
+    url("http://thinkfuture.com/wp-content/uploads/2013/10/loading_spinner.gif")
+    center no-repeat;
+}
+
 .darkBody {
   background-color: #2f3437;
   color: white;
@@ -116,8 +126,8 @@ select:focus {
 
 .SelectMenu .Items {
   background: #2f3437;
-  box-shadow: rgba(15, 15, 15, 0.05) 0px 0px 0px 1px, rgba(15, 15, 15, 0.1) 0px 3px 6px,
-    rgba(15, 15, 15, 0.2) 0px 9px 24px;
+  box-shadow: rgba(15, 15, 15, 0.05) 0px 0px 0px 1px,
+    rgba(15, 15, 15, 0.1) 0px 3px 6px, rgba(15, 15, 15, 0.2) 0px 9px 24px;
   border-radius: 0.5rem;
 }
 .SelectMenu .Items div[role="button"] {

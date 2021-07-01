@@ -3,18 +3,22 @@ const pool = require("../db.js");
 const authorization = require("../middlewares/authorization");
 const hasProjectAccess = require("../middlewares/hasProjectAccess");
 
-//get all posts
+//get specific project
 router.get("/project/:project_id", authorization, async (req, res) => {
   try {
     const user_id = req.user;
     const { project_id } = req.params;
 
     //check if the project even exists
-    const projectExistQuery = await pool.query("SELECT * FROM projects WHERE project_id = $1", [
-      project_id,
-    ]);
+    const projectExistQuery = await pool.query(
+      "SELECT * FROM projects WHERE project_id = $1",
+      [project_id]
+    );
     if (!projectExistQuery.rows[0]) {
-      return res.json({ success: false, message: "This project does not exist." });
+      return res.json({
+        success: false,
+        message: "This project does not exist.",
+      });
     }
 
     //check the security if its private or public
@@ -35,11 +39,18 @@ router.get("/project/:project_id", authorization, async (req, res) => {
 
     //public = false anyone can see
     //private = true only owner can see for now and then shared future
-    if (is_private === false || project_owner === user_id || isSharedToUserAlreadyChecker) {
-      const query = await pool.query("SELECT * FROM projects WHERE project_id = $1", [project_id]);
+    if (
+      is_private === false ||
+      project_owner === user_id ||
+      isSharedToUserAlreadyChecker
+    ) {
+      const query = await pool.query(
+        "SELECT * FROM projects WHERE project_id = $1",
+        [project_id]
+      );
       return res.status(200).json(query.rows[0]);
     }
-    res.send({ success: false, message: "You do not have access to see this project." });
+    // res.send({ success: false, message: "You do not have access to see this project." });
   } catch (error) {
     console.log(error.message);
   }
@@ -66,7 +77,7 @@ router.post("/add", authorization, async (req, res) => {
   }
 });
 
-//get a specific project
+//get a users projects
 router.get("/get-user-projects", authorization, async (req, res) => {
   try {
     const user_id = req.user;
@@ -77,9 +88,6 @@ router.get("/get-user-projects", authorization, async (req, res) => {
       [user_id]
     );
 
-    if (query.rowCount === 0) {
-      return res.send({ message: "You do not have any posts." });
-    }
     res.status(200).json(query.rows);
   } catch (error) {
     console.log(error.message);
@@ -170,54 +178,58 @@ router.post("/add-new-task/:project_id", authorization, async (req, res) => {
       });
     }
     //now we insert to the db
-    await pool.query("INSERT INTO tasks(task_id, title, project) VALUES ($1, $2, $3)", [
-      task_id,
-      title,
-      project_id,
-    ]);
+    await pool.query(
+      "INSERT INTO tasks(task_id, title, project) VALUES ($1, $2, $3)",
+      [task_id, title, project_id]
+    );
   } catch (error) {
     console.log(error);
   }
 });
 
 //just get the columns from the project
-router.get("/get-board-columns/:project_id", authorization, async (req, res) => {
-  try {
-    const user_id = req.user;
-    const { project_id } = req.params;
+router.get(
+  "/get-board-columns/:project_id",
+  authorization,
+  async (req, res) => {
+    try {
+      const user_id = req.user;
+      const { project_id } = req.params;
 
-    //make sure we allowed to see the project
-    const verifyQuery = await pool.query(
-      "SELECT project_owner FROM projects WHERE project_id = $1",
-      [project_id]
-    );
-    // return res.json(verifyQuery.rows[0]);
-    const { project_owner } = verifyQuery.rows[0];
+      //make sure we allowed to see the project
+      const verifyQuery = await pool.query(
+        "SELECT project_owner FROM projects WHERE project_id = $1",
+        [project_id]
+      );
+      // return res.json(verifyQuery.rows[0]);
+      const { project_owner } = verifyQuery.rows[0];
 
-    const sharedToMeChecker = await pool.query(
-      "SELECT shared_user FROM shared_users WHERE shared_project = $1",
-      [project_id]
-    );
-    const isSharedToUserAlreadyChecker = sharedToMeChecker.rows.find(
-      (x) => x.shared_user === user_id
-    );
+      const sharedToMeChecker = await pool.query(
+        "SELECT shared_user FROM shared_users WHERE shared_project = $1",
+        [project_id]
+      );
+      const isSharedToUserAlreadyChecker = sharedToMeChecker.rows.find(
+        (x) => x.shared_user === user_id
+      );
 
-    if (project_owner !== user_id && !isSharedToUserAlreadyChecker) {
-      return res.send({
-        success: false,
-        message: "You do not have authorization to modify this project.",
-      });
+      if (project_owner !== user_id && !isSharedToUserAlreadyChecker) {
+        return res.send({
+          success: false,
+          message: "You do not have authorization to modify this project.",
+        });
+      }
+      //else show the columns only - because kanban board only needs access to the columns
+      const query = await pool.query(
+        "SELECT columns FROM projects WHERE project_id = $1",
+        [project_id]
+      );
+
+      res.json(query.rows[0].columns);
+    } catch (error) {
+      console.log(error.message);
     }
-    //else show the columns only - because kanban board only needs access to the columns
-    const query = await pool.query("SELECT columns FROM projects WHERE project_id = $1", [
-      project_id,
-    ]);
-
-    res.json(query.rows[0].columns);
-  } catch (error) {
-    console.log(error.message);
   }
-});
+);
 
 //update the privacy settings of the project
 router.put("/update-privacy/:project_id", authorization, async (req, res) => {
@@ -255,9 +267,10 @@ router.get("/shared-users/:project_id", authorization, async (req, res) => {
     const user_id = req.user;
     const { project_id } = req.params;
     if (!user_id) return;
-    const getUserName = await pool.query("SELECT username, user_id FROM users WHERE user_id = $1", [
-      user_id,
-    ]);
+    const getUserName = await pool.query(
+      "SELECT username, user_id FROM users WHERE user_id = $1",
+      [user_id]
+    );
     const query = await pool.query(
       "SELECT username, user_id FROM users WHERE user_id IN (SELECT shared_user FROM shared_users WHERE shared_project = $1)",
       [project_id]
@@ -295,11 +308,15 @@ router.post("/share/:project_id", authorization, async (req, res) => {
     }
     //2. if false return no authorization / else true we need to verify that the user we sent the share access to is a user in our app
 
-    const checkIsAUser = await pool.query("SELECT user_id, username FROM users WHERE email = $1", [
-      shared_user_email,
-    ]);
+    const checkIsAUser = await pool.query(
+      "SELECT user_id, username FROM users WHERE email = $1",
+      [shared_user_email]
+    );
     if (!checkIsAUser.rows[0]) {
-      return res.send({ success: false, message: "There is no user associated with that email." });
+      return res.send({
+        success: false,
+        message: "There is no user associated with that email.",
+      });
     }
     //make sure you dont share it to yourself or to someone already added on the project
     const checkedSharedUsers = await pool.query(
@@ -308,7 +325,10 @@ router.post("/share/:project_id", authorization, async (req, res) => {
     );
     //check if you shared to yourself
     if (checkIsAUser.rows[0].user_id === user_id) {
-      return res.send({ success: false, message: "You cannot share the project to yourself." });
+      return res.send({
+        success: false,
+        message: "You cannot share the project to yourself.",
+      });
     }
 
     const isSharedToUserAlreadyChecker = checkedSharedUsers.rows.find(
@@ -355,30 +375,36 @@ router.get("/shared-projects", authorization, async (req, res) => {
   }
 });
 
-router.delete("/delete-project/:project_id", authorization, async (req, res) => {
-  try {
-    const user_id = req.user;
-    //need to be an array of objects
-    const { project_id } = req.params;
-    //verify we are thje owner or a member of the project
-    const verifyQuery = await pool.query(
-      "SELECT project_owner FROM projects WHERE project_id = $1",
-      [project_id]
-    );
-    const { project_owner } = verifyQuery.rows[0];
-    if (project_owner !== user_id) {
-      return res.send({
-        success: false,
-        message: "Only the project owner can delete the project.",
-      });
+router.delete(
+  "/delete-project/:project_id",
+  authorization,
+  async (req, res) => {
+    try {
+      const user_id = req.user;
+      //need to be an array of objects
+      const { project_id } = req.params;
+      //verify we are thje owner or a member of the project
+      const verifyQuery = await pool.query(
+        "SELECT project_owner FROM projects WHERE project_id = $1",
+        [project_id]
+      );
+      const { project_owner } = verifyQuery.rows[0];
+      if (project_owner !== user_id) {
+        return res.send({
+          success: false,
+          message: "Only the project owner can delete the project.",
+        });
+      }
+      //delete the project
+      await pool.query("DELETE FROM projects WHERE project_id = $1", [
+        project_id,
+      ]);
+      res.json({ success: true, message: "Successfully deleted project." });
+    } catch (error) {
+      console.log(error);
     }
-    //delete the project
-    await pool.query("DELETE FROM projects WHERE project_id = $1", [project_id]);
-    res.json({ success: true, message: "Successfully deleted project." });
-  } catch (error) {
-    console.log(error);
   }
-});
+);
 
 //get project owner
 router.get("/project-owner/:project_id", async (req, res) => {
@@ -401,43 +427,54 @@ router.get("/project-owner/:project_id", async (req, res) => {
   }
 });
 
-router.get("/verify-project-access/:project_id", hasProjectAccess, async (req, res) => {
-  try {
-    const { project_id } = req.params;
-    console.log(req);
-    // console.log(projectAccess);
-    res.send("s");
-  } catch (error) {
-    console.log(error);
-  }
-});
-
-router.put("/update-header-img/:project_id", authorization, async (req, res) => {
-  try {
-    const user_id = req.user;
-    const { project_id } = req.params;
-    const { header_img } = req.body;
-    //verify we are thje owner or a member of the project
-    const verifyQuery = await pool.query(
-      "SELECT project_owner FROM projects WHERE project_id = $1",
-      [project_id]
-    );
-    const { project_owner } = verifyQuery.rows[0];
-    if (project_owner !== user_id) {
-      return res.send({
-        success: false,
-        message: "Only the project owner can update the project's header.",
-      });
+router.get(
+  "/verify-project-access/:project_id",
+  hasProjectAccess,
+  async (req, res) => {
+    try {
+      const { project_id } = req.params;
+      console.log(req);
+      // console.log(projectAccess);
+      res.send("s");
+    } catch (error) {
+      console.log(error);
     }
-    //delete the project
-    await pool.query("UPDATE projects SET header_img = $1 WHERE project_id = $2", [
-      header_img,
-      project_id,
-    ]);
-    res.json({ success: true, message: "Successfully updated the project header." });
-  } catch (error) {
-    console.log(error);
   }
-});
+);
+
+router.put(
+  "/update-header-img/:project_id",
+  authorization,
+  async (req, res) => {
+    try {
+      const user_id = req.user;
+      const { project_id } = req.params;
+      const { header_img } = req.body;
+      //verify we are thje owner or a member of the project
+      const verifyQuery = await pool.query(
+        "SELECT project_owner FROM projects WHERE project_id = $1",
+        [project_id]
+      );
+      const { project_owner } = verifyQuery.rows[0];
+      if (project_owner !== user_id) {
+        return res.send({
+          success: false,
+          message: "Only the project owner can update the project's header.",
+        });
+      }
+      //delete the project
+      await pool.query(
+        "UPDATE projects SET header_img = $1 WHERE project_id = $2",
+        [header_img, project_id]
+      );
+      res.json({
+        success: true,
+        message: "Successfully updated the project header.",
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
+);
 
 module.exports = router;

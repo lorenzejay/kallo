@@ -3,8 +3,12 @@ import {
   initialUserDetailsState,
   initialUserIdentificationState,
   initialUserInfoState,
-} from "../../types/intialStates";
-import { UserDetailsType, UserIdentificationType, UserInfoType } from "../../types/reducerTypes";
+} from "../intialStates";
+import {
+  UserDetailsType,
+  UserIdentificationType,
+  UserInfoType,
+} from "../reducerTypes";
 import {
   USER_DETAILS_FAIL,
   USER_DETAILS_REQUEST,
@@ -23,7 +27,10 @@ import {
   USER_DETAILS_RESET,
 } from "../Types/userTypes";
 
-export const userLoginReducer = (state = initialUserInfoState, action: AnyAction): UserInfoType => {
+export const userLoginReducer = (
+  state = initialUserInfoState,
+  action: AnyAction
+): UserInfoType => {
   switch (action.type) {
     case USER_LOGIN_REQUEST:
       return { loading: true, userInfo: null, error: null };

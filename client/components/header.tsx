@@ -18,86 +18,97 @@ const Header = () => {
   const { userInfo } = userLogin;
   const userDeets = useSelector((state: RootState) => state.userDeets);
   const { userDetails } = userDeets;
-  console.log(userDetails);
 
   useEffect(() => {
     if (userInfo) {
       dispatch(getUserDetails());
     }
   }, [userInfo]);
-  console.log(userInfo);
+  // console.log(userInfo);
 
+  // console.log('username', showUsername())
   const handleLogout = () => {
     dispatch(logout());
     if (!userInfo || userInfo === null) {
       router.push("/signin");
     }
   };
+
   return (
     <header
-      className={`flex justify-between items-center h-24 px-7 lg:px-16 xl:px-24 shadow-2xl text-black ${
-        isDarkMode ? "darkBody text-white" : "lightBody "
+      className={`flex justify-between items-center h-24 px-7 lg:px-16 xl:px-32 shadow-2xl text-black ${
+        isDarkMode ? "darkBody text-white" : "bg-white-175 "
       }`}
     >
       <Link href="/">
-        <h2 className="text-3xl font-bold cursor-pointer">Kallo</h2>
+        <h2 className="text-3xl font-bold cursor-pointer tracking-wide">
+          Kallo
+        </h2>
       </Link>
       {/* <button onClick={() => setSidebarOpen(!sidebarOpen)} className="outline-none border-none">
         <FaBars size={30} className="outline-none border-none" />
       </button> */}
-      {!userInfo && (
-        <ul className="flex justify-between items-center w-40 ">
+      {userInfo === null && (
+        <ul className="flex justify-between items-center w-48 mr-3">
           <li>
             <Link href="/signin">Sign In</Link>
           </li>
-          <li className="bg-blue-500 px-4 py-1 rounded-sm text-white">
-            <Link href="/signup">Sign Up</Link>
+          <li className="bg-blue-500 text-white-175 rounded-md p-3 ">
+            <Link href="/signup">Try for free</Link>
           </li>
         </ul>
       )}
       {userDetails && userDetails.username && (
         <ul className="flex justify-between items-center w-64 ">
-          <li className="bg-gray-400 rounded-md px-2 py-1 w-9 h-9 flex justify-center items-center text-xl font-medium">
-            {userDetails.username.slice(0, 1).toUpperCase()}
-          </li>
           <li className="">
             <Dropdown title={userDetails.email} className="right-0">
               <ul>
-                <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-1 border-gray-50">
+                <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
                   <Link href="/projects">
-                    <div className="flex items-center">
-                      <RiTodoLine className={`${isDarkMode ? "text-white" : "text-black"} mr-2`} />
+                    <div className="flex items-center mr-3">
+                      <RiTodoLine
+                        className={`${
+                          isDarkMode ? "text-white" : "text-black"
+                        } mr-3`}
+                      />
                       My Projects
                     </div>
                   </Link>
                 </li>
                 <hr />
-                <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-1 border-gray-50">
+                <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
                   <Link href="/sharedProjects">
                     <div className="flex items-center">
-                      <RiTodoLine className={`${isDarkMode ? "text-white" : "text-black"} mr-2"`} />
+                      <RiTodoLine
+                        className={`${
+                          isDarkMode ? "text-white" : "text-black"
+                        } mr-3"`}
+                      />
                       Shared Projects
                     </div>
                   </Link>
                 </li>
                 <hr />
-                <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-1 border-gray-50">
+                <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
                   <Link href="/profile">
                     <div className="flex items-center">
-                      <AiOutlineUser className="mr-2" /> My Profile
+                      <AiOutlineUser className="mr-3" /> My Profile
                     </div>
                   </Link>
                 </li>
                 <hr />
-                <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-1 border-gray-50">
-                  <button onClick={toggleDarkMode} className="flex items-center">
-                    {isDarkMode ? <FiMoon /> : <FiSun />} DarkMode
+                <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
+                  <button
+                    onClick={toggleDarkMode}
+                    className="flex items-center"
+                  >
+                    {isDarkMode ? <FiMoon className='mr-3'/> : <FiSun className='mr-3'/>} DarkMode
                   </button>
                 </li>
                 <hr />
-                <li className="hover:bg-gray-300 hover:text-black rounded-md my-3 p-1 ">
+                <li className="hover:bg-gray-300 hover:text-black rounded-md my-3 p-2 ">
                   <button onClick={handleLogout} className="flex items-center">
-                    <FiLogOut className="mr-2" /> Logout
+                    <FiLogOut className="mr-3" /> Logout
                   </button>
                 </li>
               </ul>

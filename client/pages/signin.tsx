@@ -20,7 +20,7 @@ const Signin = () => {
   const [password, setPassword] = useState("");
 
   useEffect(() => {
-    if (userInfo) {
+    if (userInfo !== null) {
       router.push("/projects");
     }
   }, [userInfo, router]);
@@ -40,7 +40,11 @@ const Signin = () => {
         isDarkMode ? "darkBody text-white" : "lightBody text-black"
       } min-h-screen flex flex-col items-center justify-center px-7 lg:px-16 lg:pt-24`}
     >
-      <h1 className={`text-5xl font-semibold  ${isDarkMode ? " text-white" : " text-black"}`}>
+      <h1
+        className={`text-5xl font-semibold  ${
+          isDarkMode ? " text-white" : " text-black"
+        }`}
+      >
         Kallo
       </h1>
       {loading && <p>loading....</p>}
@@ -77,7 +81,8 @@ const Signin = () => {
         </Button>
         <Link href="/signup">
           <p className=" mt-5 cursor-pointer">
-            If you don't have an account, <span className="text-blue-500">Sign Up</span>
+            If you don't have an account,{" "}
+            <span className="text-blue-500">Sign Up</span>
           </p>
         </Link>
       </form>
