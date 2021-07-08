@@ -1,7 +1,12 @@
-const pool = require("../db");
-const authorization = require("./authorization");
+import { Response } from "express";
+import pool from "../db";
+import authorization from "./authorization";
 
-module.exports = async (request, response, next) => {
+const hasProjectAccess = async (
+  request: any,
+  response: Response,
+  next: any
+) => {
   try {
     const { project_id } = request.params;
     authorization(request, response, next);
@@ -43,3 +48,5 @@ module.exports = async (request, response, next) => {
 
   next();
 };
+
+export default hasProjectAccess;
