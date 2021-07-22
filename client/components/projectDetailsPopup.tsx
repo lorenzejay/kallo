@@ -4,15 +4,14 @@ import DeleteProjectButton from "./deleteProjectButton";
 import UsernameDisplay from "./userNameDisplay";
 import UnsplashImageSearch from "./unsplashImageSearch";
 import Dropdown from "./dropdown";
-import { Projects, SharedUsers } from "../types/projectTypes";
+import { ProjectDeets, SharedUsers } from "../types/projectTypes";
 
 export type ProjectDetailsPopup = {
-  data: Projects;
+  data: ProjectDeets;
   projectId: string;
-  projectOwner: { username: string };
-  projectHeader: string;
+  projectOwner: string;
   sharedUsers: SharedUsers[];
-  setProjectHeader: (x: string) => void;
+  projectTitle: string;
 };
 
 const ProjectDetailsPopup = ({
@@ -20,26 +19,25 @@ const ProjectDetailsPopup = ({
   projectId,
   projectOwner,
   sharedUsers,
-  // projectHeader,
-  setProjectHeader,
+  projectTitle,
 }: ProjectDetailsPopup) => {
   const [revealImageSearch, setRevealImageSearch] = useState(false);
-  // console.log("projectOwner", projectOwner);
+
   return (
     <Dropdown
       title={<AiOutlineEllipsis size={30} />}
-      className={"right-0 z-10"}
+      className={"right-0 z-10 pb-5 p-3"}
       hoverable={false}
       showArrow={false}
       width={"w-64"}
     >
       <>
         <p className="text-2xl my-3">
-          <span className="font-bold">Title:</span> {data.title}
+          <span className="font-bold">Title:</span> {projectTitle}
         </p>
         {projectOwner && (
           <p className="flex flex-col">
-            Made by: <span className="font-bold">{projectOwner.username}</span>
+            Made by: <span className="font-bold">{projectOwner}</span>
           </p>
         )}
         {data.created_at && (
@@ -61,15 +59,15 @@ const ProjectDetailsPopup = ({
         </div>
         <button
           onClick={() => setRevealImageSearch(!revealImageSearch)}
-          className="rounded-md my-3 px-2 py-1 bg-gray-400 hover:bg-blue-500 hover:text-white text-black transition-all duration-500 "
+          className="rounded-md my-3 px-2 py-1 bg-gray-200 hover:bg-blue-500 hover:text-white-175 hover:text-white text-black transition-all duration-500 "
         >
           Update Header
         </button>
         <UnsplashImageSearch
           revealImageSearch={revealImageSearch}
           setRevealImageSearch={setRevealImageSearch}
-          // projectHeader={projectHeader}
-          setProjectHeader={setProjectHeader}
+          projectId={projectId}
+          updateHeader={true}
           className="right-20 top-5"
         />
         <hr />

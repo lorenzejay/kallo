@@ -4,6 +4,7 @@ import { FaArrowRight } from "react-icons/fa";
 import Layout from "../components/layout";
 import { DarkModeContext } from "../context/darkModeContext";
 import { useContext } from "react";
+
 export default function Home() {
   const { isDarkMode } = useContext(DarkModeContext);
   return (
@@ -51,7 +52,7 @@ export default function Home() {
               organize tasks, and build team spirit—all in one place.
             </p>
             <Link href="/signup">
-              <button className="border border-white px-4 py-2 rounded-md bg-none hover:text-white bg-gray-150 hover:bg-blue-500 hover:border-transparent hover:text-white-150 flex items-center transition-all duration-500">
+              <button className="border border-white px-4 py-2 rounded-md bg-none hover:text-white bg-gray-150 text-black hover:bg-blue-500 hover:border-transparent hover:text-white-150 flex items-center transition-all duration-500">
                 <span className="mr-1 ">Start Doing</span>
                 <FaArrowRight size={16} />
               </button>

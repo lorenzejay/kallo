@@ -1,15 +1,21 @@
-import { useState } from "react";
-import {createApi} from "unsplash-js";
+import { FormEvent, useState } from "react";
+import { createApi } from "unsplash-js";
 import { AiOutlineClose, AiOutlineSearch } from "react-icons/ai";
 import { useContext } from "react";
 import { DarkModeContext } from "../context/darkModeContext";
-
+import axios from "axios";
+import { useMutation } from "react-query";
+import { queryClient } from "../utils/queryClient";
+import UseUserToken from "../hooks/useUserToken";
+import { configWithToken } from "../functions";
 
 interface UnsplashImageSearchProps {
-  setProjectHeader: (x:string) => void;
+  setProjectHeader?: (x: string) => void;
   setRevealImageSearch: (x: boolean) => void;
-  className:string;
+  className: string;
   revealImageSearch: boolean;
+  updateHeader?: boolean;
+  projectId?: string;
 }
 
 const UnsplashImageSearch = ({
@@ -17,59 +23,84 @@ const UnsplashImageSearch = ({
   setRevealImageSearch,
   revealImageSearch,
   className,
+  updateHeader,
+  projectId,
 }: UnsplashImageSearchProps) => {
-  const {isDarkMode} = useContext(DarkModeContext)
+  const { isDarkMode } = useContext(DarkModeContext);
   const [keywords, setKeywords] = useState("");
   const [images, setImages] = useState<any[]>([]);
-  console.log(process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY)
-  let unsplash:any
-  if(typeof process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY === 'string'){
-     unsplash = createApi({
+  let unsplash: any;
+  if (typeof process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY === "string") {
+    unsplash = createApi({
       accessKey: process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY,
-      
       // secret: process.env.UNPLASH_SECRET_KEY,
     });
   }
 
-  const handleSearchImageFromUnsplash = async () => {
+  if (updateHeader) {
+  }
+
+  const handleSearchImageFromUnsplash = async (e: FormEvent) => {
     try {
+      e.preventDefault();
       const result = await unsplash.search.getPhotos({
         query: keywords,
         orientation: "landscape",
-        perPage:9
+        perPage: 9,
       });
-       console.log(result);
-      
+
       setImages(result.response.results);
     } catch (error) {
       console.log(error.message);
     }
   };
 
+  const userInfo = UseUserToken();
+  const handleUpdateHeaderImg = async (image: string) => {
+    if (!userInfo || !userInfo.token || !projectId) return;
+    const config = configWithToken(userInfo.token);
+    await axios.put(
+      `/api/projects/update-header-img/${projectId}`,
+      { header_img: image },
+      config
+    );
+  };
+
+  const { mutateAsync: updateHeaderImg } = useMutation(handleUpdateHeaderImg, {
+    onSuccess: () => queryClient.invalidateQueries(`projectDeets-${projectId}`),
+  });
   return (
     <div
       className={`z-30 shadow-md absolute top-48 w-72 rounded-md p-3 text-white h-auto  ${
         revealImageSearch ? "block" : "hidden"
-      } ${isDarkMode ? 'card-color' : 'bg-white-150'} ${className}`}
-      
+      } ${isDarkMode ? "card-color" : "bg-white-150"} ${className}`}
     >
-      <button className="absolute right-2 top-1" onClick={() => setRevealImageSearch(false)}>
-        <AiOutlineClose size={30}  />
+      <button
+        className="absolute right-2 top-1"
+        onClick={() => setRevealImageSearch(false)}
+      >
+        <AiOutlineClose size={30} />
       </button>
       <h2 className="text-xl w-72">Photo Search</h2>
       <p className="mb-3 text-gray-500">Search for photos from Unsplash</p>
-      <div className="flex items-center w-auto">
+      <form
+        className="flex items-center w-auto"
+        onSubmit={(e) => handleSearchImageFromUnsplash(e)}
+      >
         <input
-          className="bg-gray-150 rounded-md px-4 py-1 w-full mr-3"
+          className={`bg-gray-150 rounded-md px-4 py-1 w-full mr-3 text-black`}
           type="text"
           placeholder="keywords"
           value={keywords}
           onChange={(e) => setKeywords(e.target.value)}
         />
-        <button className="bg-blue-500 p-1 rounded-md text-white-175" onClick={handleSearchImageFromUnsplash}>
+        <button
+          className="bg-blue-500 p-1 rounded-md text-white-175"
+          type="submit"
+        >
           <AiOutlineSearch size={22} />
         </button>
-      </div>
+      </form>
       {images.length > 0 && (
         <section className="grid grid-cols-3 gap-1 mt-3 overflow-x-hidden ">
           {images.map((image, i) => (
@@ -79,7 +110,11 @@ const UnsplashImageSearch = ({
                 src={image.urls.regular}
                 className="w-20 h-20 object-cover cursor-pointer"
                 alt={image.altDescription}
-                onClick={() => setProjectHeader(image.urls.regular)}
+                onClick={
+                  !updateHeader && setProjectHeader
+                    ? () => setProjectHeader(image.urls.regular)
+                    : () => updateHeaderImg(image.urls.regular)
+                }
               />
               <p className="text-xs text-gray-400">By: {image.user.username}</p>
             </div>

@@ -3,6 +3,53 @@ import pool from "../db";
 import authorization from "../middlewares/authorization";
 import hasProjectAccess from "../middlewares/hasProjectAccess";
 const projectRouter = Router();
+export interface ProjectDeets {
+  project_id: string;
+  header_img: string;
+  project_owner: string;
+  created_at: string;
+  project_title: string;
+  is_private: boolean;
+}
+
+//get project details and columns - project_owner, created_at, boards
+projectRouter.get("/project-assets/:project_id", async (req, res) => {
+  try {
+    const { project_id } = req.params;
+    if (!project_id) return;
+
+    //project_owner, created_on, header_img,  board columns
+    const query1 = await pool.query<{
+      project_id: string;
+      header_img: string;
+      project_owner: string;
+      created_at: string;
+      is_private: boolean;
+      title: string;
+    }>("SELECT * FROM projects WHERE project_id = $1", [project_id]);
+    let projectDeets: ProjectDeets = {
+      project_id: "",
+      header_img: "",
+      project_owner: "",
+      created_at: "",
+      is_private: false,
+      project_title: "",
+    };
+    // console.log(query1.rows[0]);
+    if (!query1.rows[0]) return;
+    projectDeets.project_id = query1.rows[0].project_id;
+    projectDeets.header_img = query1.rows[0].header_img;
+    projectDeets.project_owner = query1.rows[0].project_owner;
+    projectDeets.created_at = query1.rows[0].created_at;
+    projectDeets.project_title = query1.rows[0].title;
+    projectDeets.is_private = query1.rows[0].is_private;
+
+    res.send(projectDeets);
+  } catch (error) {
+    console.error(error);
+  }
+});
+
 //get specific project
 projectRouter.get(
   "/project/:project_id",
@@ -60,6 +107,75 @@ projectRouter.get(
   }
 );
 
+//get project_owner_username
+projectRouter.get(
+  "/project-owner/:owner_id",
+  authorization,
+  async (req: any, res: Response) => {
+    try {
+      const user_id = req.user;
+      const { owner_id } = req.params;
+      const query = await pool.query(
+        "SELECT username FROM users WHERE user_id = $1",
+        [owner_id]
+      );
+      res.json(query.rows[0].username);
+      if (!user_id) return;
+    } catch (error: any) {
+      res.send(error);
+      console.error(error);
+    }
+  }
+);
+
+//get project_details
+projectRouter.get(
+  "/details/:project_id",
+  authorization,
+  async (req: any, res: Response) => {
+    try {
+      const user_id = req.user;
+      const { project_id } = req.params;
+      const query = await pool.query(
+        "SELECT * FROM projects WHERE project_id = $1",
+        [project_id]
+      );
+      res.json(query.rows[0]);
+      if (!user_id) return;
+    } catch (error: any) {
+      res.send(error);
+      console.error(error);
+    }
+  }
+);
+
+//get all the projects the user has
+export interface AllUserProjects {
+  project_id: string;
+  title: string;
+  is_private: boolean;
+  header_img: string;
+  project_owner: string;
+  created_at: string;
+}
+projectRouter.get(
+  "/get-all-user-projects",
+  authorization,
+  async (req: any, res: Response) => {
+    try {
+      const user_id = req.user;
+      // the user exists already because they won't be able to get on the page if they are not logged in with the authorization middleware
+      const usersProjects = await pool.query(
+        "SELECT * FROM projects WHERE project_owner = $1 order by created_at desc",
+        [user_id]
+      );
+      res.send(usersProjects.rows);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+);
+
 //CREATING A PROJECT
 // projectRouter.post("/add", authorization, async (req:any, res: Response) => {
 //   try {
@@ -96,424 +212,9 @@ projectRouter.post(
         [title, is_private, header_img, user_id]
       );
       if (query.rowCount < 1) return;
-      console.log(query.rows[0]);
       res.send({ success: true, message: "New Project Created" });
     } catch (error) {
       console.log(error);
-    }
-  }
-);
-
-projectRouter.post(
-  "/create-column/:project_id",
-  authorization,
-  async (req: any, res: Response) => {
-    try {
-      const user_id = req.user;
-      const { name } = req.body;
-      const { project_id } = req.params; // project_associated
-      //handle index here or on the frontend?
-
-      //if there is no user return
-      if (!user_id) return;
-      //check how many columns are associated with the project already
-      const checker = await pool.query(
-        "SELECT project_associated FROM columns WHERE project_associated= $1",
-        [project_id]
-      );
-      console.log(checker.rowCount);
-      const index = checker.rowCount;
-      const query = await pool.query(
-        "INSERT INTO columns (name, project_associated, index) VALUES ($1, $2, $3) RETURNING *",
-        [name, project_id, index]
-      );
-      if (query.rowCount < 1) return;
-      console.log(query.rows[0]);
-      res.send({
-        success: true,
-        message: `New Column Created on index ${index}`,
-      });
-    } catch (error) {
-      console.log(error);
-    }
-  }
-);
-
-//update the task
-//can be updated to be reordered in its specific column
-//can be moved to a different column
-projectRouter.put(
-  "/update-task-within-same-col/:column_id",
-  authorization,
-  async (req: any, res: Response) => {
-    try {
-      const user_id = req.user;
-      const { movingTaskId, newIndex } = req.body;
-      const { column_id } = req.params;
-      if (!user_id) return;
-
-      //check if the task even exists;
-      const checkerQuery = await pool.query(
-        "SELECT task_id, index FROM tasks WHERE column_id = $1 ORDER BY index ASC",
-        [column_id]
-      );
-      if (checkerQuery.rowCount < 1) return;
-      const originalMovingTaskIndex = Object.values(
-        checkerQuery.rows
-      ).findIndex((task) => task.task_id === movingTaskId);
-      if (originalMovingTaskIndex < 0) return;
-
-      const previousTaskAtNewIndex = checkerQuery.rows[newIndex].task_id;
-
-      //check if the task just moved from one spot
-      if (
-        newIndex - originalMovingTaskIndex === 1 ||
-        originalMovingTaskIndex - newIndex === 1
-      ) {
-        //get the task that is in the new index position
-        console.log(previousTaskAtNewIndex);
-        //set the moving task to the new index
-
-        await pool.query("UPDATE tasks SET index = $1 WHERE task_id = $2", [
-          newIndex,
-          movingTaskId,
-        ]);
-        //set previousTask to its new index
-        await pool.query(
-          "UPDATE tasks SET index = $1 WHERE task_id = $2 RETURNING *",
-          [originalMovingTaskIndex, previousTaskAtNewIndex]
-        );
-        return res.json("Moved up one spot");
-      }
-      if (newIndex > originalMovingTaskIndex) {
-        await pool.query(
-          "UPDATE tasks SET index = index - 1 WHERE index <= $1 AND column_id = $2",
-          [newIndex, column_id]
-        );
-        await pool.query("UPDATE tasks set index = $1 WHERE task_id = $2", [
-          newIndex,
-          movingTaskId,
-        ]);
-        return res.send("Moving Up");
-      } else if (newIndex < originalMovingTaskIndex) {
-        //range of indexs that are affected are between the newIndex till the original Index
-        //find the range of affected indexes
-
-        await pool.query(
-          "UPDATE tasks SET index = index + 1 WHERE index > $1 AND index < $2 AND column_id = $3",
-          [newIndex - 1, originalMovingTaskIndex + 1, column_id]
-        );
-        await pool.query("UPDATE tasks set index = $1 WHERE task_id = $2", [
-          newIndex,
-          movingTaskId,
-        ]);
-
-        return res.send("Moving Down");
-      }
-    } catch (error) {
-      console.error(error);
-      res.send("Something went wrong.");
-    }
-  }
-);
-projectRouter.put(
-  "/update-task-to-different-col/:column_id",
-  authorization,
-  async (req: any, res: Response) => {
-    try {
-      const user_id = req.user;
-      const { movingTaskId, newIndex, prev_col_id } = req.body;
-      //to the new column
-      const { column_id } = req.params;
-      if (!user_id) return;
-
-      //check the tasks in the column you will be dropping to;
-      const checkerQuery = await pool.query(
-        "SELECT task_id, index FROM tasks WHERE column_id = $1 ORDER BY index ASC",
-        [column_id]
-      );
-      // if (checkerQuery.rowCount < 1) return;
-      // const originalMovingTaskIndex = Object.values(
-      //   checkerQuery.rows
-      // ).findIndex((task) => task.task_id === movingTaskId);
-      // if (originalMovingTaskIndex < 0) return;
-
-      //checker can be empty as there can be a column with no tasks yet
-
-      let previousTaskAtNewIndex;
-
-      //if there is no tasks in the column
-      if (checkerQuery.rowCount < 1) {
-        //get the task that is in the new index position
-        //set the moving task to the index 0 in the new column because column has no tasks yet
-        await pool.query(
-          "UPDATE tasks SET index = 0, column_id = $1 WHERE task_id = $2",
-          [column_id, movingTaskId]
-        );
-        // //set previousTask to its new index
-        // await pool.query(
-        //   "UPDATE tasks SET index = $1 WHERE task_id = $2 RETURNING *",
-        //   [originalMovingTaskIndex, previousTaskAtNewIndex]
-        // );
-        return res.json("Moved to an empty column");
-      } else {
-        previousTaskAtNewIndex = checkerQuery.rows[newIndex].task_id;
-        //everything above the newIndex needs to move up one spot
-        await pool.query(
-          "UPDATE tasks SET index = index + 1 WHERE index >= $1 AND column_id = $2",
-          [newIndex, column_id]
-        );
-        await pool.query("UPDATE tasks set index = $1 WHERE task_id = $2", [
-          newIndex,
-          movingTaskId,
-        ]);
-        return res.send("Moved to a column with values before and after it.");
-      }
-    } catch (error) {
-      console.error(error);
-      res.send("Something went wrong.");
-    }
-  }
-);
-
-// update the order of the projects based on their indexes
-// takes in two specific columns that we will be moving
-//cols must be from the same project
-//col 1 and col 2
-projectRouter.put(
-  "/update-col-order/:project_id",
-  authorization,
-  async (req: any, res: Response) => {
-    try {
-      const user_id = req.user;
-      //originalIndex is the index that was the movingCol is moving to at that index because that has the move regardless
-      const { movingCol, newIndex } = req.body;
-      const { project_id } = req.params;
-      if (!user_id) {
-        throw new Error("You must be logged in.");
-      }
-      //check if the columns exist first
-      const getCols = await pool.query(
-        "SELECT column_id, index FROM columns WHERE project_associated = $1 ORDER BY index ASC",
-        [project_id]
-      );
-
-      if (getCols.rowCount > 0) {
-        const originalMovingColIndex = await Object.values(
-          getCols.rows
-        ).findIndex((col) => col.column_id === movingCol);
-        if (originalMovingColIndex < 0) return;
-        //check if it only moved one spot;
-
-        if (
-          newIndex - originalMovingColIndex === 1 ||
-          originalMovingColIndex - newIndex === 1
-        ) {
-          //update indexes here
-          //grab whatever is in the new spot first;
-          const previousColAtNewIndex = getCols.rows[newIndex].column_id;
-          console.log("previousColAtNewIndex", previousColAtNewIndex);
-          //set movingCol to the new index
-          await pool.query(
-            "UPDATE columns SET index = $1 WHERE column_id = $2",
-            [newIndex, movingCol]
-          );
-          //set previousCol at the new index to
-          await pool.query(
-            "UPDATE columns SET index = $1 WHERE column_id = $2",
-            [originalMovingColIndex, previousColAtNewIndex]
-          );
-
-          return res.send("moved only one spot");
-        }
-        if (newIndex > originalMovingColIndex) {
-          //find the range of affected indexes
-          //affected indexes are all before the newIndex
-          await pool.query(
-            "UPDATE columns SET index = index - 1 WHERE index > $1",
-            [originalMovingColIndex]
-          );
-          await pool.query(
-            "UPDATE columns set index = $1 WHERE column_id = $2",
-            [newIndex, movingCol]
-          );
-          return res.send("Moving Up");
-        } else if (newIndex < originalMovingColIndex) {
-          //range of indexs that are affected are between the newIndex till the original Index
-          //find the range of affected indexes
-
-          await pool.query(
-            "UPDATE columns SET index = index + 1 WHERE index > $1 AND index < $2 ",
-            [newIndex - 1, originalMovingColIndex + 1]
-          );
-          await pool.query(
-            "UPDATE columns set index = $1 WHERE column_id = $2",
-            [newIndex, movingCol]
-          );
-
-          return res.send("Moving Down");
-        }
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  }
-);
-
-//get all columns associated with the project
-projectRouter.get(
-  "/get-project-columns/:project_id",
-  authorization,
-  async (req: any, res: Response) => {
-    try {
-      const user_id = req.user;
-      const { project_id } = req.params;
-      //if there is no user return
-      if (!user_id || !project_id) return;
-
-      //get all the columns with the associated project_id
-      const query = await pool.query(
-        "SELECT * FROM columns WHERE project_associated = $1 ORDER BY index ASC",
-        [project_id]
-      );
-      console.log(typeof Object.values(query.rows));
-      res.status(200).json(Object.values(query.rows));
-    } catch (error) {
-      console.log(error);
-    }
-  }
-);
-
-//create a task
-projectRouter.post(
-  "/create-task/:column_id",
-  authorization,
-  async (req: any, res: Response) => {
-    try {
-      const user_id = req.user;
-      const { title } = req.body;
-      const { column_id } = req.params; // project_associated
-      //handle index here or on the frontend?
-
-      //if there is no user return
-      if (!user_id) return;
-      //check how many columns are associated with the project already
-      const checker = await pool.query(
-        "SELECT column_id FROM tasks WHERE column_id= $1",
-        [column_id]
-      );
-
-      const index = checker.rowCount;
-      const query = await pool.query(
-        "INSERT INTO tasks (title, column_id, index) VALUES ($1, $2, $3) RETURNING *",
-        [title, column_id, index]
-      );
-      if (query.rowCount < 1) return;
-      res.send({
-        success: true,
-        message: `New Task Created on index ${index}`,
-      });
-    } catch (error) {
-      console.log(error);
-      res.send({
-        success: false,
-        error:
-          "The column associated with this new task was not found, please try again.",
-      });
-    }
-  }
-);
-
-//add a todo
-projectRouter.post(
-  "/add-todo/:task_id",
-  authorization,
-  async (req: any, res: Response) => {
-    try {
-      const user_id = req.user;
-      const { description } = req.body;
-      const { task_id } = req.params; // task referenenced
-
-      //if there is no user return
-      if (!user_id) return;
-
-      //check how many todos exist within the task already
-      const checker = await pool.query(
-        "SELECT task_id FROM todos WHERE task_id = $1",
-        [task_id]
-      );
-      console.log(checker);
-      const index = checker.rowCount;
-      const query = await pool.query(
-        "INSERT INTO todos (description, index, task_id, parent_todo) VALUES ($1, $2, $3, $4) RETURNING *",
-        [description, index, task_id, null]
-      );
-      if (query.rowCount < 1) return;
-      res.send({
-        success: true,
-        message: `New Todo Created on index ${index}`,
-      });
-    } catch (error) {
-      console.log(error);
-      res.send({
-        success: false,
-        error:
-          "The task associated with this new todo was not found, please try again.",
-      });
-    }
-  }
-);
-
-const getTasksForTheCol = async (arrOfCols: any[]) => {
-  try {
-    let allTasks = [];
-    for (let col of arrOfCols) {
-      const tasks = await pool.query(
-        "select * from tasks where column_id = $1 order by index asc",
-        [col.column_id]
-      );
-
-      // console.log("tasks", tasks.rows);
-      allTasks.push({
-        column_id: col.column_id,
-        column_title: col.name,
-        tasks: tasks.rows,
-      });
-      allTasks.push(tasks.rows);
-    }
-    return allTasks;
-    // return tasks.rows;
-  } catch (error) {
-    console.log(error);
-  }
-};
-//get all the columns and tasks for the project
-projectRouter.get(
-  "/get-entire-board/:project_id",
-  authorization,
-  async (req: any, res: Response) => {
-    try {
-      const user_id = req.user;
-
-      const { project_id } = req.params;
-      if (!user_id) return;
-      // const query = await pool.query(
-      //   "select tasks.task_id, tasks.index, columns.column_id, tasks.title from columns right join tasks on tasks.column_id = columns.column_id where columns.project_associated = $1 order by columns.index asc",
-      //   [project_id]
-      // );
-      const getColumns = await pool.query(
-        "select * from columns where project_associated = $1 order by index asc",
-        [project_id]
-      );
-      // let tasksForEveryCol;
-      if (getColumns.rowCount < 1) return;
-      // sample state
-      const board = await getTasksForTheCol(getColumns.rows);
-      // console.log(tasks);
-
-      return res.send(board);
-    } catch (error) {
-      console.error(error);
     }
   }
 );
@@ -535,61 +236,6 @@ projectRouter.get(
       res.status(200).json(query.rows);
     } catch (error) {
       console.log(error.message);
-    }
-  }
-);
-
-//handle adding, updating, anything to do with the kanban board
-projectRouter.put(
-  "/add-column/:project_id",
-  authorization,
-  async (req: any, res: Response) => {
-    try {
-      const user_id = req.user;
-      //need to be an array of objects
-      const { columns } = req.body;
-      const { project_id } = req.params;
-      if (!project_id) return;
-      console.log("columns", columns);
-      //verify we are thje owner or a member of the project
-      const verifyQuery = await pool.query(
-        "SELECT project_owner FROM projects WHERE project_id = $1",
-        [project_id]
-      );
-      const { project_owner } = verifyQuery.rows[0];
-
-      const sharedToMeChecker = await pool.query(
-        "SELECT shared_user, can_edit FROM shared_users WHERE shared_project = $1",
-        [project_id]
-      );
-      const isSharedToUserAlreadyChecker = sharedToMeChecker.rows.find(
-        (x) => x.shared_user === user_id
-      );
-
-      if (
-        project_owner !== user_id &&
-        isSharedToUserAlreadyChecker &&
-        !isSharedToUserAlreadyChecker.can_edit
-      ) {
-        return res.send({
-          success: false,
-          message: "Modifications to this project will not be saved.",
-        });
-      }
-
-      //convert to json as we are passing to a json format
-      const columnsInJsonFormat = JSON.stringify(columns);
-      // console.log(columnsInJsonFormat);
-      //update the column
-      const updatedColumns = await pool.query(
-        "UPDATE projects SET columns = $1 WHERE project_id = $2 RETURNING *",
-        [columnsInJsonFormat, project_id]
-      );
-      //return the current array
-      const cols = updatedColumns.rows;
-      res.status(200).json({ columns: cols });
-    } catch (error) {
-      console.log(error);
     }
   }
 );
@@ -640,46 +286,27 @@ projectRouter.post(
   }
 );
 
-//just get the columns from the project
-projectRouter.get(
-  "/get-board-columns/:project_id",
+projectRouter.put(
+  "/update-project-title/:project_id",
   authorization,
   async (req: any, res: Response) => {
     try {
       const user_id = req.user;
+
+      const { title } = req.body;
       const { project_id } = req.params;
 
-      //make sure we allowed to see the project
-      const verifyQuery = await pool.query(
-        "SELECT project_owner FROM projects WHERE project_id = $1",
-        [project_id]
-      );
-      // return res.json(verifyQuery.rows[0]);
-      const { project_owner } = verifyQuery.rows[0];
-
-      const sharedToMeChecker = await pool.query(
-        "SELECT shared_user FROM shared_users WHERE shared_project = $1",
-        [project_id]
-      );
-      const isSharedToUserAlreadyChecker = sharedToMeChecker.rows.find(
-        (x) => x.shared_user === user_id
-      );
-
-      if (project_owner !== user_id && !isSharedToUserAlreadyChecker) {
-        return res.send({
-          success: false,
-          message: "You do not have authorization to modify this project.",
-        });
-      }
-      //else show the columns only - because kanban board only needs access to the columns
+      //user needs to either be the project owner or shared user
       const query = await pool.query(
-        "SELECT columns FROM projects WHERE project_id = $1",
-        [project_id]
+        "UPDATE projects SET title = $1 WHERE project_id = $2 RETURNING *",
+        [title, project_id]
       );
-
-      res.json(query.rows[0].columns);
+      if (query.rowCount < 0)
+        res.status(400).send("Something went wrong when updating the title.");
+      res.send("Successfully updated the title");
     } catch (error) {
-      console.log(error.message);
+      console.log(error);
+      res.status(400).send(error.message);
     }
   }
 );
@@ -724,7 +351,7 @@ projectRouter.get(
   authorization,
   async (req: any, res: Response) => {
     try {
-      const user_id = req.user;
+      const user_id: string = req.user;
       const { project_id } = req.params;
       if (!user_id) return;
       const getUserName = await pool.query(
@@ -756,15 +383,20 @@ projectRouter.post(
     try {
       const user_id = req.user;
       const { project_id } = req.params;
-      const { shared_user_email, can_edit } = req.body;
-
-      //1. check if the user_id is the owner
-      const verifyQuery = await pool.query(
+      const { shared_user_email, can_edit, given_admin_status } = req.body;
+      //admins cannot make other people admins only the project_owner has that privledge
+      //1. check if the user_id is the owner of the project or an admin
+      const verifyQuery1 = await pool.query(
         "SELECT project_owner FROM projects WHERE project_id = $1",
         [project_id]
       );
-      const { project_owner } = verifyQuery.rows[0];
-      if (project_owner !== user_id) {
+      const verifyQuery2 = await pool.query<{ is_admin: boolean }>(
+        "SELECT is_admin FROM shared_users WHERE shared_user = $1",
+        [user_id]
+      );
+      const { project_owner } = verifyQuery1.rows[0];
+      const { is_admin } = verifyQuery2.rows[0];
+      if (project_owner !== user_id || !is_admin) {
         return res.send({
           success: false,
           message: "You do not have authorization to modify this project.",
@@ -788,7 +420,7 @@ projectRouter.post(
         [project_id]
       );
       //check if you shared to yourself
-      if (checkIsAUser.rows[0].user_id === user_id) {
+      if (checkedSharedUsers.rows[0].user_id === user_id) {
         return res.send({
           success: false,
           message: "You cannot share the project to yourself.",
@@ -934,7 +566,7 @@ projectRouter.put(
           message: "Only the project owner can update the project's header.",
         });
       }
-      //delete the project
+
       await pool.query(
         "UPDATE projects SET header_img = $1 WHERE project_id = $2",
         [header_img, project_id]

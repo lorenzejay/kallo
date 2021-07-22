@@ -1,20 +1,24 @@
-import { useContext, useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import Layout from "../../components/layout";
 import Modal from "../../components/modal";
 import { BsUnlock, BsLock, BsFillImageFill } from "react-icons/bs";
 import { useRouter } from "next/router";
-import {
-  addProject,
-  getLoggedInUserProjects,
-} from "../../redux/Actions/projectActions";
+import { useQuery, useMutation } from "react-query";
+
 import UnsplashImageSearch from "../../components/unsplashImageSearch";
 import PrivacyOptions from "../../components/privacyOptions";
-import { getUserId } from "../../redux/Actions/userActions";
 import Loader from "../../components/loader";
 import ProjectCard from "../../components/projectCard";
 import Head from "next/head";
 import { RootState } from "../../redux/store";
+import axios from "axios";
+import { configWithToken } from "../../functions";
+import {
+  Projects as ProjectTypes,
+  ProjectsNew,
+} from "../../types/projectTypes";
+import { queryClient } from "../../utils/queryClient";
 
 const Projects = () => {
   const router = useRouter();
@@ -24,55 +28,70 @@ const Projects = () => {
   const [projectHeader, setProjectHeader] = useState(
     "https://source.unsplash.com/random/1600x900"
   );
-
   //set is private
   const [isPrivateProject, setIsPrivateProject] = useState(false);
   const [openPrivacyOptions, setOpenPrivacyOptions] = useState(false);
 
   const [revealImageSearch, setRevealImageSearch] = useState(false);
-  // const [unsplashImg, setUnsplashImg] = useState("");
 
-  const dispatch = useDispatch();
   const userLogin = useSelector((state: RootState) => state.userLogin);
   const { userInfo } = userLogin;
-  //project redux state
-  const projectAdd = useSelector((state: RootState) => state.projectAdd);
-  const { created } = projectAdd;
-  //get users projects not get projects shared users
-  const projectGetUsers = useSelector(
-    (state: RootState) => state.projectGetUsers
-  );
-  const { loading, error, projects } = projectGetUsers;
-  // console.log(userInfo);
+
   useEffect(() => {
     if (userInfo === null) {
       router.push("/signin");
     }
   }, [userInfo]);
-  console.log("userInfo", userInfo);
-  const handleAddProject = async () => {
-    //project image, title to server
-    try {
-      if (projectTitle !== "") {
-        setProjectTitle("");
-        setProjectHeader("");
-        setIsPrivateProject(false);
-        setOpenModal(false);
-        dispatch(addProject(projectTitle, projectHeader, isPrivateProject));
-      } else {
-        window.alert("You must include a project title.");
-      }
-    } catch (error) {
-      console.log(error.message);
+
+  const fetchProjects = async () => {
+    if (!userInfo || !userInfo.token) return;
+    const config = configWithToken(userInfo.token);
+    const { data } = await axios.get<ProjectTypes[]>(
+      "/api/projects/get-all-user-projects",
+      config
+    );
+    return data;
+  };
+  const { data, isLoading } = useQuery("projects", fetchProjects);
+
+  // console.log("status", status);
+  const handleCreateProject = async () => {
+    if (!userInfo || !userInfo.token) return;
+    const config = configWithToken(userInfo.token);
+    await axios.post(
+      "/api/projects/create-project",
+      {
+        title: projectTitle,
+        header_img: projectHeader,
+        is_private: isPrivateProject,
+      },
+      config
+    );
+  };
+  const { mutateAsync: createProject } = useMutation(handleCreateProject, {
+    onSuccess: () => queryClient.invalidateQueries("projects"),
+  });
+
+  const handleAddProject = () => {
+    if (projectTitle !== "") {
+      createProject()
+        .then(() => {
+          setProjectTitle("");
+          setProjectHeader("");
+          setIsPrivateProject(false);
+          setOpenModal(false);
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    } else {
+      window.alert("You must include a project title.");
     }
+
     // setProjects([...projects, {}])
   };
-  useEffect(() => {
-    dispatch(getLoggedInUserProjects());
-    dispatch(getUserId());
-  }, [created]);
-  // console.log('projects', projects);
-  // console.log('typeofprojects', typeof projects);
+
+  console.log("isprojectprivate", isPrivateProject);
   return (
     <>
       <Head>
@@ -80,17 +99,16 @@ const Projects = () => {
       </Head>
       <Layout>
         <>
-          {loading && <Loader />}
+          {/* {loading && <Loader />} */}
+          {isLoading && <Loader />}
           <section
             className={`relative flex flex-col justify-start transition-all duration-300 ease-in-out lg:min-h-screen pt-0 mt-0 pb-20 z-20 `}
           >
             <div className="flex justify-between">
               <div>
                 <h1 className="text-4xl font-bold uppercase ">Projects</h1>
-                {projects && (
-                  <p className="mb-5 text-white">
-                    Items: {projects.length || 0}
-                  </p>
+                {data && (
+                  <p className="mb-5 text-white">Items: {data.length || 0}</p>
                 )}
               </div>
 
@@ -100,12 +118,12 @@ const Projects = () => {
                 openModal={openModal}
                 setOpenModal={setOpenModal}
                 contentHeight="h-auto"
-                contentWidth="w-full"
+                contentWidth="w-3/4 md:w-1/2 2xl:w-1/4"
               >
                 <>
                   <img
                     src={projectHeader || "sample-card-img.jpg"}
-                    className="rounded-md"
+                    className="rounded-md w-full h-64 object-cover"
                   />
                   <input
                     placeholder="Add project title"
@@ -126,7 +144,8 @@ const Projects = () => {
                           setProjectHeader={setProjectHeader}
                           setRevealImageSearch={setRevealImageSearch}
                           revealImageSearch={revealImageSearch}
-                          className="top-72 "
+                          className="top-72"
+                          updateHeader={false}
                         />
                       )}
                     </div>
@@ -153,9 +172,8 @@ const Projects = () => {
                       </button>
                       {openPrivacyOptions && (
                         <PrivacyOptions
-                          openPrivacyOptions={openPrivacyOptions}
                           setIsPrivateProject={setIsPrivateProject}
-                          isPrivateProject={isPrivateProject}
+                          is_private={isPrivateProject}
                           setOpenPrivacyOptions={setOpenPrivacyOptions}
                           className="right-10 shadow-2xl"
                         />
@@ -170,8 +188,9 @@ const Projects = () => {
                       cancel
                     </button>
                     <button
-                      className="px-2 py-1 rounded-sm bg-blue-300 text-white-175 hover:shadow-2xl transition-all duration-500 ease-in-out"
+                      className="px-2 py-1 rounded-sm bg-blue-500 text-white-175 hover:shadow-2xl transition-all duration-500 ease-in-out disabled:opacity-50"
                       onClick={handleAddProject}
+                      disabled={projectTitle === "" ? true : false}
                     >
                       + create
                     </button>
@@ -180,10 +199,10 @@ const Projects = () => {
               </Modal>
             </div>
 
-            {Array.isArray(projects) && projects?.length > 0 ? (
+            {data && data.length > 0 ? (
               <div className="flex flex-col items-center md:grid md:grid-cols-2 lg:items-start lg:grid-cols-3 2xl:grid-cols-4 gap-5">
-                {projects &&
-                  projects.map((project, i) => {
+                {data &&
+                  data.map((project: ProjectsNew, i: number) => {
                     return (
                       <ProjectCard
                         key={i}
@@ -195,7 +214,7 @@ const Projects = () => {
                   })}
               </div>
             ) : (
-              <>{<h2>You do not have any posts.</h2>}</>
+              <>{<h2>You do not have any projects.</h2>}</>
             )}
           </section>
         </>

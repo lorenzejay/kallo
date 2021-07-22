@@ -9,11 +9,11 @@ import { FormResultType } from "../types/projectTypes";
 
 type InviteUsersProps = {
   openInviteUsers: boolean;
-  setOpenInviteUsers: (x:boolean) => void;
-  projectId: string |string[];
-  formResult: FormResultType
-  setFormResult: (x: FormResultType) => void
-}
+  setOpenInviteUsers: (x: boolean) => void;
+  projectId: string | string[];
+  formResult: FormResultType;
+  setFormResult: (x: FormResultType) => void;
+};
 
 const InviteUsers = ({
   openInviteUsers,
@@ -22,16 +22,16 @@ const InviteUsers = ({
   formResult,
   setFormResult,
 }: InviteUsersProps) => {
-  const userLogin = useSelector((state:RootState) => state.userLogin);
+  const userLogin = useSelector((state: RootState) => state.userLogin);
   const { userInfo } = userLogin;
 
   const [canEdit, setCanEdit] = useState(false);
   const [sharedUser, setSharedUser] = useState("");
   // const [formResult, setFormResult] = useState({});
-  console.log('formResult', formResult);
-  const handleInviteUsers = async (e:FormEvent) => {
+  // console.log('formResult', formResult);
+  const handleInviteUsers = async (e: FormEvent) => {
     e.preventDefault();
-    if (sharedUser === "" || userInfo ===null) return;
+    if (sharedUser === "" || userInfo === null) return;
 
     const config = configWithToken(userInfo.token);
     const { data } = await axios.post(
@@ -42,7 +42,7 @@ const InviteUsers = ({
 
     setFormResult(data);
   };
-  
+
   return (
     <form
       className={`rounded-md p-3 flex flex-col absolute w-72 ${
@@ -51,7 +51,10 @@ const InviteUsers = ({
       style={{ background: "#3F4447" }}
       onSubmit={handleInviteUsers}
     >
-      <button className="absolute top-1 right-1" onClick={() => setOpenInviteUsers(false)}>
+      <button
+        className="absolute top-1 right-1"
+        onClick={() => setOpenInviteUsers(false)}
+      >
         <AiOutlineClose size={20} />
       </button>
       <p>Invite User</p>
@@ -63,11 +66,11 @@ const InviteUsers = ({
         value={sharedUser}
       />
       <select
-        onChange={(e:any) => setCanEdit(e.target.value)}
+        onChange={(e: any) => setCanEdit(e.target.value)}
         className="text-black my-3 rounded-md focus:outline-none"
       >
-        <option value={'false'}>View Only</option>
-        <option value={'true'}>Edit</option>
+        <option value={"false"}>View Only</option>
+        <option value={"true"}>Edit</option>
       </select>
       <button className="bg-blue-500 px-3 py-1 rounded-md" type="submit">
         Invite

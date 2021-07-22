@@ -15,6 +15,7 @@ CREATE TABLE shared_users(
     shared_id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     shared_user uuid NOT NULL,
     shared_project uuid NOT NULL,
+    is_admin boolean NOT NULL DEFAULT false,
     can_edit boolean NOT NULL DEFAULT false
 );
 alter table shared_users add foreign key(shared_user) references users(user_id) on delete cascade;
@@ -25,16 +26,12 @@ CREATE TABLE projects (
     project_id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     title VARCHAR(120) NOT NULL,
     is_private BOOLEAN NOT NULL,
-    header_img VARCHAR(300),
+    header_img TEXT DEFAULT NULL,
     project_owner uuid NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 alter table projects add foreign key(project_owner) references users(user_id) on delete cascade;
--- alter table projects add columns json DEFAULT '[]'::json not null;
 
-
-
--- new stuff here
 
 CREATE TABLE columns (
   	column_id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -55,12 +52,11 @@ alter table tasks add foreign key(column_id) references columns(column_id) on de
 CREATE TABLE todos (
 	todo_id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   	description text not null,
-  	task_id uuid not null references tasks(task_id),
-  	is_checked boolean default false,
-  	parent_todo uuid references todos(todo_id),
-    index int not null
+  	task_id uuid not null,
+  	is_checked boolean not null default false,
+  	parent_todo uuid,
+    index int not null,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 alter table todos add foreign key(task_id) references tasks(task_id) on delete cascade;
 alter table todos add foreign key(parent_todo) references todos(todo_id) on delete cascade;
-
-

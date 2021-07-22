@@ -22,7 +22,6 @@ const ProjectCard = ({ projectId, title, headerImg }: ProjectCardProps) => {
   const [sharedUsers, setSharedUsers] = useState<SharedUsers[]>();
   const userLogin = useSelector((state: RootState) => state.userLogin);
   const { userInfo } = userLogin;
-  // console.log("sharedUsers", sharedUsers);
 
   const getSharedUsers = async () => {
     try {
@@ -33,7 +32,6 @@ const ProjectCard = ({ projectId, title, headerImg }: ProjectCardProps) => {
         `/api/projects/shared-users/${projectId}`,
         config
       );
-
       setSharedUsers(data);
     } catch (error) {
       throw error;
@@ -53,7 +51,7 @@ const ProjectCard = ({ projectId, title, headerImg }: ProjectCardProps) => {
       >
         <img
           src={headerImg || "sample-card-img.jpg"}
-          className="rounded-md mb-2 w-full h-44 object-cover"
+          className="rounded-md mb-2 w-full md:64 md:h-44 object-cover"
           alt={title}
         />
         <h3 className=" border-black  font-semibold w-full ">{title}</h3>

@@ -1,30 +1,32 @@
 import axios from "axios";
-import { useContext } from "react";
+import { Dispatch, SetStateAction, useContext } from "react";
 import { useEffect, useRef, useState } from "react";
 import { AiOutlineClose } from "react-icons/ai";
+import { useMutation } from "react-query";
 import { useSelector } from "react-redux";
 import { DarkModeContext } from "../context/darkModeContext";
 import { configWithToken } from "../functions";
 import { RootState } from "../redux/store";
+import { queryClient } from "../utils/queryClient";
 
 type PrivacyOptionsType = {
-  openPrivacyOptions: boolean;
-  setOpenPrivacyOptions: (x: boolean) => void;
-  isPrivateProject: boolean;
-  setIsPrivateProject: (x: boolean) => void;
+  setOpenPrivacyOptions: (
+    x: boolean
+  ) => void | Dispatch<SetStateAction<boolean>>;
+  setIsPrivateProject?: (x: boolean) => void;
   is_private?: boolean;
   projectId?: string | string[];
   className?: string;
+  newProject?: boolean;
 };
 
 const PrivacyOptions = ({
-  openPrivacyOptions,
   setOpenPrivacyOptions,
-  isPrivateProject,
   setIsPrivateProject,
   is_private,
   projectId,
   className,
+  newProject,
 }: PrivacyOptionsType) => {
   const { isDarkMode } = useContext(DarkModeContext);
 
@@ -34,12 +36,6 @@ const PrivacyOptions = ({
 
   const [response, setResponse] =
     useState<{ success: boolean; message: string }>();
-
-  useEffect(() => {
-    if (projectId && is_private !== null && is_private !== undefined) {
-      setIsPrivateProject(is_private);
-    }
-  }, [is_private]);
 
   //update privacy
   const handleUpdatePrivacy = async (projectIsPrivate: boolean) => {
@@ -52,12 +48,17 @@ const PrivacyOptions = ({
         config
       );
       setResponse(data);
-      setIsPrivateProject(projectIsPrivate);
     } catch (error) {
       console.log(error.message);
     }
   };
-  // console.log(response);
+  const { mutateAsync: updatePrivacy } = useMutation(handleUpdatePrivacy, {
+    onSuccess: () =>
+      queryClient.invalidateQueries(`projectDeets-${projectId?.toString()}`),
+  });
+
+  console.log("proejctid", projectId);
+
   useEffect(() => {
     if (response && response.success === false) {
       window.alert(response.message);
@@ -75,6 +76,7 @@ const PrivacyOptions = ({
   useEffect(() => {
     closePrivacyOptions();
   }, [ref]);
+  // console.log("isPrivateProject", isPrivateProject);
   return (
     <div
       className={`${
@@ -93,48 +95,52 @@ const PrivacyOptions = ({
       {/* {response && response.success === false && <p className='text-red-400'>{response.message}</p>}
       {response && response.success === true && <p className='text-red-400'>{response.message}</p>} */}
       <p className="text-base">Choose who is able to see this board.</p>
-      {projectId ? (
+      {projectId && !newProject ? (
         <button
           className={`${
-            isPrivateProject ? "" : "bg-green-300"
+            is_private ? "" : "bg-green-300"
           } hover:bg-green-300 transition-all duration-500 rounded-md my-2 p-1`}
-          onClick={() => handleUpdatePrivacy(false)}
+          onClick={() => updatePrivacy(false)}
         >
           <p>Public</p>
           <p>Anyone can see this board. Only board members can edit</p>
         </button>
       ) : (
-        <button
-          className={`${
-            isPrivateProject ? "" : "bg-green-300"
-          } hover:bg-green-300 transition-all duration-500 rounded-md my-2 p-1`}
-          onClick={() => setIsPrivateProject(false)}
-        >
-          <p>Public</p>
-          <p>Anyone can see this board. Only board members can edit</p>
-        </button>
+        setIsPrivateProject && (
+          <button
+            className={`${
+              is_private ? "" : "bg-green-300"
+            } hover:bg-green-300 transition-all duration-500 rounded-md my-2 p-1`}
+            onClick={() => setIsPrivateProject(false)}
+          >
+            <p>Public</p>
+            <p>Anyone can see this board. Only board members can edit</p>
+          </button>
+        )
       )}
 
-      {projectId ? (
+      {projectId && !newProject ? (
         <button
           className={`${
-            isPrivateProject ? "bg-red-300" : ""
+            is_private ? "bg-red-300" : ""
           } hover:bg-red-300 transition-all duration-500 rounded-md my-2 p-1`}
-          onClick={() => handleUpdatePrivacy(true)}
+          onClick={() => updatePrivacy(true)}
         >
           <p>Private</p>
           <p>Only board members can see and edit this board.</p>
         </button>
       ) : (
-        <button
-          className={`${
-            isPrivateProject ? "bg-red-300" : ""
-          } hover:bg-red-300 transition-all duration-500 rounded-md my-2 p-1`}
-          onClick={() => setIsPrivateProject(true)}
-        >
-          <p>Private</p>
-          <p>Only board members can see and edit this board.</p>
-        </button>
+        setIsPrivateProject && (
+          <button
+            className={`${
+              is_private ? "bg-red-300" : ""
+            } hover:bg-red-300 transition-all duration-500 rounded-md my-2 p-1`}
+            onClick={() => setIsPrivateProject(true)}
+          >
+            <p>Private</p>
+            <p>Only board members can see and edit this board.</p>
+          </button>
+        )
       )}
     </div>
   );

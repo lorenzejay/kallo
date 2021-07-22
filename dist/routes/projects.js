@@ -17,6 +17,61 @@ const db_1 = __importDefault(require("../db"));
 const authorization_1 = __importDefault(require("../middlewares/authorization"));
 const hasProjectAccess_1 = __importDefault(require("../middlewares/hasProjectAccess"));
 const projectRouter = express_1.Router();
+const getTasksForTheCol = (arrOfCols) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        let allTasks = [];
+        for (let col of arrOfCols) {
+            const tasks = yield db_1.default.query("select * from tasks where column_id = $1 order by index asc", [col.column_id]);
+            // console.log("tasks", tasks.rows);
+            allTasks.push({
+                column_id: col.column_id,
+                column_title: col.name,
+                tasks: tasks.rows,
+            });
+            // allTasks.push(tasks.rows);
+        }
+        return allTasks;
+        // return tasks.rows;
+    }
+    catch (error) {
+        console.log(error);
+    }
+});
+//get project details and columns - project_owner, created_at, boards
+projectRouter.get("/project-assets/:project_id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { project_id } = req.params;
+        if (!project_id)
+            return;
+        //project_owner, created_on, header_img,  board columns
+        const query1 = yield db_1.default.query("SELECT * FROM projects WHERE project_id = $1", [project_id]);
+        let projectDeets = {
+            project_id: "",
+            header_img: "",
+            project_owner: "",
+            created_at: "",
+            is_private: false,
+            project_title: "",
+            boardColumns: [],
+        };
+        projectDeets.project_id = query1.rows[0].project_id;
+        projectDeets.header_img = query1.rows[0].header_img;
+        projectDeets.project_owner = query1.rows[0].project_owner;
+        projectDeets.created_at = query1.rows[0].created_at;
+        projectDeets.project_title = query1.rows[0].project_title;
+        projectDeets.is_private = query1.rows[0].is_private;
+        //now we need to get the columns
+        const getColumns = yield db_1.default.query("select * from columns where project_associated = $1 order by index asc", [project_id]);
+        // if (getColumns.rowCount < 0) return res.send([]);
+        // sample state
+        const board = yield getTasksForTheCol(getColumns.rows);
+        projectDeets.boardColumns = board;
+        res.send(projectDeets);
+    }
+    catch (error) {
+        console.error(error);
+    }
+}));
 //get specific project
 projectRouter.get("/project/:project_id", authorization_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -50,6 +105,47 @@ projectRouter.get("/project/:project_id", authorization_1.default, (req, res) =>
         console.log(error.message);
     }
 }));
+//get project_owner_username
+projectRouter.get("/project-owner/:owner_id", authorization_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const user_id = req.user;
+        const { owner_id } = req.params;
+        const query = yield db_1.default.query("SELECT username FROM users WHERE user_id = $1", [owner_id]);
+        res.json(query.rows[0].username);
+        if (!user_id)
+            return;
+    }
+    catch (error) {
+        res.send(error);
+        console.error(error);
+    }
+}));
+//get project_details
+projectRouter.get("/details/:project_id", authorization_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const user_id = req.user;
+        const { project_id } = req.params;
+        const query = yield db_1.default.query("SELECT * FROM projects WHERE project_id = $1", [project_id]);
+        res.json(query.rows[0]);
+        if (!user_id)
+            return;
+    }
+    catch (error) {
+        res.send(error);
+        console.error(error);
+    }
+}));
+projectRouter.get("/get-all-user-projects", authorization_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const user_id = req.user;
+        // the user exists already because they won't be able to get on the page if they are not logged in with the authorization middleware
+        const usersProjects = yield db_1.default.query("SELECT * FROM projects WHERE project_owner = $1 order by created_at asc", [user_id]);
+        res.send(usersProjects.rows);
+    }
+    catch (error) {
+        console.error(error);
+    }
+}));
 //CREATING A PROJECT
 // projectRouter.post("/add", authorization, async (req:any, res: Response) => {
 //   try {
@@ -78,7 +174,6 @@ projectRouter.post("/create-project", authorization_1.default, (req, res) => __a
         const query = yield db_1.default.query("INSERT INTO projects (title, is_private, header_img, project_owner) VALUES ($1, $2, $3, $4) RETURNING *", [title, is_private, header_img, user_id]);
         if (query.rowCount < 1)
             return;
-        console.log(query.rows[0]);
         res.send({ success: true, message: "New Project Created" });
     }
     catch (error) {
@@ -133,7 +228,7 @@ projectRouter.put("/update-task-within-same-col/:column_id", authorization_1.def
         if (newIndex - originalMovingTaskIndex === 1 ||
             originalMovingTaskIndex - newIndex === 1) {
             //get the task that is in the new index position
-            console.log(previousTaskAtNewIndex);
+            // console.log(previousTaskAtNewIndex);
             //set the moving task to the new index
             yield db_1.default.query("UPDATE tasks SET index = $1 WHERE task_id = $2", [
                 newIndex,
@@ -170,11 +265,14 @@ projectRouter.put("/update-task-within-same-col/:column_id", authorization_1.def
 projectRouter.put("/update-task-to-different-col/:column_id", authorization_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const user_id = req.user;
-        const { movingTaskId, newIndex, prev_col_id } = req.body;
+        const { movingTaskId, newIndex } = req.body;
         //to the new column
         const { column_id } = req.params;
         if (!user_id)
             return;
+        console.log("movingTaskId", movingTaskId);
+        console.log("newIndex", newIndex);
+        console.log("column_id", column_id);
         //check the tasks in the column you will be dropping to;
         const checkerQuery = yield db_1.default.query("SELECT task_id, index FROM tasks WHERE column_id = $1 ORDER BY index ASC", [column_id]);
         // if (checkerQuery.rowCount < 1) return;
@@ -194,16 +292,19 @@ projectRouter.put("/update-task-to-different-col/:column_id", authorization_1.de
             //   "UPDATE tasks SET index = $1 WHERE task_id = $2 RETURNING *",
             //   [originalMovingTaskIndex, previousTaskAtNewIndex]
             // );
+            console.log("Moved to an empty column");
             return res.json("Moved to an empty column");
         }
         else {
+            //newIndex can be the end of the list so its currently empty
+            if (!checkerQuery.rows[newIndex]) {
+                return yield db_1.default.query("UPDATE tasks set index = $1, column_id = $2  WHERE task_id = $3", [newIndex, column_id, movingTaskId]);
+            }
             previousTaskAtNewIndex = checkerQuery.rows[newIndex].task_id;
             //everything above the newIndex needs to move up one spot
             yield db_1.default.query("UPDATE tasks SET index = index + 1 WHERE index >= $1 AND column_id = $2", [newIndex, column_id]);
-            yield db_1.default.query("UPDATE tasks set index = $1 WHERE task_id = $2", [
-                newIndex,
-                movingTaskId,
-            ]);
+            yield db_1.default.query("UPDATE tasks set index = $1, column_id = $2  WHERE task_id = $3", [newIndex, column_id, movingTaskId]);
+            console.log("Moved to a column with other tasks");
             return res.send("Moved to a column with values before and after it.");
         }
     }
@@ -321,7 +422,7 @@ projectRouter.post("/add-todo/:task_id", authorization_1.default, (req, res) => 
             return;
         //check how many todos exist within the task already
         const checker = yield db_1.default.query("SELECT task_id FROM todos WHERE task_id = $1", [task_id]);
-        console.log(checker);
+        // console.log(checker);
         const index = checker.rowCount;
         const query = yield db_1.default.query("INSERT INTO todos (description, index, task_id, parent_todo) VALUES ($1, $2, $3, $4) RETURNING *", [description, index, task_id, null]);
         if (query.rowCount < 1)
@@ -339,26 +440,6 @@ projectRouter.post("/add-todo/:task_id", authorization_1.default, (req, res) => 
         });
     }
 }));
-const getTasksForTheCol = (arrOfCols) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        let allTasks = [];
-        for (let col of arrOfCols) {
-            const tasks = yield db_1.default.query("select * from tasks where column_id = $1 order by index asc", [col.column_id]);
-            // console.log("tasks", tasks.rows);
-            allTasks.push({
-                column_id: col.column_id,
-                column_title: col.name,
-                tasks: tasks.rows,
-            });
-            allTasks.push(tasks.rows);
-        }
-        return allTasks;
-        // return tasks.rows;
-    }
-    catch (error) {
-        console.log(error);
-    }
-});
 //get all the columns and tasks for the project
 projectRouter.get("/get-entire-board/:project_id", authorization_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -372,8 +453,8 @@ projectRouter.get("/get-entire-board/:project_id", authorization_1.default, (req
         // );
         const getColumns = yield db_1.default.query("select * from columns where project_associated = $1 order by index asc", [project_id]);
         // let tasksForEveryCol;
-        if (getColumns.rowCount < 1)
-            return;
+        if (getColumns.rowCount < 0)
+            return res.send([]);
         // sample state
         const board = yield getTasksForTheCol(getColumns.rows);
         // console.log(tasks);
@@ -460,28 +541,60 @@ projectRouter.post("/add-new-task/:project_id", authorization_1.default, (req, r
     }
 }));
 //just get the columns from the project
-projectRouter.get("/get-board-columns/:project_id", authorization_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+// projectRouter.get(
+//   "/get-board-columns/:project_id",
+//   authorization,
+//   async (req: any, res: Response) => {
+//     try {
+//       const user_id = req.user;
+//       const { project_id } = req.params;
+//       //make sure we allowed to see the project
+//       const verifyQuery = await pool.query(
+//         "SELECT project_owner FROM projects WHERE project_id = $1",
+//         [project_id]
+//       );
+//       // return res.json(verifyQuery.rows[0]);
+//       const { project_owner } = verifyQuery.rows[0];
+//       const sharedToMeChecker = await pool.query(
+//         "SELECT shared_user FROM shared_users WHERE shared_project = $1",
+//         [project_id]
+//       );
+//       const isSharedToUserAlreadyChecker = sharedToMeChecker.rows.find(
+//         (x) => x.shared_user === user_id
+//       );
+//       if (project_owner !== user_id && !isSharedToUserAlreadyChecker) {
+//         return res.send({
+//           success: false,
+//           message: "You do not have authorization to modify this project.",
+//         });
+//       }
+//       //else show the columns only - because kanban board only needs access to the columns
+//       const query = await pool.query(
+//         "SELECT columns FROM projects WHERE project_id = $1",
+//         [project_id]
+//       );
+//       res.json(query.rows[0].columns);
+//     } catch (error) {
+//       console.log(error.message);
+//     }
+//   }
+// );
+//update the projects header
+projectRouter.put("/update-header/:project_id", authorization_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const user_id = req.user;
         const { project_id } = req.params;
-        //make sure we allowed to see the project
-        const verifyQuery = yield db_1.default.query("SELECT project_owner FROM projects WHERE project_id = $1", [project_id]);
-        // return res.json(verifyQuery.rows[0]);
-        const { project_owner } = verifyQuery.rows[0];
-        const sharedToMeChecker = yield db_1.default.query("SELECT shared_user FROM shared_users WHERE shared_project = $1", [project_id]);
-        const isSharedToUserAlreadyChecker = sharedToMeChecker.rows.find((x) => x.shared_user === user_id);
-        if (project_owner !== user_id && !isSharedToUserAlreadyChecker) {
-            return res.send({
-                success: false,
-                message: "You do not have authorization to modify this project.",
-            });
-        }
-        //else show the columns only - because kanban board only needs access to the columns
-        const query = yield db_1.default.query("SELECT columns FROM projects WHERE project_id = $1", [project_id]);
-        res.json(query.rows[0].columns);
+        const { header_img } = req.body;
+        //verify the project exists
+        const verifyProjectExists = yield db_1.default.query("SELECT project_id FROM projects WHERE project_id = $1", [project_id]);
+        if (verifyProjectExists.rowCount < 1)
+            return res.send("Could not find project.");
+        //update the image
+        yield db_1.default.query("UPDATE projects SET header_img = $1 WHERE project_id = $2", [header_img, project_id]);
+        res.send({ success: true, message: "Updated Image" });
     }
     catch (error) {
-        console.log(error.message);
+        console.error(error);
     }
 }));
 //update the privacy settings of the project
@@ -531,11 +644,14 @@ projectRouter.post("/share/:project_id", authorization_1.default, (req, res) => 
     try {
         const user_id = req.user;
         const { project_id } = req.params;
-        const { shared_user_email, can_edit } = req.body;
-        //1. check if the user_id is the owner
-        const verifyQuery = yield db_1.default.query("SELECT project_owner FROM projects WHERE project_id = $1", [project_id]);
-        const { project_owner } = verifyQuery.rows[0];
-        if (project_owner !== user_id) {
+        const { shared_user_email, can_edit, given_admin_status } = req.body;
+        //admins cannot make other people admins only the project_owner has that privledge
+        //1. check if the user_id is the owner of the project or an admin
+        const verifyQuery1 = yield db_1.default.query("SELECT project_owner FROM projects WHERE project_id = $1", [project_id]);
+        const verifyQuery2 = yield db_1.default.query("SELECT is_admin FROM shared_users WHERE shared_user = $1", [user_id]);
+        const { project_owner } = verifyQuery1.rows[0];
+        const { is_admin } = verifyQuery2.rows[0];
+        if (project_owner !== user_id || !is_admin) {
             return res.send({
                 success: false,
                 message: "You do not have authorization to modify this project.",
@@ -552,7 +668,7 @@ projectRouter.post("/share/:project_id", authorization_1.default, (req, res) => 
         //make sure you dont share it to yourself or to someone already added on the project
         const checkedSharedUsers = yield db_1.default.query("SELECT shared_user FROM shared_users WHERE shared_project = $1", [project_id]);
         //check if you shared to yourself
-        if (checkIsAUser.rows[0].user_id === user_id) {
+        if (checkedSharedUsers.rows[0].user_id === user_id) {
             return res.send({
                 success: false,
                 message: "You cannot share the project to yourself.",

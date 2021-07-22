@@ -65,7 +65,7 @@ const Signup = () => {
       <form
         className={`${
           isDarkMode ? "card-color text-white" : "bg-gray-100 text-black"
-        } mt-10 py-10 px-2 flex items-center justify-center flex-col shadow-lg w-full lg:w-1/2 2xl:w-1/4 rounded-md`}
+        } mt-10 py-10 px-2 flex items-center justify-center flex-col shadow-lg w-full sm:w-1/2 2xl:w-1/4 rounded-md`}
         onSubmit={handleSignUp}
       >
         <p className="mb-4  text-xl">Register.</p>
@@ -118,8 +118,16 @@ const Signup = () => {
           onChange={(e) => setConfirmPassword(e.target.value)}
         />
         <Button
-          className="w-3/4 mx-auto rounded-sm mt-3 column-color hover:bg-blue-500 transition-all duration-500"
           type="submit"
+          disabled={
+            email === "" ||
+            password === "" ||
+            username === "" ||
+            confirmPassword === "" ||
+            firstName === "" ||
+            lastName === ""
+          }
+          className="w-3/4 mx-auto rounded-sm mt-3  bg-gradient-to-bl from-blue-400 to-blue-500 text-white-175 hover:bg-blue-500 transition-all duration-500"
         >
           Register
         </Button>

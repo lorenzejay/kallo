@@ -4,12 +4,13 @@ Kallo is an kanban based task manager application that allows you to organize an
 
 ## Tech Stack
 
-- Next.js
+- Next.js w/ typescript
 - Node.js
 - Express
 - PostgreSQL
 - TailwindCss
 - Unsplash Api
+- Drag & Drop Library
 
 Be sure to have Node.js and postgreSQL installed. For PostgreSQL, be sure to you are able to run:
 `psql -U superuser` in your terminal because the application used psql in the terminal to access the database locally.
@@ -28,9 +29,13 @@ After signup head over to `your apps` located on the header / navbar and create 
 - Each card is called a task and inside each task you can create your own todo list with subtasks.
 - Dark and Light Theme Mode.
 
-## Installation to run locally
+## Installation to run in your local environment
 
-Be sure to have Node.js and Postgresql installed before continuing.
+Be sure to have Node.js and Postgresql / psql terminal installed before continuing. ~ The project has recently migrated to typescript so you can also run:
+
+```
+npm i -g typescript
+```
 
 Clone the project
 
@@ -58,25 +63,45 @@ Create a .env file
   touch .env
 ```
 
-Inside your .env file include:
+Open up psql terminal, login with your credentials that you made during installation and create a new database for this project.
+
+```
+CREATE DATABASE kallo
+```
+
+Go into your database you created
+
+```
+\c kallo
+```
+
+Go over to database.sql file in the root directory and copy and paste the remaining code over on the psql terminal to setup the database.
+This first one is important as the project is using uuid's for the primary keys and when using postgreSQL, we must install it first.
+
+```
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+...
+...
+...
+```
+
+Inside your .env in the root directory (there is also one for client but we will get to that later) file include:
 
 ```
 PORT = 5000
 NODE_ENV = Development
-<-------------Use your own PG_USER & PG_PASSWORD------------->
 PG_USER = your_postgresql_username_here
 PG_PASSWORD = your_postgresql_password
-<-------------Use your own PG_USER & PG_PASSWORD------------->
 PG_HOST = localhost
 PG_PORT = 5432
 PG_DATABASE = kallo
 JWT_SECRET = jwt_secret_can_be_anything_you_want
 ```
 
-Start the server - server will run on port 3000
+Start the server - server will run on port 5000
 
 ```bash
-  npm run start
+  npm run dev
 ```
 
 ## Start Next.js (Frontend)
@@ -99,6 +124,29 @@ Inside your .env file include:
 NODE_ENV = Development
 NEXT_PUBLIC_UNSPLASH_ACCESS_KEY = your_access_key_here
 UNPLASH_SECRET_KEY = your_secret_key_here
+NEXT_PUBLIC_BASE_URL: http://localhost:5000
+```
+
+Also create a next.config.js file (This cannot be made in ts as it will face compilation issues). This will allow us to port our api calls to localhost:5000 during development.
+
+```
+const baseUrl = "http://localhost:5000";
+module.exports = {
+  env: {
+    NEXT_PUBLIC_UNSPLASH_ACCESS_KEY: 'your_unsplash_api_access_key_here'
+    UNPLASH_SECRET_KEY: "your_unsplash_api_secret_here",
+    NEXT_PUBLIC_BASE_URL: "http://localhost:5000",
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/api/:slug*",
+        destination: `${baseUrl}/api/:slug*`,
+      },
+    ];
+  },
+};
+
 ```
 
 Start the server - Next.js will run on port 3000
@@ -106,5 +154,7 @@ Start the server - Next.js will run on port 3000
 ```bash
   npm run dev
 ```
+
+Open up the application on http://localhost:3000/
 
 #### Future possibility are to run ends concurrently.

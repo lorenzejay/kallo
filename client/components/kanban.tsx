@@ -5,13 +5,15 @@ import {
   DropResult,
   resetServerContext,
 } from "react-beautiful-dnd";
-import { useDispatch, useSelector } from "react-redux";
-import KanbanColumnArray from "./kanbanColArray";
-import { getBoardColumns, updateCols } from "../redux/Actions/projectActions";
-import Loader from "./loader";
+import { useSelector } from "react-redux";
 import NewColumn from "./newColumn";
 import { DarkModeContext } from "../context/darkModeContext";
 import { RootState } from "../redux/store";
+import axios from "axios";
+import { configWithToken } from "../functions";
+import { useMutation, useQuery, useQueryClient } from "react-query";
+import { BoardColumns } from "../types/projectTypes";
+import KanbanColumn from "./kanbanColumn";
 
 type KanbanProps = {
   headerImage: string;
@@ -19,60 +21,124 @@ type KanbanProps = {
 };
 
 const Kanban = ({ headerImage, projectId }: KanbanProps) => {
-  const { isDarkMode } = useContext(DarkModeContext);
-  const dispatch = useDispatch();
+  const queryClient = useQueryClient();
+  const userLogin = useSelector((state: RootState) => state.userLogin);
+  const { userInfo } = userLogin;
 
-  const projectColumns = useSelector(
-    (state: RootState) => state.projectColumns
-  );
-  const { boardColumns, loading } = projectColumns;
-  //makes something can load before d&d checks a fail
-  const [winReady, setWinReady] = useState(false);
+  const { isDarkMode } = useContext(DarkModeContext);
+
   const [openNewColumn, setOpenNewColumn] = useState(false);
   const [newColumnTitle, setNewColumnTitle] = useState("");
-  // const [columns, setColumns] = useState([]);
 
-  //to make sure it wokrs
+  //to make sure we can use drag and drop
   useEffect(() => {
-    setWinReady(true);
     resetServerContext();
   }, []);
 
-  useEffect(() => {
-    if (!projectId) return;
-    dispatch(getBoardColumns(projectId));
-  }, []);
+  const fetchColumns = async () => {
+    if (!userInfo || !userInfo.token || !projectId) return;
+    const config = configWithToken(userInfo.token);
+    const { data } = await axios.get<BoardColumns[]>(
+      `/api/columns/get-project-columns/${projectId}`,
+      config
+    );
 
-  console.log("boardColumns", boardColumns);
+    return data;
+  };
+  const { data: boardColumns } = useQuery(`columns-${projectId}`, fetchColumns);
+
+  type moveColArgs = {
+    movingCol: string;
+    newIndex: number;
+  };
+
+  type movingTaskArgs = {
+    column_id: string;
+    movingTaskId: string;
+    newIndex: number;
+  };
+  const handleMoveTaskInsideTheSameCol = async (args: movingTaskArgs) => {
+    if (!userInfo || !userInfo.token || !projectId) return;
+    const config = configWithToken(userInfo.token);
+    await axios.put(
+      `/api/tasks/update-task-within-same-col/${args.column_id}`,
+      { movingTaskId: args.movingTaskId, newIndex: args.newIndex },
+      config
+    );
+    console.log("moved task inside same col");
+  };
+  const handleMoveCol = async (args: moveColArgs) => {
+    try {
+      if (!userInfo || !userInfo.token || !projectId) return;
+      const config = configWithToken(userInfo.token);
+      await axios.put(
+        `/api/columns/update-col-order/${projectId}`,
+        { movingCol: args.movingCol, newIndex: args.newIndex },
+        config
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const handleMoveTaskAcrossCols = async (args: movingTaskArgs) => {
+    if (!userInfo || !userInfo.token || !projectId) return;
+    const config = configWithToken(userInfo.token);
+    await axios.put(
+      `/api/tasks/update-task-to-different-col/${args.column_id}`,
+      { movingTaskId: args.movingTaskId, newIndex: args.newIndex },
+      config
+    );
+    console.log("moved task inside same col");
+  };
+  const { mutateAsync: moveColumn } = useMutation(handleMoveCol, {
+    onSuccess: () => queryClient.invalidateQueries(`columns-${projectId}`),
+  });
+  const { mutateAsync: moveTaskInSameCol } = useMutation(
+    handleMoveTaskInsideTheSameCol,
+    {
+      onSuccess: () => queryClient.invalidateQueries(`columns-${projectId}`),
+    }
+  );
+  const { mutateAsync: moveTaskAcrossCols } = useMutation(
+    handleMoveTaskAcrossCols,
+    {
+      onSuccess: () => queryClient.invalidateQueries(`columns-${projectId}`),
+    }
+  );
 
   const handleOnDragEnd = async (result: DropResult) => {
     const { source, destination, type } = result;
     if (!destination) return; //if the card or column doesnt go anywhere do nothing
     //moving columns here
+    if (!boardColumns) return;
     if (type === "column") {
+      const { column_id } = boardColumns[source.index];
+
       if (source.index === destination.index) return;
       const [removed] = boardColumns.splice(source.index, 1);
-
       boardColumns.splice(destination.index, 0, removed);
-      const boardColunmnsCopy = [...boardColumns];
 
-      return dispatch(updateCols(boardColunmnsCopy, projectId));
+      return moveColumn({
+        movingCol: column_id,
+        newIndex: destination.index,
+      });
     }
 
-    // //moving cards here
+    // //moving task cards here
     // if we are moving items to a different column
-    if (source.droppableId !== destination.droppableId) {
+    else if (source.droppableId !== destination.droppableId) {
+      console.log("moving task to a different column");
       const sourceColumn = boardColumns.find(
-        (col) => col.id == source.droppableId
+        (col) => col.column_id == source.droppableId
       );
       if (!sourceColumn) return;
       const destinationColumn = boardColumns.find(
-        (col) => col.id == destination.droppableId
+        (col) => col.column_id == destination.droppableId
       );
       if (!destinationColumn) return;
-      const sourceItems = sourceColumn.items;
+      const sourceItems = sourceColumn.tasks;
 
-      const destinationItems = destinationColumn.items;
+      const destinationItems = destinationColumn.tasks;
 
       const [removed] = sourceItems.splice(source.index, 1);
 
@@ -81,43 +147,47 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
       } else {
         destinationItems.splice(destination.index, 0, removed);
       }
-      const boardColumnsCopy = [...boardColumns];
-      return dispatch(updateCols(boardColumnsCopy, projectId));
+      if (!removed || !destinationColumn) return;
+      return moveTaskAcrossCols({
+        column_id: destinationColumn.column_id,
+        movingTaskId: removed.task_id,
+        newIndex: destination.index,
+      });
     }
+
     //re-ordering columns from the same column
+    //source.droppable id = column_id
     else {
-      const column = boardColumns.find((col) => col.id === source.droppableId);
+      console.log("moving task inside the same column");
+      const column = boardColumns.find(
+        (col) => col.column_id === source.droppableId
+      );
       if (!column) return;
-      const copiedItems = [...column.items]; //copy of the tasks inside items array
+      const copiedItems = [...column.tasks]; //copy of the tasks inside items array
 
       const [removed] = copiedItems.splice(source.index, 1);
       copiedItems.splice(destination.index, 0, removed); //add the removed item
       //array without this column
 
       for (var i in boardColumns) {
-        if (boardColumns[i].id == column.id) {
-          boardColumns[i].items = copiedItems;
+        if (boardColumns[i].column_id == column.column_id) {
+          boardColumns[i].tasks = copiedItems;
           break; //Stop this loop, we found it!
         }
       }
-      const boardColumnsCopy = [...boardColumns];
-
-      // setColumns([...boardColumnsCopy]);
-      return dispatch(updateCols(boardColumns, projectId));
+      return moveTaskInSameCol({
+        column_id: source.droppableId,
+        movingTaskId: removed.task_id,
+        newIndex: destination.index,
+      });
     }
   };
 
-  //whenever columns is updated we update the db
-  // console.log(columns);
   const [loadedImage, setLoadedImage] = useState(false);
-  //what if there is no headerImage
   return (
     <main className="relative flex-col">
-      {loading && <Loader isDarkMode={isDarkMode} />}
-      {headerImage !== "" && !loadedImage && <Loader isDarkMode={isDarkMode} />}
-      {/* {!loading && ( */}
       <>
-        {headerImage && (
+        {headerImage !== "" && headerImage !== null && (
           <img
             onLoad={() => setLoadedImage(true)}
             loading={"eager"}
@@ -128,7 +198,7 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
             alt="Board header img"
           />
         )}
-        {!loading && (
+        {boardColumns && (
           <DragDropContext onDragEnd={(result) => handleOnDragEnd(result)}>
             <Droppable
               droppableId={"columns"}
@@ -143,8 +213,7 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
                   }`}
                 >
                   {boardColumns &&
-                    boardColumns.map((column, index) => {
-                      // console.log("id:", id); // console.log("mappedColumn:", column);
+                    boardColumns.map((column, index: number) => {
                       return (
                         <div
                           className={`flex flex-col rounded-md mr-2 ${
@@ -152,12 +221,10 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
                           }`}
                           key={index}
                         >
-                          <KanbanColumnArray
-                            id={column.id}
+                          <KanbanColumn
+                            id={column.column_id}
                             column={column}
                             index={index}
-                            // setColumns={setColumns}
-                            columns={boardColumns}
                             projectId={projectId}
                           />
                         </div>
@@ -180,8 +247,6 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
                       setOpenNewColumn={setOpenNewColumn}
                       newColumnTitle={newColumnTitle}
                       setNewColumnTitle={setNewColumnTitle}
-                      // columns={columns}
-                      // setColumns={setColumns}
                       projectId={projectId}
                     />
                   </div>

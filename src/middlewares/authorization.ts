@@ -14,7 +14,6 @@ const authorization = async (req: any, res: Response, next: any) => {
     const jwtSecret: Secret = <string>process.env.JWT_SECRET;
     //check if the json token is valid rather than a fake one inputted by a user
     const payload: any = jwt.verify(jwtToken, jwtSecret);
-    console.log("payload", payload);
     req.user = payload.user; //gives us access to the user id
   } catch (error) {
     console.log("user error", error.message);

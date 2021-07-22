@@ -1,46 +1,27 @@
 import Link from "next/link";
-import React, { useContext, useState } from "react";
+import React, { useContext } from "react";
 import { Draggable } from "react-beautiful-dnd";
 import { DarkModeContext } from "../context/darkModeContext";
-import { Columns, Task } from "../types/projectTypes";
+import { BoardColumns, Columns, Task } from "../types/projectTypes";
 
-type KanbanItemFromArrProps = {
+type KanbanTaskProps = {
   item: Task;
   index: number;
   columns?: Columns[];
-  column: Columns;
+  column: BoardColumns;
   setColumns?: (x: Columns[]) => void;
   columnId: string;
   projectId: string;
 };
-const KanbanItemFromArr = ({
-  item,
-  index,
-  columns,
-  setColumns,
-  column,
-  columnId,
-  projectId,
-}: KanbanItemFromArrProps) => {
-  const { isDarkMode } = useContext(DarkModeContext);
-  const [itemText, setItemText] = useState(item.content || "");
 
-  const changeText = (text: string) => {
-    const objIndex = column.items.findIndex((obj) => obj.id == item.id);
-    column.items[objIndex].content = text;
-    if (!columns) return;
-    // console.log(column.items.some((item) => (item.id = item.id)));
-    setColumns!({
-      ...columns,
-      [columnId]: { ...column, items: [...column.items] },
-    });
-  };
+const KanbanTask = ({ item, index, columnId }: KanbanTaskProps) => {
+  const { isDarkMode } = useContext(DarkModeContext);
 
   return (
-    <Draggable key={item.id} draggableId={item.id} index={index}>
+    <Draggable key={item.task_id} draggableId={item.task_id} index={index}>
       {(provided, snapshot) => {
         return (
-          <Link href={`/project-tasks/${projectId}?taskId=${item.id}`}>
+          <Link href={`/project-tasks/${columnId}?taskId=${item.task_id}`}>
             <div
               className={` ${
                 isDarkMode ? "border card-color" : "bg-gray-100"
@@ -52,9 +33,9 @@ const KanbanItemFromArr = ({
               {...provided.dragHandleProps}
               style={{ userSelect: "none", ...provided.draggableProps.style }}
             >
-              <p className="text-left w-full">{itemText || ""}</p>
+              <p className="text-left w-full">{item.title}</p>
               <div>
-                {item && item.tags.length > 0 && (
+                {/* {item && item.tags.length > 0 && (
                   <div className="flex flex-wrap w-auto h-auto justify-start">
                     {item.tags.map((t, i) => (
                       <div
@@ -69,7 +50,7 @@ const KanbanItemFromArr = ({
                       </div>
                     ))}
                   </div>
-                )}
+                )} */}
               </div>
             </div>
           </Link>
@@ -79,4 +60,4 @@ const KanbanItemFromArr = ({
   );
 };
 
-export default KanbanItemFromArr;
+export default KanbanTask;

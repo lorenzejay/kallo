@@ -1,11 +1,12 @@
-import { useDispatch, useSelector } from "react-redux";
 import { AiOutlineClose } from "react-icons/ai";
-import { updateCols } from "../redux/Actions/projectActions";
 import { useContext } from "react";
 import { DarkModeContext } from "../context/darkModeContext";
-import { RootState } from "../redux/store";
-import { Columns } from "../types/projectTypes";
-import { v4 as uuid } from "uuid";
+import UseUserToken from "../hooks/useUserToken";
+import { configWithToken } from "../functions";
+import axios from "axios";
+import { queryClient } from "../utils/queryClient";
+import { useMutation } from "react-query";
+
 type NewColumnProps = {
   openNewColumn: boolean;
   setOpenNewColumn: (x: boolean) => void;
@@ -20,34 +21,32 @@ const NewColumn = ({
   setNewColumnTitle,
   projectId,
 }: NewColumnProps) => {
-  // console.log("projectId", projectId);
   const { isDarkMode } = useContext(DarkModeContext);
-  const dispatch = useDispatch();
-  const projectColumns = useSelector(
-    (state: RootState) => state.projectColumns
-  );
-  const { boardColumns, loading } = projectColumns;
-  const handleAddNewColumn = () => {
-    console.log("new column added");
-    const boardColumnsCopy: Columns[] = [...boardColumns];
+  const userInfo = UseUserToken();
 
-    if (newColumnTitle === "" && !projectId) return;
-    // create the column object
-    const colId = uuid();
-    boardColumnsCopy.push({
-      id: colId,
-      name: newColumnTitle,
-      items: [],
-    });
-
-    dispatch(updateCols(boardColumnsCopy, projectId));
-    setOpenNewColumn(false);
-    setNewColumnTitle("");
+  const createNewColumns = async () => {
+    if (!userInfo || !userInfo.token) return;
+    const config = configWithToken(userInfo.token);
+    await axios.post(
+      `/api/columns/create-column/${projectId}`,
+      {
+        name: newColumnTitle,
+      },
+      config
+    );
   };
+  const { mutateAsync: newColumn } = useMutation(createNewColumns, {
+    onSuccess: () => queryClient.invalidateQueries(`columns-${projectId}`),
+  });
 
-  // console.log("newColumnTitle", newColumnTitle);
-  // console.log("columns", columns);
-  //every time column changes we push to the db
+  const handleAddNewColumn = () => {
+    newColumn()
+      .then(() => {
+        setOpenNewColumn(false);
+        setNewColumnTitle("");
+      })
+      .catch((err) => console.log(err));
+  };
 
   return (
     <div
@@ -72,7 +71,8 @@ const NewColumn = ({
           <AiOutlineClose size={20} />
         </button>
         <button
-          className="p-2 bg-blue-500 rounded-md"
+          className="p-2 bg-gray-120 rounded-md disabled:opacity-50"
+          disabled={newColumnTitle === ""}
           onClick={handleAddNewColumn}
         >
           Add Column

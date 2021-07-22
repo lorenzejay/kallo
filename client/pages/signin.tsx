@@ -20,7 +20,7 @@ const Signin = () => {
   const [password, setPassword] = useState("");
 
   useEffect(() => {
-    if (userInfo !== null) {
+    if (userInfo !== null || userInfo) {
       router.push("/projects");
     }
   }, [userInfo, router]);
@@ -32,9 +32,7 @@ const Signin = () => {
       router.push("/projects");
     }
   };
-
   return (
-    // <Layout isSignInOrSignOutPage={true}>
     <main
       className={`${
         isDarkMode ? "darkBody text-white" : "lightBody text-black"
@@ -52,7 +50,7 @@ const Signin = () => {
       <form
         className={`${
           isDarkMode ? "card-color text-white" : "bg-gray-100 text-black"
-        } mt-5 py-10  flex items-center justify-center flex-col shadow-lg w-full lg:w-1/2 2xl:w-1/4 rounded-md`}
+        } mt-5 py-10  flex items-center justify-center flex-col shadow-lg w-full sm:w-1/2 2xl:w-1/4 rounded-md`}
         onSubmit={handleSignIn}
       >
         <p className={`mb-4  text-xl `}>Log in.</p>
@@ -72,10 +70,10 @@ const Signin = () => {
           className={`w-3/4 `}
           onChange={(e) => setPassword(e.target.value)}
         />
-        {/* <Googlesigninbutton /> */}
         <Button
           type="submit"
-          className="w-3/4 mx-auto rounded-sm mt-3 column-color hover:bg-blue-500 transition-all duration-500"
+          disabled={email === "" || password === ""}
+          className="w-3/4 mx-auto rounded-sm mt-3  bg-gradient-to-bl from-blue-400 to-blue-500 text-white-175 hover:bg-blue-500 transition-all duration-500"
         >
           Sign In
         </Button>
@@ -91,7 +89,6 @@ const Signin = () => {
         <img src="/kallo-sign-in2.svg" className="lg:w-96 object-cover" />
       </section>
     </main>
-    // </Layout>
   );
 };
 

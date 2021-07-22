@@ -1,9 +1,10 @@
 import { useContext } from "react";
+import { ReactElement } from "react";
 import { useRef } from "react";
 import { AiOutlineClose } from "react-icons/ai";
 import { DarkModeContext } from "../context/darkModeContext";
 type ModalProps = {
-  modalName: string;
+  modalName: string | ReactElement;
   children: React.ReactChild;
   bgColor?: string;
   contentWidth?: string;
@@ -20,7 +21,7 @@ const Modal = ({
   openModal,
   setOpenModal,
 }: ModalProps) => {
-  const {isDarkMode} = useContext(DarkModeContext)
+  const { isDarkMode } = useContext(DarkModeContext);
   const ref = useRef<HTMLDivElement>(null);
 
   const closeModal = (e: any) => {
@@ -48,10 +49,11 @@ const Modal = ({
           ref={ref}
         >
           <div
-            className={`relative w-96 pb-20  m-auto opacity-100 overflow-y-auto p-3 z-20 rounded-md  ${
+            className={`relative pb-20  m-auto opacity-100 overflow-y-auto p-3 z-20 rounded-md  ${
               contentHeight || "h-3/4"
-            }${contentWidth} ${isDarkMode ? 'darkBody' : 'bg-white-175'} ` }
-          
+            } ${contentWidth || "md:w-3/4"} min-w-1/2 ${
+              isDarkMode ? "darkBody" : "bg-white-175"
+            } `}
           >
             <button
               className="absolute right-1 top-1 outline-none"

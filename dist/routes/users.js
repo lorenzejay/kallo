@@ -147,7 +147,7 @@ userRouter.get("/username", authorization_1.default, (req, res) => __awaiter(voi
         const query = yield db_1.default.query("SELECT username FROM users WHERE user_id = $1", [user_id]);
         if (query.rowCount === 0)
             return;
-        res.status(200).json(query.rows[0]);
+        res.status(200).json(query.rows[0].username);
     }
     catch (error) {
         throw new Error("Unable to get username");

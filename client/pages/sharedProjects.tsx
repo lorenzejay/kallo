@@ -32,7 +32,7 @@ const SharedProjects = () => {
     <Layout>
       <>
         <main>shared projects here:</main>
-        <div className="flex flex-col lg:grid grid-cols-3 gap-5">
+        <div className="flex flex-col min-h-screen lg:grid grid-cols-3 gap-5">
           {projects !== undefined &&
             projects.map((project) => (
               <Link

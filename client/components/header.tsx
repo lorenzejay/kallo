@@ -1,14 +1,19 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
-import { getUserDetails, logout } from "../redux/Actions/userActions";
-import { useContext, useEffect } from "react";
+import { logout } from "../redux/Actions/userActions";
+import { useContext } from "react";
 import Dropdown from "./dropdown";
 import { AiOutlineUser } from "react-icons/ai";
 import { FiLogOut, FiMoon, FiSun } from "react-icons/fi";
 import { RiTodoLine } from "react-icons/ri";
 import { DarkModeContext } from "../context/darkModeContext";
 import { RootState } from "../redux/store";
+import axios from "axios";
+import { configWithToken } from "../functions";
+import { useQuery } from "react-query";
+import Loader from "./loader";
+import { UserInfo } from "../types/userTypes";
 
 const Header = () => {
   const { isDarkMode, toggleDarkMode } = useContext(DarkModeContext);
@@ -16,17 +21,16 @@ const Header = () => {
   const dispatch = useDispatch();
   const userLogin = useSelector((state: RootState) => state.userLogin);
   const { userInfo } = userLogin;
-  const userDeets = useSelector((state: RootState) => state.userDeets);
-  const { userDetails } = userDeets;
 
-  useEffect(() => {
-    if (userInfo) {
-      dispatch(getUserDetails());
-    }
-  }, [userInfo]);
-  // console.log(userInfo);
+  const fetchLoggedInUserDetails = async () => {
+    if (!userInfo || !userInfo.token) return;
+    const config = configWithToken(userInfo.token);
+    const { data } = await axios.get<UserInfo>("/api/users/details", config);
+    return data;
+  };
 
-  // console.log('username', showUsername())
+  const { data, isLoading } = useQuery("userInfo", fetchLoggedInUserDetails);
+
   const handleLogout = () => {
     dispatch(logout());
     if (!userInfo || userInfo === null) {
@@ -58,10 +62,11 @@ const Header = () => {
           </li>
         </ul>
       )}
-      {userDetails && userDetails.username && (
+      {isLoading && <Loader />}
+      {data && userInfo && !isLoading && (
         <ul className="flex justify-between items-center w-64 ">
           <li className="">
-            <Dropdown title={userDetails.email} className="right-0">
+            <Dropdown title={data.email} className="right-0">
               <ul>
                 <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
                   <Link href="/projects">
@@ -76,19 +81,19 @@ const Header = () => {
                   </Link>
                 </li>
                 <hr />
-                <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
+                {/* <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
                   <Link href="/sharedProjects">
                     <div className="flex items-center">
                       <RiTodoLine
                         className={`${
                           isDarkMode ? "text-white" : "text-black"
-                        } mr-3"`}
+                        } mr-3`}
                       />
                       Shared Projects
                     </div>
                   </Link>
                 </li>
-                <hr />
+                <hr /> */}
                 <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
                   <Link href="/profile">
                     <div className="flex items-center">
@@ -102,7 +107,12 @@ const Header = () => {
                     onClick={toggleDarkMode}
                     className="flex items-center"
                   >
-                    {isDarkMode ? <FiMoon className='mr-3'/> : <FiSun className='mr-3'/>} DarkMode
+                    {isDarkMode ? (
+                      <FiMoon className="mr-3" />
+                    ) : (
+                      <FiSun className="mr-3" />
+                    )}{" "}
+                    {isDarkMode ? "Light Mode" : "Dark Mode"}
                   </button>
                 </li>
                 <hr />
@@ -114,13 +124,6 @@ const Header = () => {
               </ul>
             </Dropdown>
           </li>
-
-          {/* <li>
-            <button onClick={() => dispatch(logout())}>Logout</button>
-          </li>
-          <li>
-            <Link href="/projects">Projects</Link>
-          </li> */}
         </ul>
       )}
     </header>

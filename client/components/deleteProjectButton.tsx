@@ -1,11 +1,26 @@
+import axios from "axios";
 import { useRouter } from "next/router";
 import { FaTrash } from "react-icons/fa";
-import { useDispatch } from "react-redux";
-import { deleteProject } from "../redux/Actions/projectActions";
+import { useMutation } from "react-query";
+import { configWithToken } from "../functions";
+import UseUserToken from "../hooks/useUserToken";
+import { queryClient } from "../utils/queryClient";
 
 const DeleteProjectButton = ({ projectId }: { projectId: string }) => {
   const router = useRouter();
-  const dispatch = useDispatch();
+
+  const userInfo = UseUserToken();
+  const handleDeleleProject = async () => {
+    if (!userInfo || !userInfo.token || !projectId) return;
+    const config = configWithToken(userInfo.token);
+    await axios.delete(`/api/projects/delete-project/${projectId}`, config);
+  };
+  const { mutateAsync: deleteProject, isError } = useMutation(
+    handleDeleleProject,
+    {
+      onSuccess: () => queryClient.invalidateQueries(`projects`),
+    }
+  );
 
   const handleDeleteProject = () => {
     try {
@@ -13,8 +28,10 @@ const DeleteProjectButton = ({ projectId }: { projectId: string }) => {
         "Are you sure you want to delete? This action cannot be undone."
       );
       if (continueDelete) {
-        dispatch(deleteProject(projectId));
-        router.push("/projects");
+        deleteProject();
+        if (!isError) {
+          router.push("/projects");
+        }
       }
     } catch (error) {
       console.log(error);
@@ -23,7 +40,7 @@ const DeleteProjectButton = ({ projectId }: { projectId: string }) => {
 
   return (
     <button
-      className="flex items-center mt-2 bg-gray-300 text-black w-36 p-1 hover:bg-red-500 hover:text-white transition-all duration-500 rounded-md"
+      className="flex items-center mt-2 bg-gray-300 text-black w-36 p-1 hover:bg-red-500 hover:text-white-175 transition-all duration-500 rounded-md"
       onClick={handleDeleteProject}
     >
       <FaTrash className="mr-3" /> Delete
