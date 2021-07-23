@@ -4,6 +4,7 @@ import { FaPlus } from "react-icons/fa";
 import { GrFormClose } from "react-icons/gr";
 import { useSelector } from "react-redux";
 import { configWithToken } from "../functions";
+import { useAuth } from "../hooks/useAuth";
 import { RootState } from "../redux/store";
 import { Tags, Task } from "../types/projectTypes";
 import Modal from "./modal";
@@ -15,8 +16,8 @@ type LabelsProps = {
 };
 
 const Labels = ({ task, projectId, setTask }: LabelsProps) => {
-  const userLogin = useSelector((state: RootState) => state.userLogin);
-  const { userInfo } = userLogin;
+  const auth = useAuth();
+  const { userToken } = auth;
   const projectColumns = useSelector(
     (state: RootState) => state.projectColumns
   );
@@ -44,8 +45,8 @@ const Labels = ({ task, projectId, setTask }: LabelsProps) => {
     const taskTags = task.tags;
     taskTags.push({ labelName, labelColor });
     // console.log("columns", boardColumns);
-    if (!userInfo?.token) return;
-    const config = configWithToken(userInfo.token);
+    if (!userToken || userToken === null) return;
+    const config = configWithToken(userToken);
     await axios.put(
       `/api/projects/add-column/${projectId}`,
       { columns: boardColumns },
@@ -63,8 +64,8 @@ const Labels = ({ task, projectId, setTask }: LabelsProps) => {
 
     const columns = boardColumns;
     console.log(columns);
-    if (!userInfo?.token) return;
-    const config = configWithToken(userInfo.token);
+    if (!userToken || userToken === null) return;
+    const config = configWithToken(userToken);
     axios.put(`/api/projects/add-column/${projectId}`, { columns }, config);
   }, [labels, task]);
   console.log(task);

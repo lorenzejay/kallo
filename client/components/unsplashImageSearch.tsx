@@ -6,8 +6,8 @@ import { DarkModeContext } from "../context/darkModeContext";
 import axios from "axios";
 import { useMutation } from "react-query";
 import { queryClient } from "../utils/queryClient";
-import UseUserToken from "../hooks/useUserToken";
 import { configWithToken } from "../functions";
+import { useAuth } from "../hooks/useAuth";
 
 interface UnsplashImageSearchProps {
   setProjectHeader?: (x: string) => void;
@@ -27,6 +27,9 @@ const UnsplashImageSearch = ({
   projectId,
 }: UnsplashImageSearchProps) => {
   const { isDarkMode } = useContext(DarkModeContext);
+  const auth = useAuth();
+  const { userToken } = auth;
+
   const [keywords, setKeywords] = useState("");
   const [images, setImages] = useState<any[]>([]);
   let unsplash: any;
@@ -55,10 +58,9 @@ const UnsplashImageSearch = ({
     }
   };
 
-  const userInfo = UseUserToken();
   const handleUpdateHeaderImg = async (image: string) => {
-    if (!userInfo || !userInfo.token || !projectId) return;
-    const config = configWithToken(userInfo.token);
+    if (!userToken || !projectId) return;
+    const config = configWithToken(userToken);
     await axios.put(
       `/api/projects/update-header-img/${projectId}`,
       { header_img: image },

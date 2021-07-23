@@ -5,15 +5,14 @@ import {
   DropResult,
   resetServerContext,
 } from "react-beautiful-dnd";
-import { useSelector } from "react-redux";
 import NewColumn from "./newColumn";
 import { DarkModeContext } from "../context/darkModeContext";
-import { RootState } from "../redux/store";
 import axios from "axios";
 import { configWithToken } from "../functions";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { BoardColumns } from "../types/projectTypes";
 import KanbanColumn from "./kanbanColumn";
+import { useAuth } from "../hooks/useAuth";
 
 type KanbanProps = {
   headerImage: string;
@@ -21,9 +20,11 @@ type KanbanProps = {
 };
 
 const Kanban = ({ headerImage, projectId }: KanbanProps) => {
+  const auth = useAuth();
+  const { userToken } = auth;
   const queryClient = useQueryClient();
-  const userLogin = useSelector((state: RootState) => state.userLogin);
-  const { userInfo } = userLogin;
+  // const userLogin = useSelector((state: RootState) => state.userLogin);
+  // const { userInfo } = userLogin;
 
   const { isDarkMode } = useContext(DarkModeContext);
 
@@ -36,8 +37,8 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
   }, []);
 
   const fetchColumns = async () => {
-    if (!userInfo || !userInfo.token || !projectId) return;
-    const config = configWithToken(userInfo.token);
+    if (!userToken || !projectId) return;
+    const config = configWithToken(userToken);
     const { data } = await axios.get<BoardColumns[]>(
       `/api/columns/get-project-columns/${projectId}`,
       config
@@ -58,8 +59,8 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
     newIndex: number;
   };
   const handleMoveTaskInsideTheSameCol = async (args: movingTaskArgs) => {
-    if (!userInfo || !userInfo.token || !projectId) return;
-    const config = configWithToken(userInfo.token);
+    if (!userToken || !projectId) return;
+    const config = configWithToken(userToken);
     await axios.put(
       `/api/tasks/update-task-within-same-col/${args.column_id}`,
       { movingTaskId: args.movingTaskId, newIndex: args.newIndex },
@@ -69,8 +70,8 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
   };
   const handleMoveCol = async (args: moveColArgs) => {
     try {
-      if (!userInfo || !userInfo.token || !projectId) return;
-      const config = configWithToken(userInfo.token);
+      if (!userToken || !projectId) return;
+      const config = configWithToken(userToken);
       await axios.put(
         `/api/columns/update-col-order/${projectId}`,
         { movingCol: args.movingCol, newIndex: args.newIndex },
@@ -81,14 +82,13 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
     }
   };
   const handleMoveTaskAcrossCols = async (args: movingTaskArgs) => {
-    if (!userInfo || !userInfo.token || !projectId) return;
-    const config = configWithToken(userInfo.token);
+    if (!userToken || !projectId) return;
+    const config = configWithToken(userToken);
     await axios.put(
       `/api/tasks/update-task-to-different-col/${args.column_id}`,
       { movingTaskId: args.movingTaskId, newIndex: args.newIndex },
       config
     );
-    console.log("moved task inside same col");
   };
   const { mutateAsync: moveColumn } = useMutation(handleMoveCol, {
     onSuccess: () => queryClient.invalidateQueries(`columns-${projectId}`),

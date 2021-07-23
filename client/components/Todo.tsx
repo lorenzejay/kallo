@@ -5,7 +5,7 @@ import { FaTrash } from "react-icons/fa";
 import { useMutation } from "react-query";
 import { DarkModeContext } from "../context/darkModeContext";
 import { configWithToken } from "../functions";
-import UseUserToken from "../hooks/useUserToken";
+import { useAuth } from "../hooks/useAuth";
 import { Todo as TodoType } from "../types/projectTypes";
 import { queryClient } from "../utils/queryClient";
 
@@ -16,8 +16,10 @@ type TodoProps = {
 };
 const Todo = ({ todo, index, taskId }: TodoProps) => {
   const { isDarkMode } = useContext(DarkModeContext);
+  const auth = useAuth();
+  const { userToken } = auth;
   const [showTodoSettings, setShowTodoSettings] = useState(false);
-  const userInfo = UseUserToken();
+
   let config:
     | {
         headers: {
@@ -26,10 +28,10 @@ const Todo = ({ todo, index, taskId }: TodoProps) => {
         };
       }
     | undefined;
-  if (!userInfo || !userInfo.token) {
+  if (!userToken) {
     config = undefined;
   } else {
-    config = configWithToken(userInfo.token);
+    config = configWithToken(userToken);
   }
   const [todoDescription, setTodoDescription] = useState("");
   const [toggleDoubleClickEffect, setToggleDoubleClickEffect] = useState(false);

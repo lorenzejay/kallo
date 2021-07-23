@@ -4,7 +4,7 @@ import { Draggable, Droppable } from "react-beautiful-dnd";
 import { useMutation } from "react-query";
 import { DarkModeContext } from "../context/darkModeContext";
 import { configWithToken } from "../functions";
-import UseUserToken from "../hooks/useUserToken";
+import { useAuth } from "../hooks/useAuth";
 import { BoardColumns } from "../types/projectTypes";
 import { queryClient } from "../utils/queryClient";
 import KanbanTask from "./kanbanTask";
@@ -16,16 +16,18 @@ type KanbanColProps = {
   projectId: string;
 };
 const KanbanColumn = ({ column, id, index, projectId }: KanbanColProps) => {
+  const auth = useAuth();
+  const { userToken } = auth;
+
   const [columnName, setColumnName] = useState(column.column_title || "");
   const [toggleDoubleClickEffect, setToggleDoubleClickEffect] = useState(false);
   const { isDarkMode } = useContext(DarkModeContext);
   const [openNewItem, setOpenNewItem] = useState(false);
   const [newItemTitle, setNewItemTitle] = useState("");
 
-  const userInfo = UseUserToken();
   const updateColumnName = async (name: string) => {
-    if (!userInfo || !userInfo.token || !projectId) return;
-    const config = configWithToken(userInfo.token);
+    if (!userToken || !projectId) return;
+    const config = configWithToken(userToken);
     axios.put(
       `/api/columns/update-column-name/${column.column_id}`,
       { name },

@@ -14,6 +14,7 @@ import PrivacyOptions from "../../components/privacyOptions";
 import ProjectDetailsPopup from "../../components/projectDetailsPopup";
 import { DarkModeContext } from "../../context/darkModeContext";
 import { configWithToken } from "../../functions";
+import { useAuth } from "../../hooks/useAuth";
 import { RootState } from "../../redux/store";
 import {
   FormResultType,
@@ -27,11 +28,13 @@ export type ProjectOwner = {
 };
 
 const Project = () => {
+  const auth = useAuth();
+  const { userToken } = auth;
   const router = useRouter();
   const { projectId } = router.query;
   const { isDarkMode } = useContext(DarkModeContext);
-  const userLogin = useSelector((state: RootState) => state.userLogin);
-  const { userInfo } = userLogin;
+  // const userLogin = useSelector((state: RootState) => state.userLogin);
+  // const { userInfo } = userLogin;
   const [toggleDoubleClickEffect, setToggleDoubleClickEffect] = useState(false);
 
   const getProjectDeets = async () => {
@@ -49,9 +52,9 @@ const Project = () => {
 
   const updateProjectTitle = async (title: string) => {
     try {
-      if (!userInfo || !userInfo.token) return;
+      if (!userToken) return;
       if (!projectId) return;
-      const config = configWithToken(userInfo.token);
+      const config = configWithToken(userToken);
 
       await axios.put(
         `/api/projects/update-project-title/${projectId}`,
@@ -69,9 +72,9 @@ const Project = () => {
   // console.log("projectDeets", projectDeets);
   const fetchProjectOwner = async () => {
     try {
-      if (!userInfo || !userInfo.token || !projectDeets) return;
-      if (!projectId) return;
-      const config = configWithToken(userInfo.token);
+      if (!userToken || !projectDeets || !projectId) return;
+
+      const config = configWithToken(userToken);
       const { data } = await axios.get<string>(
         `/api/projects/project-owner/${projectDeets.project_owner}`,
         config
@@ -99,10 +102,10 @@ const Project = () => {
 
   //gets the project info on load
   useEffect(() => {
-    if (!userInfo || userInfo === null) {
+    if (userToken === null) {
       router.push("/signin");
     }
-  }, [userInfo]);
+  }, [userToken]);
 
   //add to set state in order to update state
   useEffect(() => {
