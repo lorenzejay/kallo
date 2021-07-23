@@ -1,10 +1,14 @@
 # 👋🏽 Welcome to Kallo
 
-Kallo is an kanban based task manager application that allows you to organize any projects or tasks into b ards and todos. It's a customizable kanban board application that tells you whats being worked on, what's up next and what's completed.
+<img src='assets/kallo_home.png' width='150' />
+<img src='assets/kallo_kanban_board.png' width='150' />
+
+Kallo is an kanban based task manager application that allows you to organize any projects or tasks into boards and todo lists. It's a customizable kanban board application that can be used for your projects, agile development, and tracking your progress.
 
 ## Tech Stack
 
-- Next.js w/ typescript
+- TypeScript
+- Next.js
 - Node.js
 - Express
 - PostgreSQL
@@ -12,8 +16,10 @@ Kallo is an kanban based task manager application that allows you to organize an
 - Unsplash Api
 - Drag & Drop Library
 
-Be sure to have Node.js and postgreSQL installed. For PostgreSQL, be sure to you are able to run:
+Be sure to have Node.js and PostgreSQL installed. For PostgreSQL, be sure to you are able to run:
 `psql -U superuser` in your terminal because the application used psql in the terminal to access the database locally.
+
+To check if you already have Node installed successfully run: `node -v` on your terminal. It should tell you what your version number is.
 
 Head over to the [Unsplash Api website](https://unsplash.com/developers) and create an account and register as a developer ~ it's free.
 After signup head over to `your apps` located on the header / navbar and create a new app. Read and accept the terms of agreement. Enter your project details and once you've created the app scroll all the way down to keys and copy and paste your `secret and access keys`. Your Unsplash Api keys will be used be stored in the .env.local file inside the client directory that we will make later.
