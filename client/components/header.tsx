@@ -1,30 +1,31 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useDispatch, useSelector } from "react-redux";
-import { logout } from "../redux/Actions/userActions";
 import { useContext } from "react";
 import Dropdown from "./dropdown";
 import { AiOutlineUser } from "react-icons/ai";
 import { FiLogOut, FiMoon, FiSun } from "react-icons/fi";
 import { RiTodoLine } from "react-icons/ri";
 import { DarkModeContext } from "../context/darkModeContext";
-import { RootState } from "../redux/store";
 import axios from "axios";
 import { configWithToken } from "../functions";
 import { useQuery } from "react-query";
 import Loader from "./loader";
 import { UserInfo } from "../types/userTypes";
+import { useAuth } from "../hooks/useAuth";
 
 const Header = () => {
+  const auth = useAuth();
+  const { logout, userToken } = auth;
+  console.log("userToken", userToken);
+
   const { isDarkMode, toggleDarkMode } = useContext(DarkModeContext);
   const router = useRouter();
-  const dispatch = useDispatch();
-  const userLogin = useSelector((state: RootState) => state.userLogin);
-  const { userInfo } = userLogin;
+  // const userLogin = useSelector((state: RootState) => state.userLogin);
+  // const { userInfo } = userLogin;
 
   const fetchLoggedInUserDetails = async () => {
-    if (!userInfo || !userInfo.token) return;
-    const config = configWithToken(userInfo.token);
+    if (!userToken) return;
+    const config = configWithToken(userToken);
     const { data } = await axios.get<UserInfo>("/api/users/details", config);
     return data;
   };
@@ -32,8 +33,8 @@ const Header = () => {
   const { data, isLoading } = useQuery("userInfo", fetchLoggedInUserDetails);
 
   const handleLogout = () => {
-    dispatch(logout());
-    if (!userInfo || userInfo === null) {
+    logout();
+    if (userToken === null) {
       router.push("/signin");
     }
   };
@@ -52,7 +53,7 @@ const Header = () => {
       {/* <button onClick={() => setSidebarOpen(!sidebarOpen)} className="outline-none border-none">
         <FaBars size={30} className="outline-none border-none" />
       </button> */}
-      {userInfo === null && (
+      {!userToken && (
         <ul className="flex justify-between items-center w-48 mr-3">
           <li>
             <Link href="/signin">Sign In</Link>
@@ -63,7 +64,7 @@ const Header = () => {
         </ul>
       )}
       {isLoading && <Loader />}
-      {data && userInfo && !isLoading && (
+      {data && userToken && !isLoading && (
         <ul className="flex justify-between items-center w-64 ">
           <li className="">
             <Dropdown title={data.email} className="right-0">

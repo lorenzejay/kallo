@@ -11,21 +11,22 @@ import Layout from "../../components/layout";
 import Todo from "../../components/Todo";
 import { DarkModeContext } from "../../context/darkModeContext";
 import { configWithToken } from "../../functions";
-import UseUserToken from "../../hooks/useUserToken";
+import { useAuth } from "../../hooks/useAuth";
 import { Task, Todo as TodoType } from "../../types/projectTypes";
 import { queryClient } from "../../utils/queryClient";
 
 const Tasks = () => {
   const router = useRouter();
   const { isDarkMode } = useContext(DarkModeContext);
+  const auth = useAuth();
+  const { userToken } = auth;
   //also has access to taskId in router.query
   const { taskId } = router.query;
   const [taskTitle, setTaskTitle] = useState("");
   const [newTodoTitle, setNewTodoTitle] = useState("");
-  const userInfo = UseUserToken();
   const fetchTask = async () => {
-    if (!userInfo || !userInfo.token || !taskId) return;
-    const config = configWithToken(userInfo.token);
+    if (!userToken || !taskId) return;
+    const config = configWithToken(userToken);
     const { data } = await axios.get<Task>(
       `/api/tasks/get-task/${taskId}`,
       config
@@ -77,15 +78,19 @@ const Tasks = () => {
     setNewTodoTitle("");
   };
   useEffect(() => {
+    if (!userToken || userToken === null) {
+      router.push("/signin");
+    }
+  }, [userToken]);
+  useEffect(() => {
     if (taskDetails) {
       setTaskTitle(taskDetails.title);
     }
   }, [taskDetails]);
 
   const deleteTodo = async () => {
-    if (!taskId) return;
-    if (!userInfo || !userInfo.token) return;
-    const config = configWithToken(userInfo.token);
+    if (!userToken || !taskId) return;
+    const config = configWithToken(userToken);
     await axios.delete(`/api/tasks/delete-task/${taskId}`, config);
   };
   const { mutateAsync: moveTaskAcrossCols } = useMutation(deleteTodo, {

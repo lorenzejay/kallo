@@ -1,11 +1,11 @@
 import { AiOutlineClose } from "react-icons/ai";
 import { useContext } from "react";
 import { DarkModeContext } from "../context/darkModeContext";
-import UseUserToken from "../hooks/useUserToken";
 import { configWithToken } from "../functions";
 import axios from "axios";
 import { queryClient } from "../utils/queryClient";
 import { useMutation } from "react-query";
+import { useAuth } from "../hooks/useAuth";
 
 type NewColumnProps = {
   openNewColumn: boolean;
@@ -22,11 +22,12 @@ const NewColumn = ({
   projectId,
 }: NewColumnProps) => {
   const { isDarkMode } = useContext(DarkModeContext);
-  const userInfo = UseUserToken();
+  const auth = useAuth();
+  const { userToken } = auth;
 
   const createNewColumns = async () => {
-    if (!userInfo || !userInfo.token) return;
-    const config = configWithToken(userInfo.token);
+    if (!userToken) return;
+    const config = configWithToken(userToken);
     await axios.post(
       `/api/columns/create-column/${projectId}`,
       {

@@ -4,6 +4,7 @@ import { ChangeEvent, FormEvent, useState } from "react";
 import { AiOutlineClose } from "react-icons/ai";
 import { useSelector } from "react-redux";
 import { configWithToken } from "../functions";
+import { useAuth } from "../hooks/useAuth";
 import { RootState } from "../redux/store";
 import { FormResultType } from "../types/projectTypes";
 
@@ -22,8 +23,8 @@ const InviteUsers = ({
   formResult,
   setFormResult,
 }: InviteUsersProps) => {
-  const userLogin = useSelector((state: RootState) => state.userLogin);
-  const { userInfo } = userLogin;
+  const auth = useAuth();
+  const { userToken } = auth;
 
   const [canEdit, setCanEdit] = useState(false);
   const [sharedUser, setSharedUser] = useState("");
@@ -31,9 +32,9 @@ const InviteUsers = ({
   // console.log('formResult', formResult);
   const handleInviteUsers = async (e: FormEvent) => {
     e.preventDefault();
-    if (sharedUser === "" || userInfo === null) return;
+    if (sharedUser === "" || userToken === null || !userToken) return;
 
-    const config = configWithToken(userInfo.token);
+    const config = configWithToken(userToken);
     const { data } = await axios.post(
       `/api/projects/share/${projectId}`,
       { shared_user_email: sharedUser, can_edit: canEdit },

@@ -3,16 +3,17 @@ import { useRouter } from "next/router";
 import { FaTrash } from "react-icons/fa";
 import { useMutation } from "react-query";
 import { configWithToken } from "../functions";
-import UseUserToken from "../hooks/useUserToken";
+import { useAuth } from "../hooks/useAuth";
 import { queryClient } from "../utils/queryClient";
 
 const DeleteProjectButton = ({ projectId }: { projectId: string }) => {
   const router = useRouter();
+  const auth = useAuth();
+  const { userToken } = auth;
 
-  const userInfo = UseUserToken();
   const handleDeleleProject = async () => {
-    if (!userInfo || !userInfo.token || !projectId) return;
-    const config = configWithToken(userInfo.token);
+    if (!userToken || !projectId) return;
+    const config = configWithToken(userToken);
     await axios.delete(`/api/projects/delete-project/${projectId}`, config);
   };
   const { mutateAsync: deleteProject, isError } = useMutation(

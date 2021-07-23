@@ -19,7 +19,7 @@ const Layout = ({ children, isSignInOrSignOutPage }: LayoutProps) => {
         sidebarOpen={sidebarOpen}
       />
       <div
-        className={`px-7 lg:px-16 xl:px-32 2xl:min-h-screen ${
+        className={`px-7 lg:px-16 xl:px-32 min-h-screen ${
           isSignInOrSignOutPage ? "ml-0" : ""
         }  ${isDarkMode ? "darkBody" : "bg-white-175"} `}
       >

@@ -5,7 +5,7 @@ import { useContext } from "react";
 import { useMutation } from "react-query";
 import { DarkModeContext } from "../context/darkModeContext";
 import { configWithToken } from "../functions";
-import UseUserToken from "../hooks/useUserToken";
+import { useAuth } from "../hooks/useAuth";
 import { BoardColumns } from "../types/projectTypes";
 import { queryClient } from "../utils/queryClient";
 import Loader from "./loader";
@@ -28,12 +28,13 @@ const NewTask = ({
   projectId,
 }: NewItemProps) => {
   const { isDarkMode } = useContext(DarkModeContext);
+  const auth = useAuth();
+  const { userToken } = auth;
 
-  const userInfo = UseUserToken();
   const createNewTask = async () => {
     try {
-      if (!userInfo || !userInfo.token || !column.column_id) return;
-      const config = configWithToken(userInfo.token);
+      if (!userToken || !column.column_id) return;
+      const config = configWithToken(userToken);
       await axios.post(
         `/api/tasks/create-task/${column.column_id}`,
         {

@@ -3,10 +3,9 @@ import { Dispatch, SetStateAction, useContext } from "react";
 import { useEffect, useRef, useState } from "react";
 import { AiOutlineClose } from "react-icons/ai";
 import { useMutation } from "react-query";
-import { useSelector } from "react-redux";
 import { DarkModeContext } from "../context/darkModeContext";
 import { configWithToken } from "../functions";
-import { RootState } from "../redux/store";
+import { useAuth } from "../hooks/useAuth";
 import { queryClient } from "../utils/queryClient";
 
 type PrivacyOptionsType = {
@@ -28,10 +27,12 @@ const PrivacyOptions = ({
   className,
   newProject,
 }: PrivacyOptionsType) => {
+  const auth = useAuth();
+  const { userToken } = auth;
   const { isDarkMode } = useContext(DarkModeContext);
 
-  const userLogin = useSelector((state: RootState) => state.userLogin);
-  const { userInfo } = userLogin;
+  // const userLogin = useSelector((state: RootState) => state.userLogin);
+  // const { userInfo } = userLogin;
   const ref = useRef<HTMLDivElement>(null);
 
   const [response, setResponse] =
@@ -40,8 +41,8 @@ const PrivacyOptions = ({
   //update privacy
   const handleUpdatePrivacy = async (projectIsPrivate: boolean) => {
     try {
-      if (!userInfo || !userInfo?.token) return;
-      const config = configWithToken(userInfo.token?.toString());
+      if (!userToken || !userToken === null) return;
+      const config = configWithToken(userToken);
       const { data } = await axios.put(
         `/api/projects/update-privacy/${projectId}`,
         { is_private: projectIsPrivate },

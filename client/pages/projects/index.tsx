@@ -19,8 +19,12 @@ import {
   ProjectsNew,
 } from "../../types/projectTypes";
 import { queryClient } from "../../utils/queryClient";
+import { useAuth } from "../../hooks/useAuth";
 
 const Projects = () => {
+  const auth = useAuth();
+  const { userToken } = auth;
+
   const router = useRouter();
 
   const [openModal, setOpenModal] = useState(false);
@@ -34,18 +38,18 @@ const Projects = () => {
 
   const [revealImageSearch, setRevealImageSearch] = useState(false);
 
-  const userLogin = useSelector((state: RootState) => state.userLogin);
-  const { userInfo } = userLogin;
+  // const userLogin = useSelector((state: RootState) => state.userLogin);
+  // const { userInfo } = userLogin;
 
   useEffect(() => {
-    if (userInfo === null) {
+    if (!userToken || userToken === null) {
       router.push("/signin");
     }
-  }, [userInfo]);
+  }, [userToken]);
 
   const fetchProjects = async () => {
-    if (!userInfo || !userInfo.token) return;
-    const config = configWithToken(userInfo.token);
+    if (!userToken) return;
+    const config = configWithToken(userToken);
     const { data } = await axios.get<ProjectTypes[]>(
       "/api/projects/get-all-user-projects",
       config
@@ -56,8 +60,8 @@ const Projects = () => {
 
   // console.log("status", status);
   const handleCreateProject = async () => {
-    if (!userInfo || !userInfo.token) return;
-    const config = configWithToken(userInfo.token);
+    if (!userToken) return;
+    const config = configWithToken(userToken);
     await axios.post(
       "/api/projects/create-project",
       {
@@ -91,7 +95,6 @@ const Projects = () => {
     // setProjects([...projects, {}])
   };
 
-  console.log("isprojectprivate", isPrivateProject);
   return (
     <>
       <Head>

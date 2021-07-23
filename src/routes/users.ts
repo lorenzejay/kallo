@@ -1,12 +1,9 @@
 import { Request, Response, Router } from "express";
 import pool from "../db";
-// const pool = require("../db.js");
 import bcrypt from "bcrypt";
 import jwtGenerator from "../utils/jwtGenerator";
 import authorization from "../middlewares/authorization";
-// const bycrypt = require("bcrypt");
-// const jwtGenerator = require("../utils/jwtGenerator");
-// const authorization = require("../middlewares/authorization.js");
+
 const userRouter = Router();
 userRouter.post("/register", async (req, res) => {
   try {
@@ -21,7 +18,7 @@ userRouter.post("/register", async (req, res) => {
     const isTaken = checker.rowCount;
 
     if (isTaken !== 0) {
-      return res.status(401).json({
+      return res.json({
         success: false,
         message:
           "There is already an account associate with the email or username.",
