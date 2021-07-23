@@ -1,7 +1,7 @@
 # 👋🏽 Welcome to Kallo
 
-<img src='assets/kallo_home.png' width='150' />
-<img src='assets/kallo_kanban_board.png' width='150' />
+<img src='assets/kallo_home.png' />
+<img src='assets/kallo_kanban_board.png' />
 
 Kallo is an kanban based task manager application that allows you to organize any projects or tasks into boards and todo lists. It's a customizable kanban board application that can be used for your projects, agile development, and tracking your progress.
 
