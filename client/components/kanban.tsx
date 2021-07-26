@@ -1,11 +1,11 @@
 import { useEffect, useState, useContext } from "react";
+import NewColumn from "./newColumn";
 import {
   DragDropContext,
   Droppable,
   DropResult,
   resetServerContext,
 } from "react-beautiful-dnd";
-import NewColumn from "./newColumn";
 import { DarkModeContext } from "../context/darkModeContext";
 import axios from "axios";
 import { configWithToken } from "../functions";
