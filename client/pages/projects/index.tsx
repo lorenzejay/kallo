@@ -1,17 +1,14 @@
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
 import Layout from "../../components/layout";
 import Modal from "../../components/modal";
 import { BsUnlock, BsLock, BsFillImageFill } from "react-icons/bs";
 import { useRouter } from "next/router";
 import { useQuery, useMutation } from "react-query";
-
 import UnsplashImageSearch from "../../components/unsplashImageSearch";
 import PrivacyOptions from "../../components/privacyOptions";
 import Loader from "../../components/loader";
 import ProjectCard from "../../components/projectCard";
 import Head from "next/head";
-import { RootState } from "../../redux/store";
 import axios from "axios";
 import { configWithToken } from "../../functions";
 import {

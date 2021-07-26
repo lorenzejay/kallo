@@ -30,7 +30,7 @@ export default function Home() {
               <p className="text-lg leading-relaxed mt-2 xl:w-3/4 xl:text-xl  xl:leading-loose text-center lg:text-left">
                 Collaborate, manage projects, and reach new productivity peaks.
                 From high rises to the home office, the way your team works is
-                unique—accomplish it all with Trello.
+                unique—accomplish it all with Kallo.
               </p>
               <button className="bg-blue-500 text-white-150  w-full md:max-w-md lg:w-48 px-4 py-2 rounded-md my-5">
                 Sign Up- it's free!
@@ -47,7 +47,7 @@ export default function Home() {
               It’s more than work. It’s a way of working together.
             </p>
             <p className="text-center lg:w-3/4 mx-auto my-5 text-lg">
-              Start with a Trello board, lists, and cards. Customize and expand
+              Start with a Kallo board, lists, and cards. Customize and expand
               with more features as your teamwork grows. Manage projects,
               organize tasks, and build team spirit—all in one place.
             </p>

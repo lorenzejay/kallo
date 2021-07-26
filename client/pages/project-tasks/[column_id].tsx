@@ -57,15 +57,9 @@ const Tasks = () => {
     return data;
   };
 
-  const { data: taskDetails, isLoading: loadingTaskDetails } = useQuery(
-    `taskDetails-${taskId}`,
-    fetchTask
-  );
-  const { data: allTodos, isLoading: loadingTodos } = useQuery(
-    `allTodos-${taskId}`,
-    fetchTodos
-  );
-  const { mutateAsync: createTodo, isLoading } = useMutation(handleAddTodo, {
+  const { data: taskDetails } = useQuery(`taskDetails-${taskId}`, fetchTask);
+  const { data: allTodos } = useQuery(`allTodos-${taskId}`, fetchTodos);
+  const { mutateAsync: createTodo } = useMutation(handleAddTodo, {
     onSuccess: () => queryClient.invalidateQueries(`allTodos-${taskId}`),
   });
   // console.log("allTodos", allTodos);

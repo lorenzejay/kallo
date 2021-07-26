@@ -45,7 +45,7 @@ columnRouter.get(
         [project_id]
       );
       const board = await getTasksForTheCol(query.rows);
-      console.log("board", board);
+      // console.log("board", board);
       res.status(200).json(board);
     } catch (error) {
       console.log(error);
@@ -135,7 +135,7 @@ columnRouter.put(
             "UPDATE columns SET index = $1 WHERE column_id = $2",
             [originalMovingColIndex, previousColAtNewIndex]
           );
-          console.log("moved only one spot");
+          // console.log("moved only one spot");
 
           return res.send("moved only one spot");
         }
@@ -150,7 +150,7 @@ columnRouter.put(
             "UPDATE columns set index = $1 WHERE column_id = $2",
             [newIndex, movingCol]
           );
-          console.log("moved up");
+          // console.log("moved up");
           return res.send("Moving Up");
         } else if (newIndex < originalMovingColIndex) {
           //range of indexs that are affected are between the newIndex till the original Index
@@ -164,7 +164,7 @@ columnRouter.put(
             "UPDATE columns set index = $1 WHERE column_id = $2",
             [newIndex, movingCol]
           );
-          console.log("moved down");
+          // console.log("moved down");
           return res.send("Moving Down");
         }
       }

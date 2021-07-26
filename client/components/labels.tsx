@@ -10,7 +10,7 @@ import { Tags, Task } from "../types/projectTypes";
 import Modal from "./modal";
 
 type LabelsProps = {
-  task: Task;
+  task: any;
   projectId: string;
   setTask: (x: Task) => void;
 };
@@ -25,7 +25,7 @@ const Labels = ({ task, projectId, setTask }: LabelsProps) => {
   const [openModal, setOpenModal] = useState(false);
   const [labelName, setLabelName] = useState("");
   const [labelColor, setLabelColor] = useState("");
-  const [labels, setLabels] = useState<Tags[]>([]);
+  const [labels, setLabels] = useState<any[]>([]);
 
   //   console.log("labelColor", labelColor);
   //   console.log("labelName", labelName);
@@ -63,22 +63,19 @@ const Labels = ({ task, projectId, setTask }: LabelsProps) => {
     if (!projectId) return;
 
     const columns = boardColumns;
-    console.log(columns);
     if (!userToken || userToken === null) return;
     const config = configWithToken(userToken);
     axios.put(`/api/projects/add-column/${projectId}`, { columns }, config);
   }, [labels, task]);
-  console.log(task);
-  console.log(setLabels);
 
   const handleRemoveTask = (label: Tags) => {
-    console.log("label", label);
+    // console.log("label", label);
     const labelsCopy = labels;
     const labelsIndex = labels.indexOf(label);
-    console.log(labelsIndex);
+    // console.log(labelsIndex);
     if (labelsIndex > -1) {
       labelsCopy.splice(labelsIndex, 1);
-      console.log(labelsCopy);
+      // console.log(labelsCopy);
       setTask({ ...task, tags: [...labels] });
       setLabels(labelsCopy);
       //   console.log("tasks", task);

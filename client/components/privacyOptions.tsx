@@ -58,7 +58,7 @@ const PrivacyOptions = ({
       queryClient.invalidateQueries(`projectDeets-${projectId?.toString()}`),
   });
 
-  console.log("proejctid", projectId);
+  // console.log("proejctid", projectId);
 
   useEffect(() => {
     if (response && response.success === false) {

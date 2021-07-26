@@ -16,7 +16,7 @@ import { useAuth } from "../hooks/useAuth";
 const Header = () => {
   const auth = useAuth();
   const { logout, userToken } = auth;
-  console.log("userToken", userToken);
+  // console.log("userToken", userToken);
 
   const { isDarkMode, toggleDarkMode } = useContext(DarkModeContext);
   const router = useRouter();

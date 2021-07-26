@@ -66,7 +66,6 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
       { movingTaskId: args.movingTaskId, newIndex: args.newIndex },
       config
     );
-    console.log("moved task inside same col");
   };
   const handleMoveCol = async (args: moveColArgs) => {
     try {
@@ -127,7 +126,6 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
     // //moving task cards here
     // if we are moving items to a different column
     else if (source.droppableId !== destination.droppableId) {
-      console.log("moving task to a different column");
       const sourceColumn = boardColumns.find(
         (col) => col.column_id == source.droppableId
       );
@@ -158,7 +156,6 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
     //re-ordering columns from the same column
     //source.droppable id = column_id
     else {
-      console.log("moving task inside the same column");
       const column = boardColumns.find(
         (col) => col.column_id === source.droppableId
       );

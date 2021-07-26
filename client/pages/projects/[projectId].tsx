@@ -2,10 +2,8 @@ import axios from "axios";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import React, { useContext, useEffect, useState } from "react";
-import { AiOutlinePlus } from "react-icons/ai";
 import { BsLock, BsUnlock } from "react-icons/bs";
 import { useMutation, useQuery } from "react-query";
-import { useSelector } from "react-redux";
 import InviteUsers from "../../components/inviteUsers";
 import Kanban from "../../components/kanban";
 import Layout from "../../components/layout";
@@ -15,7 +13,6 @@ import ProjectDetailsPopup from "../../components/projectDetailsPopup";
 import { DarkModeContext } from "../../context/darkModeContext";
 import { configWithToken } from "../../functions";
 import { useAuth } from "../../hooks/useAuth";
-import { RootState } from "../../redux/store";
 import {
   FormResultType,
   ProjectDeets,
@@ -71,18 +68,14 @@ const Project = () => {
 
   // console.log("projectDeets", projectDeets);
   const fetchProjectOwner = async () => {
-    try {
-      if (!userToken || !projectDeets || !projectId) return;
+    if (!userToken || !projectDeets || !projectId) return;
 
-      const config = configWithToken(userToken);
-      const { data } = await axios.get<string>(
-        `/api/projects/project-owner/${projectDeets.project_owner}`,
-        config
-      );
-      return data;
-    } catch (error) {
-      console.error(error);
-    }
+    const config = configWithToken(userToken);
+    const { data } = await axios.get<string>(
+      `/api/projects/project-owner/${projectDeets.project_owner}`,
+      config
+    );
+    return data;
   };
   const { data: project_owner } = useQuery("username", fetchProjectOwner);
 
@@ -90,9 +83,7 @@ const Project = () => {
   //set is private
   const [openPrivacyOptions, setOpenPrivacyOptions] = useState(false);
   const [openInviteUsers, setOpenInviteUsers] = useState(false);
-  const [sharedUsers, setSharedUsers] = useState<SharedUsers[]>(
-    [] as SharedUsers[]
-  );
+  const [sharedUsers, _] = useState<SharedUsers[]>([] as SharedUsers[]);
   // const [doesUserHaveAccess, setDoesUserHaveAcess] = useState(true);
   //sharing to other users so we can call on this to refresh the shared user list
 

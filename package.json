@@ -3,8 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
+  "engines": {
+    "node": "16.4.0",
+    "npm": "7.18.1"
+  },
   "scripts": {
-    "start": "nodemon ./dist/index.js",
+    "start": "ts-node ./dist/index.js",
+    "heroku-postbuild": "cd client && npm install && npm run build",
     "dev": "nodemon --exec ts-node -- ./src/index.ts",
     "build": "tsc"
   },
@@ -16,6 +21,7 @@
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "firebase-admin": "^9.11.0",
     "jsonwebtoken": "^8.5.1",
     "pg": "^8.5.1"
   },

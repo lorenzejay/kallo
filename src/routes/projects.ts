@@ -537,7 +537,7 @@ projectRouter.get(
   async (req: any, res: Response) => {
     try {
       const { project_id } = req.params;
-      console.log(req);
+      // console.log(req);
       // console.log(projectAccess);
       res.send("s");
     } catch (error) {

@@ -1,11 +1,8 @@
 import axios from "axios";
-import { ChangeEventHandler } from "react";
-import { ChangeEvent, FormEvent, useState } from "react";
+import { FormEvent, useState } from "react";
 import { AiOutlineClose } from "react-icons/ai";
-import { useSelector } from "react-redux";
 import { configWithToken } from "../functions";
 import { useAuth } from "../hooks/useAuth";
-import { RootState } from "../redux/store";
 import { FormResultType } from "../types/projectTypes";
 
 type InviteUsersProps = {

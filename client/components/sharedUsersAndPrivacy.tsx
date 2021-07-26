@@ -4,19 +4,16 @@ import { AiOutlinePlus } from "react-icons/ai";
 import { BsLock, BsUnlock } from "react-icons/bs";
 import { DarkModeContext } from "../context/darkModeContext";
 import { SharedUsers } from "../types/projectTypes";
-import InviteUsers from "./inviteUsers";
 
 type SharedUsersAndPrivacyProps = {
   is_private: boolean;
 };
 
-const SharedUsersAndPrivacy = ({ is_private }) => {
-  const [isPrivateProject, setIsPrivateProject] = useState(false);
-  const [openPrivacyOptions, setOpenPrivacyOptions] = useState(false);
+const SharedUsersAndPrivacy = ({ is_private }: SharedUsersAndPrivacyProps) => {
+  // const [isPrivateProject, setIsPrivateProject] = useState(false);
+  const [_, setOpenPrivacyOptions] = useState(false);
   const [openInviteUsers, setOpenInviteUsers] = useState(false);
-  const [sharedUsers, setSharedUsers] = useState<SharedUsers[]>(
-    [] as SharedUsers[]
-  );
+  const [sharedUsers] = useState<SharedUsers[]>([] as SharedUsers[]);
 
   //get all shared users for the project
   //update the status of the project from this component itself
@@ -31,7 +28,7 @@ const SharedUsersAndPrivacy = ({ is_private }) => {
         }  rounded-md px-2 py-1 w-24 my-2`}
         onClick={() => setOpenPrivacyOptions(true)}
       >
-        {data.is_private ? (
+        {is_private ? (
           <span className="flex items-center justify-between">
             <BsLock /> Private
           </span>
@@ -58,13 +55,13 @@ const SharedUsersAndPrivacy = ({ is_private }) => {
           <AiOutlinePlus size={21} />
         </button>
       </div>
-      <InviteUsers
+      {/* <InviteUsers
         openInviteUsers={openInviteUsers}
         setOpenInviteUsers={setOpenInviteUsers}
         projectId={projectId}
         formResult={formResult}
         setFormResult={setFormResult}
-      />
+      /> */}
     </div>
   );
 };
