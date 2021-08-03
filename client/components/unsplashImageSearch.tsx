@@ -114,8 +114,14 @@ const UnsplashImageSearch = ({
                 alt={image.altDescription}
                 onClick={
                   !updateHeader && setProjectHeader
-                    ? () => setProjectHeader(image.urls.regular)
-                    : () => updateHeaderImg(image.urls.regular)
+                    ? () => {
+                        setProjectHeader(image.urls.regular);
+                        setRevealImageSearch(false);
+                      }
+                    : () => {
+                        updateHeaderImg(image.urls.regular);
+                        setRevealImageSearch(false);
+                      }
                 }
               />
               <p className="text-xs text-gray-400">By: {image.user.username}</p>

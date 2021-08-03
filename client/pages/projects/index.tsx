@@ -118,7 +118,7 @@ const Projects = () => {
                 openModal={openModal}
                 setOpenModal={setOpenModal}
                 contentHeight="h-auto"
-                contentWidth="w-3/4 md:w-1/2 2xl:w-1/4"
+                contentWidth="w-full mx-5 md:w-1/2 2xl:w-1/4"
               >
                 <>
                   <img
@@ -130,10 +130,10 @@ const Projects = () => {
                     className="my-3 px-3 py-1 w-full rounded-sm text-black"
                     onChange={(e) => setProjectTitle(e.target.value)}
                   />
-                  <div className="flex justify-between items-center text-base">
-                    <div>
+                  <div className="w-full flex justify-between items-center text-base">
+                    <div className="w-auto lg:w-1/2 lg:mr-3">
                       <button
-                        className="bg-gray-300 px-12 py-1 rounded-sm my-2 flex items-center relative hover:shadow-2xl"
+                        className="bg-gray-300 px-8 py-1 rounded-sm my-2 flex items-center justify-center lg:w-full relative hover:shadow-2xl"
                         onClick={() => setRevealImageSearch(!revealImageSearch)}
                       >
                         <BsFillImageFill size={12} className="mr-2" />
@@ -149,11 +149,11 @@ const Projects = () => {
                         />
                       )}
                     </div>
-                    <div className="">
+                    <div className="w-auto relative lg:w-1/2 lg:ml-3">
                       <button
                         className={`${
                           isPrivateProject ? "bg-red-300" : "bg-green-300"
-                        } px-12 py-1 rounded-sm my-2 flex items-center relative hover:shadow-2xl`}
+                        } px-8 py-1 rounded-sm my-2 flex items-center justify-center relative hover:shadow-2xl lg:w-full `}
                         onClick={() =>
                           setOpenPrivacyOptions(!openPrivacyOptions)
                         }
@@ -175,7 +175,7 @@ const Projects = () => {
                           setIsPrivateProject={setIsPrivateProject}
                           is_private={isPrivateProject}
                           setOpenPrivacyOptions={setOpenPrivacyOptions}
-                          className="right-10 shadow-2xl"
+                          className=" top-5 right-0 z-50 mb-10 lg:right-10 shadow-2xl"
                         />
                       )}
                     </div>

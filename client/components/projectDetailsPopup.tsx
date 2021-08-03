@@ -68,7 +68,7 @@ const ProjectDetailsPopup = ({
           setRevealImageSearch={setRevealImageSearch}
           projectId={projectId}
           updateHeader={true}
-          className="right-20 top-5"
+          className="right-0 lg:right-20 top-5"
         />
         <hr />
         <p className="text-red-500  flex items-center mt-3">

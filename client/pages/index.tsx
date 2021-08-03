@@ -58,8 +58,9 @@ export default function Home() {
               </button>
             </Link>
             <img
-              src="/home-2.png"
+              src="/kallo_kanban_board.png"
               className="mx-auto rounded-md my-10 shadow-xl xl:max-w-7xl lg:w-1/2 bg-white"
+              alt="kanban board example"
             />
             <span className="text-xl xl:text-xl">
               Join over 1,000,000 teams worldwide that are using Kallo to get

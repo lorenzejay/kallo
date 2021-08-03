@@ -82,7 +82,7 @@ const PrivacyOptions = ({
     <div
       className={`${
         isDarkMode ? "card-color" : "bg-gray-150"
-      } text-white absolute w-72 rounded-md p-3 z-10 ${className}`}
+      } text-white absolute w-72 rounded-md p-3 z-30 ${className}`}
       ref={ref}
       onClick={closePrivacyOptions}
     >
@@ -101,7 +101,10 @@ const PrivacyOptions = ({
           className={`${
             is_private ? "" : "bg-green-300"
           } hover:bg-green-300 transition-all duration-500 rounded-md my-2 p-1`}
-          onClick={() => updatePrivacy(false)}
+          onClick={() => {
+            updatePrivacy(false);
+            setOpenPrivacyOptions(false);
+          }}
         >
           <p>Public</p>
           <p>Anyone can see this board. Only board members can edit</p>
@@ -112,7 +115,10 @@ const PrivacyOptions = ({
             className={`${
               is_private ? "" : "bg-green-300"
             } hover:bg-green-300 transition-all duration-500 rounded-md my-2 p-1`}
-            onClick={() => setIsPrivateProject(false)}
+            onClick={() => {
+              setIsPrivateProject(false);
+              setOpenPrivacyOptions(false);
+            }}
           >
             <p>Public</p>
             <p>Anyone can see this board. Only board members can edit</p>
@@ -125,7 +131,10 @@ const PrivacyOptions = ({
           className={`${
             is_private ? "bg-red-300" : ""
           } hover:bg-red-300 transition-all duration-500 rounded-md my-2 p-1`}
-          onClick={() => updatePrivacy(true)}
+          onClick={() => {
+            updatePrivacy(true);
+            setOpenPrivacyOptions(false);
+          }}
         >
           <p>Private</p>
           <p>Only board members can see and edit this board.</p>
@@ -136,7 +145,10 @@ const PrivacyOptions = ({
             className={`${
               is_private ? "bg-red-300" : ""
             } hover:bg-red-300 transition-all duration-500 rounded-md my-2 p-1`}
-            onClick={() => setIsPrivateProject(true)}
+            onClick={() => {
+              setIsPrivateProject(true);
+              setOpenPrivacyOptions(false);
+            }}
           >
             <p>Private</p>
             <p>Only board members can see and edit this board.</p>
