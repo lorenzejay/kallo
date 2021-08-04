@@ -1,8 +1,10 @@
+import axios from "axios";
 import Link from "next/link";
 import React, { useContext } from "react";
 import { Draggable } from "react-beautiful-dnd";
+import { useQuery } from "react-query";
 import { DarkModeContext } from "../context/darkModeContext";
-import { BoardColumns, Columns, Task } from "../types/projectTypes";
+import { BoardColumns, Columns, TagsType, Task } from "../types/projectTypes";
 
 type KanbanTaskProps = {
   item: Task;
@@ -15,7 +17,17 @@ type KanbanTaskProps = {
 };
 
 const KanbanTask = ({ item, index, columnId }: KanbanTaskProps) => {
+  const fetchTags = async () => {
+    if (!item.task_id) return;
+    const { data } = await axios.get<TagsType[]>(
+      `/api/tags/fetch/${item.task_id}`
+    );
+    return data;
+  };
+
+  const { data: allTags } = useQuery(`allTags-${item.task_id}`, fetchTags);
   const { isDarkMode } = useContext(DarkModeContext);
+  console.log(allTags);
 
   return (
     <Draggable key={item.task_id} draggableId={item.task_id} index={index}>
@@ -35,22 +47,22 @@ const KanbanTask = ({ item, index, columnId }: KanbanTaskProps) => {
             >
               <p className="text-left w-full">{item.title}</p>
               <div>
-                {/* {item && item.tags.length > 0 && (
+                {allTags && allTags.length > 0 && (
                   <div className="flex flex-wrap w-auto h-auto justify-start">
-                    {item.tags.map((t, i) => (
+                    {allTags.map((t, i) => (
                       <div
                         className="rounded-sm mr-2 my-2 text-sm"
                         style={{
-                          background: t.labelColor,
+                          backgroundColor: t.hex_color,
                           padding: "1px 10px",
                         }}
                         key={i}
                       >
-                        {t.labelName}
+                        {t.title}
                       </div>
                     ))}
                   </div>
-                )} */}
+                )}
               </div>
             </div>
           </Link>

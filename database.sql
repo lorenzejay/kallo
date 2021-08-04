@@ -60,3 +60,13 @@ CREATE TABLE todos (
 );
 alter table todos add foreign key(task_id) references tasks(task_id) on delete cascade;
 alter table todos add foreign key(parent_todo) references todos(todo_id) on delete cascade;
+
+CREATE table tags (
+    tag_id uuid PRIMARY KEY DEFAULT uuid_generate_v4(), 
+    title VARCHAR(55) NOT NULL,
+    task_id uuid NOT NULL,
+    hex_color VARCHAR(255) DEFAULT '#ffffff',
+    index int not null,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+alter table tags add foreign key(task_id) references tasks(task_id) on delete cascade;

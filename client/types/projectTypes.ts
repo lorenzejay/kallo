@@ -76,3 +76,12 @@ export interface ProjectDeets {
   project_title: string;
   // boardColumns: BoardColumns[] | undefined;
 }
+
+export interface TagsType {
+  tag_id: string;
+  title: string;
+  task_id: string;
+  hex_color: string;
+  index: number;
+  created_at: string;
+}

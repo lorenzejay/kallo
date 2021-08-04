@@ -230,7 +230,7 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
                   {provided.placeholder}
                   <div className="relative self-start h-96">
                     <button
-                      className={`rounded-md text-xl mb-3 px-3 py-1 ${
+                      className={`rounded-md w-64 text-xl mb-3 px-3 py-1 ${
                         isDarkMode
                           ? "bg-gray-700 text-white"
                           : "bg-gray-125 text-gray-700"

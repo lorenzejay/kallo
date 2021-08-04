@@ -6,13 +6,14 @@ import { FormEvent, useEffect } from "react";
 import { useState } from "react";
 import { FaAngleLeft, FaPlus, FaTrash } from "react-icons/fa";
 import { useMutation, useQuery } from "react-query";
+import AllTags from "../../components/AllTags";
 import Dropdown from "../../components/dropdown";
 import Layout from "../../components/layout";
 import Todo from "../../components/Todo";
 import { DarkModeContext } from "../../context/darkModeContext";
 import { configWithToken } from "../../functions";
 import { useAuth } from "../../hooks/useAuth";
-import { Task, Todo as TodoType } from "../../types/projectTypes";
+import { TagsType, Task, Todo as TodoType } from "../../types/projectTypes";
 import { queryClient } from "../../utils/queryClient";
 
 const Tasks = () => {
@@ -22,8 +23,10 @@ const Tasks = () => {
   const { userToken } = auth;
   //also has access to taskId in router.query
   const { taskId } = router.query;
+
   const [taskTitle, setTaskTitle] = useState("");
   const [newTodoTitle, setNewTodoTitle] = useState("");
+
   const fetchTask = async () => {
     if (!userToken || !taskId) return;
     const config = configWithToken(userToken);
@@ -31,6 +34,11 @@ const Tasks = () => {
       `/api/tasks/get-task/${taskId}`,
       config
     );
+    return data;
+  };
+
+  const fetchTags = async () => {
+    const { data } = await axios.get<TagsType[]>(`/api/tags/fetch/${taskId}`);
     return data;
   };
 
@@ -51,6 +59,7 @@ const Tasks = () => {
   //add todo
   const handleAddTodo = async () => {
     //no config , add auth protection here
+    if (!taskId) return;
     const { data } = await axios.post(`/api/todos/create-todo/${taskId}`, {
       description: newTodoTitle,
     });
@@ -59,6 +68,7 @@ const Tasks = () => {
 
   const { data: taskDetails } = useQuery(`taskDetails-${taskId}`, fetchTask);
   const { data: allTodos } = useQuery(`allTodos-${taskId}`, fetchTodos);
+  const { data: allTags } = useQuery(`allTags-${taskId}`, fetchTags);
   const { mutateAsync: createTodo } = useMutation(handleAddTodo, {
     onSuccess: () => queryClient.invalidateQueries(`allTodos-${taskId}`),
   });
@@ -94,7 +104,7 @@ const Tasks = () => {
     await moveTaskAcrossCols();
     router.back();
   };
-
+  console.log("allTags", allTags);
   return (
     <>
       <Head>
@@ -116,11 +126,14 @@ const Tasks = () => {
 
                 <h1 className="flex-grow">{taskTitle}</h1>
                 <Dropdown>
-                  <div className="flex items-center">
-                    <FaTrash />
-                    <button onClick={handleDeleteTodo}>Delete</button>
-                    <hr />
-                  </div>
+                  <>
+                    <AllTags taskId={taskId.toString()} />
+                    <div className="flex items-center justify-around w-32 border-t pt-5">
+                      <FaTrash />
+                      <button onClick={handleDeleteTodo}>Delete</button>
+                      <hr />
+                    </div>
+                  </>
                 </Dropdown>
               </section>
               <form

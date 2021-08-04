@@ -6,6 +6,7 @@ import ProjectRouter from "./routes/projects";
 import todoRouter from "./routes/todos";
 import columnRouter from "./routes/columns";
 import taskRouter from "./routes/tasks";
+import tagRouter from "./routes/tags";
 require("dotenv").config();
 
 const app = express();
@@ -20,6 +21,7 @@ app.use("/api/projects", ProjectRouter);
 app.use("/api/todos", todoRouter);
 app.use("/api/columns", columnRouter);
 app.use("/api/tasks", taskRouter);
+app.use("/api/tags", tagRouter);
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../client/out/")));
