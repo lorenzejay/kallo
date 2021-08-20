@@ -1,12 +1,15 @@
 import axios from "axios";
 import { useContext, useEffect, useState } from "react";
 import { Draggable, Droppable } from "react-beautiful-dnd";
+import { AiOutlineEllipsis } from "react-icons/ai";
+import { FaTrash } from "react-icons/fa";
 import { useMutation } from "react-query";
 import { DarkModeContext } from "../context/darkModeContext";
 import { configWithToken } from "../functions";
 import { useAuth } from "../hooks/useAuth";
-import { BoardColumns } from "../types/projectTypes";
+import { BoardColumns, ReturnedApiStatus } from "../types/projectTypes";
 import { queryClient } from "../utils/queryClient";
+import Dropdown from "./dropdown";
 import KanbanTask from "./kanbanTask";
 import NewTask from "./newTask";
 type KanbanColProps = {
@@ -37,7 +40,34 @@ const KanbanColumn = ({ column, id, index, projectId }: KanbanColProps) => {
       return window.alert("You do not have privleges to update column name.");
   };
 
+  const handleDeleteColumn = async () => {
+    try {
+      const confirmDelete = window.confirm(
+        "Are you sure you want to delete this column?"
+      );
+      if (confirmDelete) {
+        if (!projectId || !column.column_id || !userToken) return;
+        const config = configWithToken(userToken);
+        const { data } = await axios.delete<ReturnedApiStatus | undefined>(
+          `/api/columns/delete-col/${projectId}/${column.column_id}`,
+          config
+        );
+
+        if (!data)
+          return window.alert(
+            "You do not have the privileges to delete this column."
+          );
+        return data;
+      }
+    } catch (error) {
+      return error;
+    }
+  };
+
   const { mutateAsync: updateColName } = useMutation(updateColumnName, {
+    onSuccess: () => queryClient.invalidateQueries(`columns-${projectId}`),
+  });
+  const { mutateAsync: deleteColumn } = useMutation(handleDeleteColumn, {
     onSuccess: () => queryClient.invalidateQueries(`columns-${projectId}`),
   });
 
@@ -58,10 +88,10 @@ const KanbanColumn = ({ column, id, index, projectId }: KanbanColProps) => {
             snapshot.isDragging ? "opacity-50" : "opacity-100"
           }`}
         >
-          <div className="flex items-center justify-between text-gray-700">
+          <div className="flex flex-row justify-start items-center text-gray-700">
             {!toggleDoubleClickEffect ? (
               <h2
-                className={`text-xl my-3 p-1 flex-grow mr-2 rounded-sm ${
+                className={`text-xl my-3 p-1 mr-2 rounded-sm ${
                   isDarkMode && "text-white-175"
                 }`}
                 onDoubleClick={() => setToggleDoubleClickEffect(true)}
@@ -70,7 +100,7 @@ const KanbanColumn = ({ column, id, index, projectId }: KanbanColProps) => {
               </h2>
             ) : (
               <input
-                className={`text-xl my-3 p-1 flex-grow mr-2 rounded-sm `}
+                className={`text-xl my-3 p-1 mr-2 rounded-sm `}
                 type="text"
                 name="column title"
                 value={columnName}
@@ -86,10 +116,31 @@ const KanbanColumn = ({ column, id, index, projectId }: KanbanColProps) => {
               />
             )}
             {column.tasks && (
-              <p className={`${isDarkMode && "text-gray-400"}`}>
+              <p
+                className={`${
+                  isDarkMode && "text-gray-400 text-sm "
+                } flex-grow`}
+              >
                 {column.tasks.length}
               </p>
             )}
+            <div className="relative right-0 bg-none">
+              <Dropdown
+                title={<AiOutlineEllipsis size={30} />}
+                hoverable={false}
+                showArrow={false}
+                width={"w-32"}
+                className="-mt-3 right-0"
+              >
+                <button
+                  type="button"
+                  className="flex items-center justify-between"
+                  onClick={() => deleteColumn()}
+                >
+                  <FaTrash /> <span className="ml-3">Delete</span>
+                </button>
+              </Dropdown>
+            </div>
           </div>
           <Droppable droppableId={id} key={id}>
             {(provided) => {

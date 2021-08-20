@@ -10,6 +10,7 @@ type DropdownType = {
   className?: string;
   showArrow?: boolean;
   width?: string;
+  buttonBgColor?: string;
 };
 const Dropdown = ({
   title,
@@ -44,7 +45,7 @@ const Dropdown = ({
         className={`flex ml-3 items-center p-2 z-20 w-auto rounded-md ${
           hoverable ? "hover:bg-gray-400" : ""
         }  transition-all duration-500 ease-in-out ${
-          isDarkMode ? "card-color" : "bg-white-175"
+          isDarkMode ? "text-white-175" : "black"
         }`}
       >
         {title}

@@ -210,4 +210,25 @@ columnRouter.put(
   }
 );
 
+columnRouter.delete(
+  "/delete-col/:project_id/:column_id",
+  [authorization, accessToProject],
+  async (req: any, res: Response) => {
+    try {
+      const adminStatus = req.adminStatus;
+      const user_id = req.user;
+      const { column_id } = req.params;
+      if (!adminStatus || !user_id) return res.send(undefined);
+
+      await pool.query("DELETE FROM columns WHERE column_id = $1", [column_id]);
+      return res.send({
+        success: true,
+        message: "Successfully deleted the column",
+      });
+    } catch (error) {
+      return error;
+    }
+  }
+);
+
 export default columnRouter;
