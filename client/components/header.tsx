@@ -60,67 +60,60 @@ const Header = () => {
       )}
       {isLoading && <Loader />}
       {data && userToken && !isLoading && (
-        <ul className="flex justify-between items-center w-64 ">
-          <li className="">
-            <Dropdown title={data.email} className="right-0">
-              <ul>
-                <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
-                  <Link href="/projects">
-                    <div className="flex items-center mr-3">
-                      <RiTodoLine
-                        className={`${
-                          isDarkMode ? "text-white" : "text-black"
-                        } mr-3`}
-                      />
-                      My Projects
-                    </div>
-                  </Link>
-                </li>
-                <hr />
-                <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
-                  <Link href="/sharedProjects">
-                    <div className="flex items-center">
-                      <RiTodoLine
-                        className={`${
-                          isDarkMode ? "text-white" : "text-black"
-                        } mr-3`}
-                      />
-                      Shared Projects
-                    </div>
-                  </Link>
-                </li>
-                <hr />
-                <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
-                  <Link href="/profile">
-                    <div className="flex items-center">
-                      <AiOutlineUser className="mr-3" /> My Profile
-                    </div>
-                  </Link>
-                </li>
-                <hr />
-                <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
-                  <button
-                    onClick={toggleDarkMode}
-                    className="flex items-center"
-                  >
-                    {isDarkMode ? (
-                      <FiMoon className="mr-3" />
-                    ) : (
-                      <FiSun className="mr-3" />
-                    )}{" "}
-                    {isDarkMode ? "Light Mode" : "Dark Mode"}
-                  </button>
-                </li>
-                <hr />
-                <li className="hover:bg-gray-300 hover:text-black rounded-md my-3 p-2 ">
-                  <button onClick={handleLogout} className="flex items-center">
-                    <FiLogOut className="mr-3" /> Logout
-                  </button>
-                </li>
-              </ul>
-            </Dropdown>
-          </li>
-        </ul>
+        <Dropdown title={data.username} className="right-0" width={"w-40"}>
+          <ul className="text-sm">
+            <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
+              <Link href="/projects">
+                <div className="flex items-center mr-3">
+                  <RiTodoLine
+                    className={`${
+                      isDarkMode ? "text-white" : "text-black"
+                    } mr-3`}
+                  />
+                  My Projects
+                </div>
+              </Link>
+            </li>
+            <hr />
+            <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
+              <Link href="/sharedProjects">
+                <div className="flex items-center ">
+                  <RiTodoLine
+                    className={`${
+                      isDarkMode ? "text-white" : "text-black"
+                    } mr-3`}
+                  />
+                  Shared Projects
+                </div>
+              </Link>
+            </li>
+            <hr />
+            <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
+              <Link href="/profile">
+                <div className="flex items-center">
+                  <AiOutlineUser className="mr-3" /> My Profile
+                </div>
+              </Link>
+            </li>
+            <hr />
+            <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
+              <button onClick={toggleDarkMode} className="flex items-center">
+                {isDarkMode ? (
+                  <FiMoon className="mr-3" />
+                ) : (
+                  <FiSun className="mr-3" />
+                )}{" "}
+                {isDarkMode ? "Light Mode" : "Dark Mode"}
+              </button>
+            </li>
+            <hr />
+            <li className="hover:bg-gray-300 hover:text-black rounded-md my-3 p-2 ">
+              <button onClick={handleLogout} className="flex items-center">
+                <FiLogOut className="mr-3" /> Logout
+              </button>
+            </li>
+          </ul>
+        </Dropdown>
       )}
     </header>
   );
