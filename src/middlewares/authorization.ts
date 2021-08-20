@@ -1,6 +1,5 @@
 import { Response } from "express";
 import jwt, { Secret } from "jsonwebtoken";
-import { IGetUserAuthInfoRequest } from "../types/userAuthTypes";
 require("dotenv").config();
 //checks if the token is valid
 const authorization = async (req: any, res: Response, next: any) => {

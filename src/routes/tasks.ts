@@ -1,6 +1,7 @@
 import { Response, Router } from "express";
 import pool from "../db";
 import authorization from "../middlewares/authorization";
+import accessToProject from "../middlewares/privacyChecker";
 const taskRouter = Router();
 
 //get the specific task contents - title, createdby
@@ -29,12 +30,15 @@ taskRouter.get(
 );
 
 taskRouter.put(
-  "/update-task-to-different-col/:column_id",
-  authorization,
+  "/update-task-to-different-col/:project_id/:column_id",
+  [authorization, accessToProject],
   async (req: any, res: Response) => {
     try {
       const user_id = req.user;
       const { movingTaskId, newIndex } = req.body;
+      const editingStatus: boolean = req.editingStatus;
+
+      if (!editingStatus) return res.send(undefined);
       //to the new column
       const { column_id } = req.params;
       if (!user_id) return;
@@ -68,7 +72,7 @@ taskRouter.put(
         //   [originalMovingTaskIndex, previousTaskAtNewIndex]
         // );
         // console.log("Moved to an empty column");
-        return res.json("Moved to an empty column");
+        return res.json({ status: true, message: "Moved to an empty column" });
       } else {
         //newIndex can be the end of the list so its currently empty
         if (!checkerQuery.rows[newIndex]) {
@@ -89,7 +93,10 @@ taskRouter.put(
           [newIndex, column_id, movingTaskId]
         );
         // console.log("Moved to a column with other tasks");
-        return res.send("Moved to a column with values before and after it.");
+        return res.send({
+          success: true,
+          message: "Moved to a column with values before and after it.",
+        });
       }
     } catch (error) {
       console.error(error);
@@ -102,13 +109,15 @@ taskRouter.put(
 //can be updated to be reordered in its specific column
 //can be moved to a different column
 taskRouter.put(
-  "/update-task-within-same-col/:column_id",
-  authorization,
+  "/update-task-within-same-col/:project_id/:column_id",
+  [authorization, accessToProject],
   async (req: any, res: Response) => {
     try {
       const user_id = req.user;
       const { movingTaskId, newIndex } = req.body;
       const { column_id } = req.params;
+      const editingStatus = req.editingStatus;
+      if (!editingStatus) return res.send(undefined);
       if (!user_id) return;
       //check if the task even exists;
       const checkerQuery = await pool.query(
@@ -177,14 +186,17 @@ taskRouter.put(
 
 //create a task
 taskRouter.post(
-  "/create-task/:column_id",
-  authorization,
+  "/create-task/:project_id/:column_id",
+  [authorization, accessToProject],
   async (req: any, res: Response) => {
     try {
       const user_id = req.user;
       const { title } = req.body;
       const { column_id } = req.params; // project_associated
-      //handle index here or on the frontend?
+      const editingStatus: boolean = req.editingStatus;
+      console.log(editingStatus);
+
+      if (!editingStatus) return res.send(undefined);
 
       //if there is no user return
       if (!user_id) return;
@@ -208,7 +220,7 @@ taskRouter.post(
       console.log(error);
       res.send({
         success: false,
-        error:
+        message:
           "The column associated with this new task was not found, please try again.",
       });
     }
@@ -218,18 +230,16 @@ taskRouter.post(
 //delete tasks
 //delete todo
 taskRouter.delete(
-  "/delete-task/:task_id",
-  authorization,
+  "/delete-task/:project_id/:task_id",
+  [authorization, accessToProject],
   async (req: any, res: Response) => {
     try {
-      const user_id = req.user;
-
       const { task_id } = req.params;
+      const editingStatus: boolean = req.editingStatus;
+      if (!editingStatus) return res.send(undefined);
 
-      const query = await pool.query("DELETE FROM tasks WHERE task_id = $1 ", [
-        task_id,
-      ]);
-      res.send("Successfully Deleted Task");
+      await pool.query("DELETE FROM tasks WHERE task_id = $1 ", [task_id]);
+      res.send({ success: true, message: "Successfully Deleted Task" });
     } catch (error) {
       console.error(error);
     }

@@ -1,6 +1,7 @@
 import { Response, Router } from "express";
 import pool from "../db";
 import authorization from "../middlewares/authorization";
+import accessToProject from "../middlewares/privacyChecker";
 const columnRouter = Router();
 
 const getTasksForTheCol = async (arrOfCols: any[]) => {
@@ -56,13 +57,15 @@ columnRouter.get(
 //create
 columnRouter.post(
   "/create-column/:project_id",
-  authorization,
+  [authorization, accessToProject],
   async (req: any, res: Response) => {
     try {
       const user_id = req.user;
       const { name } = req.body;
       const { project_id } = req.params; // project_associated
-      //handle index here or on the frontend?
+      const editingStatus = req.editingStatus;
+      console.log(editingStatus);
+      if (!editingStatus) return res.send(undefined);
 
       //if there is no user return
       if (!user_id) return;
@@ -95,13 +98,16 @@ columnRouter.post(
 //col 1 and col 2
 columnRouter.put(
   "/update-col-order/:project_id",
-  authorization,
+  [authorization, accessToProject],
   async (req: any, res: Response) => {
     try {
       const user_id = req.user;
       //originalIndex is the index that was the movingCol is moving to at that index because that has the move regardless
       const { movingCol, newIndex } = req.body;
       const { project_id } = req.params;
+      const editingStatus = req.editingStatus;
+      if (!editingStatus) return res.send(undefined);
+
       if (!user_id) {
         throw new Error("You must be logged in.");
       }
@@ -137,7 +143,7 @@ columnRouter.put(
           );
           // console.log("moved only one spot");
 
-          return res.send("moved only one spot");
+          return res.send({ success: true, message: "moved only one spot" });
         }
         if (newIndex > originalMovingColIndex) {
           //find the range of affected indexes
@@ -151,7 +157,7 @@ columnRouter.put(
             [newIndex, movingCol]
           );
           // console.log("moved up");
-          return res.send("Moving Up");
+          return res.send({ success: true, message: "Moving Up" });
         } else if (newIndex < originalMovingColIndex) {
           //range of indexs that are affected are between the newIndex till the original Index
           //find the range of affected indexes
@@ -165,7 +171,7 @@ columnRouter.put(
             [newIndex, movingCol]
           );
           // console.log("moved down");
-          return res.send("Moving Down");
+          return res.send({ success: true, message: "Moving Down" });
         }
       }
     } catch (error) {
@@ -175,14 +181,16 @@ columnRouter.put(
 );
 
 columnRouter.put(
-  "/update-column-name/:column_id",
-  authorization,
+  "/update-column-name/:project_id/:column_id",
+  [authorization, accessToProject],
   async (req: any, res: Response) => {
     try {
       const user_id = req.user;
 
       const { name } = req.body;
       const { column_id } = req.params;
+      const editingStatus = req.editingStatus;
+      if (!editingStatus) return res.send(undefined);
 
       //user needs to either be the project owner or shared user
       const query = await pool.query(
@@ -190,10 +198,11 @@ columnRouter.put(
         [name, column_id]
       );
       if (query.rowCount < 0)
-        res
-          .status(400)
-          .send("Something went wrong when updating the name of the column.");
-      res.send("Successfully updated the title");
+        res.status(400).send({
+          success: false,
+          message: "Something went wrong when updating the name of the column.",
+        });
+      res.send({ success: true, message: "Successfully updated the title" });
     } catch (error) {
       console.log(error);
       res.status(400).send(error.message);

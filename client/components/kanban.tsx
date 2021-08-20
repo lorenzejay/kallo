@@ -23,8 +23,6 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
   const auth = useAuth();
   const { userToken } = auth;
   const queryClient = useQueryClient();
-  // const userLogin = useSelector((state: RootState) => state.userLogin);
-  // const { userInfo } = userLogin;
 
   const { isDarkMode } = useContext(DarkModeContext);
 
@@ -61,21 +59,27 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
   const handleMoveTaskInsideTheSameCol = async (args: movingTaskArgs) => {
     if (!userToken || !projectId) return;
     const config = configWithToken(userToken);
-    await axios.put(
-      `/api/tasks/update-task-within-same-col/${args.column_id}`,
+    const { data } = await axios.put(
+      `/api/tasks/update-task-within-same-col/${projectId}/${args.column_id}`,
       { movingTaskId: args.movingTaskId, newIndex: args.newIndex },
       config
     );
+    if (!data)
+      return window.alert("You do not have the privileges to move the task.");
   };
   const handleMoveCol = async (args: moveColArgs) => {
     try {
       if (!userToken || !projectId) return;
       const config = configWithToken(userToken);
-      await axios.put(
+      const { data } = await axios.put(
         `/api/columns/update-col-order/${projectId}`,
         { movingCol: args.movingCol, newIndex: args.newIndex },
         config
       );
+      if (!data)
+        return window.alert(
+          "You do not have privileges to rearrange the columns."
+        );
     } catch (error) {
       console.error(error);
     }
@@ -83,11 +87,15 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
   const handleMoveTaskAcrossCols = async (args: movingTaskArgs) => {
     if (!userToken || !projectId) return;
     const config = configWithToken(userToken);
-    await axios.put(
-      `/api/tasks/update-task-to-different-col/${args.column_id}`,
+    const { data } = await axios.put(
+      `/api/tasks/update-task-to-different-col/${projectId}/${args.column_id}`,
       { movingTaskId: args.movingTaskId, newIndex: args.newIndex },
       config
     );
+    if (!data)
+      return window.alert(
+        "You do not have privileges to rearrange the columns."
+      );
   };
   const { mutateAsync: moveColumn } = useMutation(handleMoveCol, {
     onSuccess: () => queryClient.invalidateQueries(`columns-${projectId}`),

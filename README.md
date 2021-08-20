@@ -163,4 +163,9 @@ Start the server - Next.js will run on port 3000
 
 Open up the application on http://localhost:3000/
 
-#### Future possibility are to run ends concurrently.
+### Roadmap
+
+- [ ] Connect Firebase Auth to Backend
+- [ ] Sharing / Privacy / Shared Middleware integration
+- [x] Tags
+- [ ] Double Click Hook

@@ -11,12 +11,12 @@ CREATE TABLE users(
     password VARCHAR(255) NOT NULL
 );
 
+CREATE TYPE status AS ENUM ('viewer', 'admin', 'editor');
 CREATE TABLE shared_users(
     shared_id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     shared_user uuid NOT NULL,
     shared_project uuid NOT NULL,
-    is_admin boolean NOT NULL DEFAULT false,
-    can_edit boolean NOT NULL DEFAULT false
+    status status
 );
 alter table shared_users add foreign key(shared_user) references users(user_id) on delete cascade;
 alter table shared_users add foreign key(shared_project) references projects(project_id) on delete cascade;

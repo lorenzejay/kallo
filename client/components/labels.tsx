@@ -6,7 +6,7 @@ import { useSelector } from "react-redux";
 import { configWithToken } from "../functions";
 import { useAuth } from "../hooks/useAuth";
 import { RootState } from "../redux/store";
-import { Tags, Task } from "../types/projectTypes";
+import { TagsType, Task } from "../types/projectTypes";
 import Modal from "./modal";
 
 type LabelsProps = {
@@ -26,12 +26,6 @@ const Labels = ({ task, projectId, setTask }: LabelsProps) => {
   const [labelName, setLabelName] = useState("");
   const [labelColor, setLabelColor] = useState("");
   const [labels, setLabels] = useState<any[]>([]);
-
-  //   console.log("labelColor", labelColor);
-  //   console.log("labelName", labelName);
-  //   console.log("task", task);
-  //   console.log("boardColumns", boardColumns);
-  //   console.log("labels", labels);
 
   useEffect(() => {
     if (!task) return;
@@ -68,7 +62,7 @@ const Labels = ({ task, projectId, setTask }: LabelsProps) => {
     axios.put(`/api/projects/add-column/${projectId}`, { columns }, config);
   }, [labels, task]);
 
-  const handleRemoveTask = (label: Tags) => {
+  const handleRemoveTask = (label: TagsType) => {
     // console.log("label", label);
     const labelsCopy = labels;
     const labelsIndex = labels.indexOf(label);

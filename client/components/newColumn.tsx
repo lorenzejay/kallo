@@ -6,6 +6,7 @@ import axios from "axios";
 import { queryClient } from "../utils/queryClient";
 import { useMutation } from "react-query";
 import { useAuth } from "../hooks/useAuth";
+import { ReturnedApiStatus } from "../types/projectTypes";
 
 type NewColumnProps = {
   openNewColumn: boolean;
@@ -28,13 +29,14 @@ const NewColumn = ({
   const createNewColumns = async () => {
     if (!userToken) return;
     const config = configWithToken(userToken);
-    await axios.post(
+    const { data } = await axios.post<ReturnedApiStatus | undefined>(
       `/api/columns/create-column/${projectId}`,
       {
         name: newColumnTitle,
       },
       config
     );
+    if (!data) return window.alert("You can only view the file.");
   };
   const { mutateAsync: newColumn } = useMutation(createNewColumns, {
     onSuccess: () => queryClient.invalidateQueries(`columns-${projectId}`),

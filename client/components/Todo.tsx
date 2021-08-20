@@ -13,8 +13,9 @@ type TodoProps = {
   todo: TodoType;
   index: number;
   taskId: string;
+  project_id: string;
 };
-const Todo = ({ todo, index, taskId }: TodoProps) => {
+const Todo = ({ todo, index, taskId, project_id }: TodoProps) => {
   const { isDarkMode } = useContext(DarkModeContext);
   const auth = useAuth();
   const { userToken } = auth;
@@ -62,7 +63,12 @@ const Todo = ({ todo, index, taskId }: TodoProps) => {
   //on hover we need to show a delete component
   const handleDeleteTodo = async () => {
     if (!todo || !todo.todo_id) return;
-    await axios.delete(`/api/todos/delete-todo/${todo.todo_id}`, config);
+    const { data } = await axios.delete(
+      `/api/todos/delete-todo/${project_id}/${todo.todo_id}`,
+      config
+    );
+    if (!data)
+      return window.alert("You do not have privileges to delete this todo.");
   };
 
   const { mutateAsync: updateIsChecked } = useMutation(

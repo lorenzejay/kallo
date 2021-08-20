@@ -8,6 +8,7 @@ import { useMutation } from "react-query";
 import { queryClient } from "../utils/queryClient";
 import { configWithToken } from "../functions";
 import { useAuth } from "../hooks/useAuth";
+import { ReturnedApiStatus } from "../types/projectTypes";
 
 interface UnsplashImageSearchProps {
   setProjectHeader?: (x: string) => void;
@@ -61,11 +62,15 @@ const UnsplashImageSearch = ({
   const handleUpdateHeaderImg = async (image: string) => {
     if (!userToken || !projectId) return;
     const config = configWithToken(userToken);
-    await axios.put(
+    const { data } = await axios.put<ReturnedApiStatus | undefined>(
       `/api/projects/update-header-img/${projectId}`,
       { header_img: image },
       config
     );
+    if (!data)
+      return window.alert(
+        "You do not have project privileges to change this file."
+      );
   };
 
   const { mutateAsync: updateHeaderImg } = useMutation(handleUpdateHeaderImg, {

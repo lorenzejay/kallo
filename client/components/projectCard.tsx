@@ -47,7 +47,7 @@ const ProjectCard = ({ projectId, title, headerImg }: ProjectCardProps) => {
       <div
         className={`${
           isDarkMode ? "card-color" : "bg-gray-150"
-        } shadow-xl rounded-md h-auto cursor-pointer w-auto lg:m-0 md:w-72 relative p-3 pb-10 mt-3 hover:transform hover:shadow-2xl transition-all duration-300 ease-in-out`}
+        } shadow-xl rounded-md h-auto lg:max-h-64 cursor-pointer w-auto lg:m-0 md:w-72 relative p-3 pb-10 mt-3 hover:transform hover:shadow-2xl transition-all duration-300 ease-in-out`}
       >
         <img
           src={headerImg || "sample-card-img.jpg"}

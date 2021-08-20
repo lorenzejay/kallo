@@ -1,4 +1,4 @@
-import { Request, Response, Router } from "express";
+import { Response, Router } from "express";
 import pool from "../db";
 import bcrypt from "bcrypt";
 import jwtGenerator from "../utils/jwtGenerator";
@@ -149,9 +149,9 @@ userRouter.get("/details", authorization, async (req: any, res: Response) => {
   }
 });
 
-userRouter.get("/username", authorization, async (req: any, res: Response) => {
+userRouter.get("/username/:user_id", async (req: any, res: Response) => {
   try {
-    const user_id = req.user;
+    const { user_id } = req.params;
     if (!user_id) return;
     const query = await pool.query(
       "SELECT username FROM users WHERE user_id = $1",
@@ -163,4 +163,5 @@ userRouter.get("/username", authorization, async (req: any, res: Response) => {
     throw new Error("Unable to get username");
   }
 });
+
 export default userRouter;

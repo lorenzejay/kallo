@@ -28,11 +28,13 @@ const KanbanColumn = ({ column, id, index, projectId }: KanbanColProps) => {
   const updateColumnName = async (name: string) => {
     if (!userToken || !projectId) return;
     const config = configWithToken(userToken);
-    axios.put(
-      `/api/columns/update-column-name/${column.column_id}`,
+    const { data } = await axios.put(
+      `/api/columns/update-column-name/${projectId}/${column.column_id}`,
       { name },
       config
     );
+    if (!data)
+      return window.alert("You do not have privleges to update column name.");
   };
 
   const { mutateAsync: updateColName } = useMutation(updateColumnName, {
@@ -64,7 +66,7 @@ const KanbanColumn = ({ column, id, index, projectId }: KanbanColProps) => {
                 }`}
                 onDoubleClick={() => setToggleDoubleClickEffect(true)}
               >
-                {columnName}
+                {column.column_title || columnName}
               </h2>
             ) : (
               <input
@@ -106,7 +108,6 @@ const KanbanColumn = ({ column, id, index, projectId }: KanbanColProps) => {
                           index={index}
                           key={item.task_id}
                           column={column}
-                          columnId={id}
                           projectId={projectId}
                         />
                       );

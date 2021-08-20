@@ -1,14 +1,3 @@
-export type Markdown = {
-  id: string;
-  html: string;
-  tag: string;
-};
-
-export type Tags = {
-  labelName: string;
-  labelColor: string;
-};
-
 export type Todo = {
   todo_id: string;
   description: string;
@@ -54,8 +43,9 @@ export type FormResultType = {
   message: string;
 };
 export type SharedUsers = {
-  user_id: string;
-  username: string;
+  shared_user: string;
+  status: Status;
+  shared_id: string;
 };
 export interface Projects {
   columns: Columns[];
@@ -73,7 +63,7 @@ export interface ProjectDeets {
   project_owner: string;
   created_at: string;
   is_private: boolean;
-  project_title: string;
+  title: string;
   // boardColumns: BoardColumns[] | undefined;
 }
 
@@ -84,4 +74,21 @@ export interface TagsType {
   hex_color: string;
   index: number;
   created_at: string;
+}
+
+export enum Status {
+  admin = "admin",
+  viewer = "viewer",
+  editor = "editor",
+}
+
+export interface ReturnedApiStatus {
+  success: boolean;
+  message: string;
+}
+
+export interface UserProjectAccess {
+  access: boolean;
+  adminStatus: boolean;
+  editingStatus: boolean;
 }

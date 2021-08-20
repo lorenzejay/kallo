@@ -6,7 +6,7 @@ import { useMutation } from "react-query";
 import { DarkModeContext } from "../context/darkModeContext";
 import { configWithToken } from "../functions";
 import { useAuth } from "../hooks/useAuth";
-import { BoardColumns } from "../types/projectTypes";
+import { BoardColumns, ReturnedApiStatus } from "../types/projectTypes";
 import { queryClient } from "../utils/queryClient";
 import Loader from "./loader";
 
@@ -33,15 +33,18 @@ const NewTask = ({
 
   const createNewTask = async () => {
     try {
-      if (!userToken || !column.column_id) return;
+      if (!userToken || !column.column_id || !projectId) return;
       const config = configWithToken(userToken);
-      await axios.post(
-        `/api/tasks/create-task/${column.column_id}`,
+      const { data } = await axios.post<ReturnedApiStatus | undefined>(
+        `/api/tasks/create-task/${projectId}/${column.column_id}`,
         {
           title: newItemTitle,
         },
         config
       );
+      console.log(data);
+      if (!data)
+        return window.alert("You do not have access to create a new task.");
     } catch (error) {
       throw new Error(error.message);
     }

@@ -7,10 +7,10 @@ import Dropdown from "./dropdown";
 import { ProjectDeets, SharedUsers } from "../types/projectTypes";
 
 export type ProjectDetailsPopup = {
-  data: ProjectDeets;
+  data: ProjectDeets | undefined;
   projectId: string;
   projectOwner: string;
-  sharedUsers: SharedUsers[];
+  sharedUsers?: SharedUsers[] | undefined;
   projectTitle: string;
 };
 
@@ -29,7 +29,7 @@ const ProjectDetailsPopup = ({
       className={"right-0 z-10 pb-5 p-3"}
       hoverable={false}
       showArrow={false}
-      width={"w-64"}
+      width={"w-auto"}
     >
       <>
         <p className="text-2xl my-3">
@@ -40,7 +40,7 @@ const ProjectDetailsPopup = ({
             Made by: <span className="font-bold">{projectOwner}</span>
           </p>
         )}
-        {data.created_at && (
+        {data && data.created_at && (
           <p className="my-2 flex flex-col">
             <span className="font-bold">Created On:</span>
             {data.created_at.substring(0, 10)}
@@ -49,11 +49,14 @@ const ProjectDetailsPopup = ({
         <div className="flex flex-col">
           <span className="font-bold">Team:</span>
           {sharedUsers &&
-            sharedUsers.map((user) => (
+            sharedUsers.map((user, i) => (
               <UsernameDisplay
-                username={user.username}
+                user_id={user.shared_user}
+                shared_id={user.shared_id}
                 width={"w-3/4"}
-                key={user.user_id}
+                key={i}
+                status={user.status}
+                projectId={projectId}
               />
             ))}
         </div>

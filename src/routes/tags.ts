@@ -1,20 +1,22 @@
-import { query, Response, Router } from "express";
+import { Response, Router } from "express";
 import pool from "../db";
 import authorization from "../middlewares/authorization";
-import hasProjectAccess from "../middlewares/hasProjectAccess";
+import accessToProject from "../middlewares/privacyChecker";
 
 const tagRouter = Router();
 
 //create a tag
 tagRouter.post(
-  "/create/:task_id",
-  authorization,
+  "/create/:project_id/:task_id",
+  [authorization, accessToProject],
   async (req: any, res: Response) => {
     try {
       const { title, hex_color } = req.body;
       const { task_id } = req.params;
       const user_id = req.user;
-      if (!user_id) return;
+      const adminStatus = req.adminStatus;
+
+      if (!user_id || !adminStatus) return res.send(undefined);
       //check how many columns are associated with the project already
       const checker = await pool.query(
         "SELECT task_id FROM tags WHERE task_id = $1",

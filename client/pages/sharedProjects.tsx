@@ -1,62 +1,72 @@
 import axios from "axios";
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useEffect } from "react";
+import ProjectCard from "../components/projectCard";
+import { useQuery } from "react-query";
 import Layout from "../components/layout";
 import { configWithToken } from "../functions";
-import { RootState } from "../redux/store";
-import { Projects } from "../types/projectTypes";
+import { useAuth } from "../hooks/useAuth";
+import { ProjectDeets } from "../types/projectTypes";
+import Loader from "../components/loader";
+import { useRouter } from "next/router";
 
 const SharedProjects = () => {
-  const [projects, setProjects] = useState<Projects[]>([]);
-
-  const userLogin = useSelector((state: RootState) => state.userLogin);
-  const { userInfo } = userLogin;
-
-  const getSharedProjects = async () => {
-    if (userInfo?.token) {
-      const config = configWithToken(userInfo.token);
-      const { data } = await axios.get("/api/projects/shared-projects", config);
-      setProjects(data);
+  const router = useRouter();
+  const { userToken } = useAuth();
+  useEffect(() => {
+    if (!userToken) router.push("/signin");
+  }, [userToken]);
+  const fetchSharedProjects = async () => {
+    try {
+      if (!userToken || userToken === null) return;
+      const config = configWithToken(userToken);
+      const { data } = await axios.get(
+        "/api/sharing/get-shared-projects",
+        config
+      );
       return data;
+    } catch (error) {
+      // console.log(error);
+      return error;
     }
   };
 
-  useEffect(() => {
-    if (userInfo) {
-      getSharedProjects();
-    }
-  }, [userInfo]);
+  const { data, isLoading } = useQuery<ProjectDeets[]>(
+    "shared-projects",
+    fetchSharedProjects
+  );
+  // console.log(data);
+
+  // const getSharedProjects = async () => {
+  //   if (userInfo?.token) {
+  //     const config = configWithToken(userInfo.token);
+  //     const { data } = await axios.get("/api/projects/shared-projects", config);
+  //     setProjects(data);
+  //     return data;
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   if (userInfo) {
+  //     getSharedProjects();
+  //   }
+  // }, [userInfo]);
 
   return (
     <Layout>
       <>
-        <main>shared projects here:</main>
-        <div className="flex flex-col min-h-screen lg:grid grid-cols-3 gap-5">
-          {projects !== undefined &&
-            projects.map((project) => (
-              <Link
-                href={`/projects/${project.project_id}`}
-                key={project.project_id}
-              >
-                <div className="card-color shadow-xl border rounded-md h-auto cursor-pointer w-72 relative p-2 pb-10 mt-3 hover:transform hover:shadow-lg transition-all duration-500 ease-in-out">
-                  <img
-                    src={project.header_img || "sample-card-img.jpg"}
-                    className="rounded-md mb-2 w-full h-44 object-cover"
-                    alt={project.title}
-                  />
-                  <h3 className=" border-black text-white font-semibold w-full ">
-                    {project.title}
-                  </h3>
-                  <div className=" my-3"></div>
-
-                  <button className="absolute right-2 bottom-3 bg-green-600 px-3 text-white">
-                    -----
-                  </button>
-                </div>
-              </Link>
+        <h1>Shared projects here:</h1>
+        {isLoading && <Loader />}
+        <main className="flex flex-col min-h-screen lg:grid grid-cols-3 gap-5">
+          {data &&
+            data.map((project, i) => (
+              <ProjectCard
+                projectId={project.project_id}
+                headerImg={project.header_img}
+                title={project.title}
+                key={i}
+              />
             ))}
-        </div>
+        </main>
       </>
     </Layout>
   );

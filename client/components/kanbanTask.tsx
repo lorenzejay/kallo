@@ -12,11 +12,11 @@ type KanbanTaskProps = {
   columns?: Columns[];
   column: BoardColumns;
   setColumns?: (x: Columns[]) => void;
-  columnId: string;
+  // columnId: string;
   projectId: string;
 };
 
-const KanbanTask = ({ item, index, columnId }: KanbanTaskProps) => {
+const KanbanTask = ({ item, index, projectId }: KanbanTaskProps) => {
   const fetchTags = async () => {
     if (!item.task_id) return;
     const { data } = await axios.get<TagsType[]>(
@@ -27,13 +27,12 @@ const KanbanTask = ({ item, index, columnId }: KanbanTaskProps) => {
 
   const { data: allTags } = useQuery(`allTags-${item.task_id}`, fetchTags);
   const { isDarkMode } = useContext(DarkModeContext);
-  console.log(allTags);
 
   return (
     <Draggable key={item.task_id} draggableId={item.task_id} index={index}>
       {(provided, snapshot) => {
         return (
-          <Link href={`/project-tasks/${columnId}?taskId=${item.task_id}`}>
+          <Link href={`/project-tasks/${projectId}?taskId=${item.task_id}`}>
             <div
               className={` ${
                 isDarkMode ? "border card-color" : "bg-gray-100"

@@ -13,7 +13,11 @@ import Todo from "../../components/Todo";
 import { DarkModeContext } from "../../context/darkModeContext";
 import { configWithToken } from "../../functions";
 import { useAuth } from "../../hooks/useAuth";
-import { TagsType, Task, Todo as TodoType } from "../../types/projectTypes";
+import {
+  ReturnedApiStatus,
+  Task,
+  Todo as TodoType,
+} from "../../types/projectTypes";
 import { queryClient } from "../../utils/queryClient";
 
 const Tasks = () => {
@@ -22,7 +26,7 @@ const Tasks = () => {
   const auth = useAuth();
   const { userToken } = auth;
   //also has access to taskId in router.query
-  const { taskId } = router.query;
+  const { taskId, projectId } = router.query;
 
   const [taskTitle, setTaskTitle] = useState("");
   const [newTodoTitle, setNewTodoTitle] = useState("");
@@ -37,10 +41,10 @@ const Tasks = () => {
     return data;
   };
 
-  const fetchTags = async () => {
-    const { data } = await axios.get<TagsType[]>(`/api/tags/fetch/${taskId}`);
-    return data;
-  };
+  // const fetchTags = async () => {
+  //   const { data } = await axios.get<TagsType[]>(`/api/tags/fetch/${taskId}`);
+  //   return data;
+  // };
 
   type FetchedTodos = {
     completedTodos: TodoType[];
@@ -58,17 +62,24 @@ const Tasks = () => {
   };
   //add todo
   const handleAddTodo = async () => {
-    //no config , add auth protection here
-    if (!taskId) return;
-    const { data } = await axios.post(`/api/todos/create-todo/${taskId}`, {
-      description: newTodoTitle,
-    });
+    if (!taskId || !projectId || !userToken) return;
+
+    const config = configWithToken(userToken);
+    const { data } = await axios.post<ReturnedApiStatus | undefined>(
+      `/api/todos/create-todo/${projectId}/${taskId}`,
+      {
+        description: newTodoTitle,
+      },
+      config
+    );
+    if (!data)
+      return window.alert("You do not have privileges to add a new todo.");
     return data;
   };
 
   const { data: taskDetails } = useQuery(`taskDetails-${taskId}`, fetchTask);
   const { data: allTodos } = useQuery(`allTodos-${taskId}`, fetchTodos);
-  const { data: allTags } = useQuery(`allTags-${taskId}`, fetchTags);
+  // const { data: allTags } = useQuery(`allTags-${taskId}`, fetchTags);
   const { mutateAsync: createTodo } = useMutation(handleAddTodo, {
     onSuccess: () => queryClient.invalidateQueries(`allTodos-${taskId}`),
   });
@@ -78,8 +89,10 @@ const Tasks = () => {
     if (newTodoTitle === "") {
       return window.alert("Todos cannot be blank.");
     }
-    await createTodo();
-    setNewTodoTitle("");
+    const res = await createTodo();
+    if (res) {
+      setNewTodoTitle("");
+    }
   };
   useEffect(() => {
     if (!userToken || userToken === null) {
@@ -92,19 +105,29 @@ const Tasks = () => {
     }
   }, [taskDetails]);
 
-  const deleteTodo = async () => {
+  const deleteTask = async () => {
     if (!userToken || !taskId) return;
     const config = configWithToken(userToken);
-    await axios.delete(`/api/tasks/delete-task/${taskId}`, config);
+    const { data } = await axios.delete<ReturnedApiStatus | undefined>(
+      `/api/tasks/delete-task/${projectId}/${taskId}`,
+      config
+    );
+    if (!data)
+      return window.alert(
+        "You do not have project privileges to delete the task."
+      );
+    return data;
   };
-  const { mutateAsync: moveTaskAcrossCols } = useMutation(deleteTodo, {
+  const { mutateAsync: deletingTask } = useMutation(deleteTask, {
     onSuccess: () => queryClient.invalidateQueries(`columns`),
   });
-  const handleDeleteTodo = async () => {
-    await moveTaskAcrossCols();
-    router.back();
+  const handleDeleteTask = async () => {
+    const res = await deletingTask();
+    if (res) {
+      router.back();
+    }
   };
-  console.log("allTags", allTags);
+  // console.log("allTags", allTags);
   return (
     <>
       <Head>
@@ -112,7 +135,7 @@ const Tasks = () => {
       </Head>
       <Layout>
         <main className="min-h-screen">
-          {taskId && (
+          {taskId && projectId && (
             <>
               <section className="w-full max-w-full flex items-center">
                 <button
@@ -127,10 +150,13 @@ const Tasks = () => {
                 <h1 className="flex-grow">{taskTitle}</h1>
                 <Dropdown>
                   <>
-                    <AllTags taskId={taskId.toString()} />
+                    <AllTags
+                      taskId={taskId.toString()}
+                      projectId={projectId.toString()}
+                    />
                     <div className="flex items-center justify-around w-32 border-t pt-5">
                       <FaTrash />
-                      <button onClick={handleDeleteTodo}>Delete</button>
+                      <button onClick={handleDeleteTask}>Delete</button>
                       <hr />
                     </div>
                   </>
@@ -156,7 +182,7 @@ const Tasks = () => {
                   onChange={(e) => setNewTodoTitle(e.target.value)}
                 />
               </form>
-              {allTodos && allTodos.notCompletedTodos && (
+              {allTodos && projectId && allTodos.notCompletedTodos && (
                 <>
                   <p>Tasks - {allTodos.notCompletedTodos.length}</p>
                   {allTodos.notCompletedTodos.map((todo, i) => (
@@ -165,11 +191,12 @@ const Tasks = () => {
                       index={i}
                       key={i}
                       taskId={taskId.toString()}
+                      project_id={projectId.toString()}
                     />
                   ))}
                 </>
               )}
-              {allTodos && allTodos.completedTodos && (
+              {allTodos && projectId && allTodos.completedTodos && (
                 <>
                   <p>Completed - {allTodos.completedTodos.length}</p>
                   {allTodos.completedTodos.map((todo, i) => (
@@ -178,6 +205,7 @@ const Tasks = () => {
                       index={i}
                       key={i}
                       taskId={taskId.toString()}
+                      project_id={projectId.toString()}
                     />
                   ))}
                 </>

@@ -1,62 +1,70 @@
 import { Response, Router } from "express";
 import pool from "../db";
 import authorization from "../middlewares/authorization";
-import hasProjectAccess from "../middlewares/hasProjectAccess";
+import accessToProject from "../middlewares/privacyChecker";
 const projectRouter = Router();
 export interface ProjectDeets {
   project_id: string;
   header_img: string;
   project_owner: string;
   created_at: string;
-  project_title: string;
+  title: string;
   is_private: boolean;
 }
 
 //get project details and columns - project_owner, created_at, boards
-projectRouter.get("/project-assets/:project_id", async (req, res) => {
-  try {
-    const { project_id } = req.params;
-    if (!project_id) return;
+projectRouter.get(
+  "/project-assets/:project_id",
+  authorization,
+  async (req: any, res: Response) => {
+    try {
+      const { project_id } = req.params;
 
-    //project_owner, created_on, header_img,  board columns
-    const query1 = await pool.query<{
-      project_id: string;
-      header_img: string;
-      project_owner: string;
-      created_at: string;
-      is_private: boolean;
-      title: string;
-    }>("SELECT * FROM projects WHERE project_id = $1", [project_id]);
-    let projectDeets: ProjectDeets = {
-      project_id: "",
-      header_img: "",
-      project_owner: "",
-      created_at: "",
-      is_private: false,
-      project_title: "",
-    };
-    // console.log(query1.rows[0]);
-    if (!query1.rows[0]) return;
-    projectDeets.project_id = query1.rows[0].project_id;
-    projectDeets.header_img = query1.rows[0].header_img;
-    projectDeets.project_owner = query1.rows[0].project_owner;
-    projectDeets.created_at = query1.rows[0].created_at;
-    projectDeets.project_title = query1.rows[0].title;
-    projectDeets.is_private = query1.rows[0].is_private;
+      if (!project_id) return;
 
-    res.send(projectDeets);
-  } catch (error) {
-    console.error(error);
+      //project_owner, created_on, header_img,  board columns
+      const query1 = await pool.query<{
+        project_id: string;
+        header_img: string;
+        project_owner: string;
+        created_at: string;
+        is_private: boolean;
+        title: string;
+      }>("SELECT * FROM projects WHERE project_id = $1", [project_id]);
+      let projectDeets: ProjectDeets = {
+        project_id: "",
+        header_img: "",
+        project_owner: "",
+        created_at: "",
+        is_private: false,
+        title: "",
+      };
+      // console.log(query1.rows[0]);
+      if (!query1.rows[0]) res.send(undefined);
+      projectDeets.project_id = query1.rows[0].project_id;
+      projectDeets.header_img = query1.rows[0].header_img;
+      projectDeets.project_owner = query1.rows[0].project_owner;
+      projectDeets.created_at = query1.rows[0].created_at;
+      projectDeets.title = query1.rows[0].title;
+      projectDeets.is_private = query1.rows[0].is_private;
+
+      res.send(projectDeets);
+    } catch (error) {
+      console.error("error", error);
+      return undefined;
+      // return res.status(403).send("haha");
+    }
   }
-});
+);
 
 //get specific project
 projectRouter.get(
   "/project/:project_id",
-  authorization,
+  [authorization, accessToProject],
   async (req: any, res: Response) => {
     try {
       const user_id = req.user;
+      const accessStatus = req.access;
       const { project_id } = req.params;
 
       //check if the project even exists
@@ -288,22 +296,23 @@ projectRouter.post(
 
 projectRouter.put(
   "/update-project-title/:project_id",
-  authorization,
+  [authorization, accessToProject],
   async (req: any, res: Response) => {
     try {
       const user_id = req.user;
 
       const { title } = req.body;
       const { project_id } = req.params;
+      const editingStatus = req.editingStatus;
+      if (!user_id || !editingStatus) return res.send(undefined);
 
       //user needs to either be the project owner or shared user
       const query = await pool.query(
         "UPDATE projects SET title = $1 WHERE project_id = $2 RETURNING *",
         [title, project_id]
       );
-      if (query.rowCount < 0)
-        res.status(400).send("Something went wrong when updating the title.");
-      res.send("Successfully updated the title");
+      if (query.rowCount < 0) res.status(400).send(undefined);
+      res.send({ success: true, message: "Successfully updated the title" });
     } catch (error) {
       console.log(error);
       res.status(400).send(error.message);
@@ -478,24 +487,18 @@ projectRouter.get(
 
 projectRouter.delete(
   "/delete-project/:project_id",
-  authorization,
+  [authorization, accessToProject],
   async (req: any, res: Response) => {
     try {
-      const user_id = req.user;
+      const adminStatus = req.adminStatus;
+
       //need to be an array of objects
       const { project_id } = req.params;
-      //verify we are thje owner or a member of the project
-      const verifyQuery = await pool.query(
-        "SELECT project_owner FROM projects WHERE project_id = $1",
-        [project_id]
-      );
-      const { project_owner } = verifyQuery.rows[0];
-      if (project_owner !== user_id) {
-        return res.send({
-          success: false,
-          message: "Only the project owner can delete the project.",
-        });
+      //verify we are the owner or an admin of the project
+      if (!adminStatus) {
+        return res.status(403).send(undefined);
       }
+
       //delete the project
       await pool.query("DELETE FROM projects WHERE project_id = $1", [
         project_id,
@@ -532,14 +535,15 @@ projectRouter.get(
 );
 
 projectRouter.get(
-  "/verify-project-access/:project_id",
-  hasProjectAccess,
+  "/user-project-access/:project_id",
+  [authorization, accessToProject],
   async (req: any, res: Response) => {
     try {
-      const { project_id } = req.params;
-      // console.log(req);
-      // console.log(projectAccess);
-      res.send("s");
+      const access = req.access;
+      const adminStatus = req.adminStatus;
+      const editingStatus = req.editingStatus;
+      console.log("admin", adminStatus);
+      res.send({ access, adminStatus, editingStatus });
     } catch (error) {
       console.log(error);
     }
@@ -548,12 +552,17 @@ projectRouter.get(
 
 projectRouter.put(
   "/update-header-img/:project_id",
-  authorization,
+  [authorization, accessToProject],
   async (req: any, res: Response) => {
     try {
       const user_id = req.user;
       const { project_id } = req.params;
       const { header_img } = req.body;
+
+      const editingStatus = req.editingStatus;
+
+      if (!editingStatus) return res.send(undefined);
+
       //verify we are thje owner or a member of the project
       const verifyQuery = await pool.query(
         "SELECT project_owner FROM projects WHERE project_id = $1",

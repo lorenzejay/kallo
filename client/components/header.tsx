@@ -16,12 +16,9 @@ import { useAuth } from "../hooks/useAuth";
 const Header = () => {
   const auth = useAuth();
   const { logout, userToken } = auth;
-  // console.log("userToken", userToken);
 
   const { isDarkMode, toggleDarkMode } = useContext(DarkModeContext);
   const router = useRouter();
-  // const userLogin = useSelector((state: RootState) => state.userLogin);
-  // const { userInfo } = userLogin;
 
   const fetchLoggedInUserDetails = async () => {
     if (!userToken) return;
@@ -50,9 +47,7 @@ const Header = () => {
           Kallo
         </h2>
       </Link>
-      {/* <button onClick={() => setSidebarOpen(!sidebarOpen)} className="outline-none border-none">
-        <FaBars size={30} className="outline-none border-none" />
-      </button> */}
+
       {!userToken && (
         <ul className="flex justify-between items-center w-48 mr-3">
           <li>
@@ -82,7 +77,7 @@ const Header = () => {
                   </Link>
                 </li>
                 <hr />
-                {/* <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
+                <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
                   <Link href="/sharedProjects">
                     <div className="flex items-center">
                       <RiTodoLine
@@ -94,7 +89,7 @@ const Header = () => {
                     </div>
                   </Link>
                 </li>
-                <hr /> */}
+                <hr />
                 <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
                   <Link href="/profile">
                     <div className="flex items-center">
