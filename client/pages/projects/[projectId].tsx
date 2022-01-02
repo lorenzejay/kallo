@@ -58,24 +58,16 @@ const Project = () => {
   }, [projectId]);
 
   const getProjectDeets = async () => {
-    try {
-      if (!projectId) return;
-      if (!userToken || userToken === null) return;
-      const config = configWithToken(userToken);
-      const { data } = await axios.get<ProjectDeets>(
-        `/api/projects/project-assets/${projectId}`,
-        config
-      );
+    if (!projectId) return;
 
-      if (!data) {
-        return undefined;
-      }
+    const { data } = await axios.get(
+      `/api/projects/project-assets/${projectId}`
+    );
+    if (data) {
       return data;
-    } catch (error) {
-      // console.log("errir", error);
-      return error;
     }
   };
+
   const { data: projectDeets, isLoading } = useQuery<ProjectDeets>(
     `projectDeets-${projectId?.toString()}`,
     getProjectDeets
@@ -142,11 +134,11 @@ const Project = () => {
   const [formResult] = useState<FormResultType>({} as FormResultType);
 
   //gets the project info on load
-  useEffect(() => {
-    if (userToken === null) {
-      router.push("/signin");
-    }
-  }, [userToken]);
+  // useEffect(() => {
+  //   if (projectDeets && userToken === null && projectDeets.is_private) {
+  //     router.push("/signin");
+  //   }
+  // }, [userToken, projectDeets]);
 
   //add to set state in order to update state
   useEffect(() => {

@@ -15,7 +15,7 @@ export interface ProjectDeets {
 //get project details and columns - project_owner, created_at, boards
 projectRouter.get(
   "/project-assets/:project_id",
-  authorization,
+
   async (req: any, res: Response) => {
     try {
       const { project_id } = req.params;
@@ -313,7 +313,7 @@ projectRouter.put(
       );
       if (query.rowCount < 0) res.status(400).send(undefined);
       res.send({ success: true, message: "Successfully updated the title" });
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
       res.status(400).send(error.message);
     }

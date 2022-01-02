@@ -27,6 +27,11 @@ if (process.env.NODE_ENV === "production") {
   app.use("/api/tasks", taskRouter);
   app.use("/api/tags", tagRouter);
   app.use("/api/sharing", sharingRouter);
+  app.get("/projects/*", (_, res) => {
+    res.sendFile(
+      path.resolve(__dirname, "../client/out/projects/[projectId].html")
+    );
+  });
   app.get("*", (_, res) => {
     res.sendFile(path.resolve(__dirname, "../client/out/index.html"));
   });

@@ -35,16 +35,17 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
   }, []);
 
   const fetchColumns = async () => {
-    if (!userToken || !projectId) return;
-    const config = configWithToken(userToken);
-    const { data } = await axios.get<BoardColumns[]>(
-      `/api/columns/get-project-columns/${projectId}`,
-      config
+    if (!projectId) return;
+    // const config = configWithToken(userToken);
+    const { data } = await axios.get(
+      `/api/columns/get-project-columns/${projectId}`
     );
-
     return data;
   };
-  const { data: boardColumns } = useQuery(`columns-${projectId}`, fetchColumns);
+  const { data: boardColumns } = useQuery<BoardColumns[]>(
+    `columns-${projectId}`,
+    fetchColumns
+  );
 
   type moveColArgs = {
     movingCol: string;
@@ -187,7 +188,6 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
       });
     }
   };
-
   const [loadedImage, setLoadedImage] = useState(false);
   return (
     <main className="relative flex-col">

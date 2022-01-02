@@ -32,13 +32,11 @@ const getTasksForTheCol = async (arrOfCols: any[]) => {
 //fetch columns
 columnRouter.get(
   "/get-project-columns/:project_id",
-  authorization,
+
   async (req: any, res: Response) => {
     try {
-      const user_id = req.user;
       const { project_id } = req.params;
-      //if there is no user return
-      if (!user_id || !project_id) return;
+      if (!project_id) return;
 
       //get all the columns with the associated project_id
       const query = await pool.query(
@@ -203,7 +201,7 @@ columnRouter.put(
           message: "Something went wrong when updating the name of the column.",
         });
       res.send({ success: true, message: "Successfully updated the title" });
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
       res.status(400).send(error.message);
     }
