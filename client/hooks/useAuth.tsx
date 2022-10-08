@@ -6,6 +6,10 @@ import {
   createContext,
   ReactChild,
 } from "react";
+import {Session, User} from '@supabase/supabase-js'
+import supabase from "../utils/supabaseClient";
+import { UserInfo } from "../types/userTypes";
+
 type AuthContextType = {
   userToken: string | null;
   register: (
@@ -13,15 +17,17 @@ type AuthContextType = {
     username: string,
     first_name: string,
     last_name: string,
-    password: string
+    password: string,
   ) => Promise<void>;
   error: string | null;
   logout: () => void;
   login: (email: string, password: string) => Promise<void>;
   userId: string | null;
+  session: Session | null;
+  user: User | null;
+  userDetails: UserInfo | null
 };
 const ISSERVER = typeof window === "undefined";
-
 //initalizing user context, by defaults should be empty
 
 const localUserToken =
@@ -34,6 +40,9 @@ const AuthContext = createContext<AuthContextType>({
   logout: () => {},
   login: async () => {},
   userId: null,
+  session: null,
+  user: null,
+  userDetails: null
 });
 const { Provider } = AuthContext;
 
@@ -56,13 +65,41 @@ const useAuthProvider = () => {
     localUser ? JSON.parse(localUser) : null
   );
   const [userId, setUserId] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null); // used if there is a logged in user
   const [error, setError] = useState<string | null>(null);
+  const [session, setSession] = useState<Session | null>(null)
+  const [userDetails, setUserDetails] = useState<UserInfo | null>(null)
   useEffect(() => {
     const userToken = window.localStorage.getItem("userToken");
     if (!userToken || userToken === null) {
       window.localStorage.setItem("userToken", JSON.stringify(userToken));
     }
   }, []);
+
+  useEffect(() => {
+    const getLoggedInUser = async () => {
+      // const session = await supabase.auth.session()
+      const user = await supabase.auth.user();
+      setSession(session)
+      if(user){
+        setUser(user);
+      }
+    }
+    getLoggedInUser()
+  }, [])
+
+  useEffect(() => {
+    const getUserDetails = async () => {
+      if(user){
+        const {data} = await supabase.from('users').select();
+        if(data){
+          setUserDetails(data[0])
+        }
+        // console.log('data',data)
+      }
+    }
+    getUserDetails()
+  },[user])
 
   useEffect(() => {
     if (userToken !== null) {
@@ -155,9 +192,12 @@ const useAuthProvider = () => {
     }
   };
 
-  const logout = () => {
-    setUserToken(null);
-    return localStorage.removeItem("userToken");
+  const logout = async () => {
+    
+    const {error} = await supabase.auth.signOut();
+    if(error) console.log('error', error)
+    // setUserToken(null);
+    // return localStorage.removeItem("userToken");
   };
 
   //what our state has access too from useAuth hook
@@ -168,5 +208,8 @@ const useAuthProvider = () => {
     logout,
     login,
     userId,
+    session,
+    user,
+    userDetails
   };
 };

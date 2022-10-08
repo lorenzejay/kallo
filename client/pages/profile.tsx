@@ -1,32 +1,36 @@
 import axios from "axios";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useQuery } from "react-query";
 import Layout from "../components/layout";
 import Loader from "../components/loader";
 import { configWithToken } from "../functions";
 import { useAuth } from "../hooks/useAuth";
 import { UserInfo } from "../types/userTypes";
+import supabase from "../utils/supabaseClient";
 
 const Profile = () => {
   const router = useRouter();
   const auth = useAuth();
-  const { userToken } = auth;
+  const { user, userDetails } = auth;
+  // const [userDetails, setUserDetails] = useState({})
 
   useEffect(() => {
-    if (!userToken) {
+    if (!user) {
       router.push("/signin");
+    } else {
+      // const fetchUserDeets = async () => {
+      //   const {data} = await supabase.from('users').select('username', 'first_name',);
+      //   console.log('data',data)
+      //   setUserDetails(data)
+      // };
+      // fetchUserDeets()
     }
-  }, [userToken]);
+  }, [user]);
+  
 
-  const fetchUserDeets = async () => {
-    if (!userToken) return;
-    const config = configWithToken(userToken);
-    const { data } = await axios.get<UserInfo>("/api/users/details", config);
-    return data;
-  };
-  const { data: userDetails, isLoading } = useQuery(`userInfo`, fetchUserDeets);
+  // const { data: userDetails, isLoading } = useQuery(`userInfo`, fetchUserDeets);
 
   return (
     <Layout>
@@ -38,11 +42,11 @@ const Profile = () => {
         <main
           className={`flex flex-col items-center justify-center w-full min-h-screen relative`}
         >
-          <div className="absolute top-0 right-0 left-0 bottom-0">
+          {/* <div className="absolute top-0 right-0 left-0 bottom-0">
             {isLoading && <Loader />}
-          </div>
+          </div> */}
           <h1 className="text-3xl lg:text-5xl">Your Profile</h1>
-          {userDetails && (
+          {user && userDetails && (
             <section className="w-full flex flex-col justify-between text-lg lg:text-2xl lg:justify-center lg:w-1/2">
               <p className="flex mx-auto w-full my-3 text-left">
                 <span className="uppercase flex-grow">Full Name:</span>

@@ -2,27 +2,22 @@ import { useEffect, useState } from "react";
 import Layout from "../../components/layout";
 import Modal from "../../components/modal";
 import { BsUnlock, BsLock, BsFillImageFill } from "react-icons/bs";
-import { useRouter } from "next/router";
-import { useQuery, useMutation } from "react-query";
+
 import UnsplashImageSearch from "../../components/unsplashImageSearch";
 import PrivacyOptions from "../../components/privacyOptions";
-import Loader from "../../components/loader";
 import ProjectCard from "../../components/projectCard";
 import Head from "next/head";
-import axios from "axios";
-import { configWithToken } from "../../functions";
+
 import {
-  Projects as ProjectTypes,
   ProjectsNew,
 } from "../../types/projectTypes";
-import { queryClient } from "../../utils/queryClient";
 import { useAuth } from "../../hooks/useAuth";
+import supabase from "../../utils/supabaseClient";
 
 const Projects = () => {
   const auth = useAuth();
-  const { userToken } = auth;
-
-  const router = useRouter();
+  const { user } = auth;
+  const [projects, setProjects] = useState<any[]>([])
 
   const [openModal, setOpenModal] = useState(false);
   const [projectTitle, setProjectTitle] = useState("");
@@ -35,43 +30,33 @@ const Projects = () => {
 
   const [revealImageSearch, setRevealImageSearch] = useState(false);
 
-  // const userLogin = useSelector((state: RootState) => state.userLogin);
-  // const { userInfo } = userLogin;
-
-  useEffect(() => {
-    if (!userToken || userToken === null) {
-      router.push("/signin");
-    }
-  }, [userToken]);
 
   const fetchProjects = async () => {
-    if (!userToken) return;
-    const config = configWithToken(userToken);
-    const { data } = await axios.get<ProjectTypes[]>(
-      "/api/projects/get-all-user-projects",
-      config
-    );
-    return data;
+    const { data, error } = await supabase.from("projects").select();
+    if(error) throw error
+ 
+    if(data) {
+      setProjects(data);
+    };
   };
-  const { data, isLoading } = useQuery("projects", fetchProjects);
-
-  // console.log("status", status);
-  const handleCreateProject = async () => {
-    if (!userToken) return;
-    const config = configWithToken(userToken);
-    await axios.post(
-      "/api/projects/create-project",
-      {
-        title: projectTitle,
+  useEffect(() => {
+    fetchProjects()
+  }, [])
+  const createProject = async () => {
+    try {
+      const trimmedTitle = projectTitle.trim()
+      const { data, error } = await supabase.from('projects').insert([{
+        title: trimmedTitle,
         header_img: projectHeader,
         is_private: isPrivateProject,
-      },
-      config
-    );
+        project_owner: user?.id
+      }]).limit(1).single() //retrieves row back
+      if(error) throw error
+      setProjects([...projects, data])
+    } catch (error) {
+      throw Error
+    }
   };
-  const { mutateAsync: createProject } = useMutation(handleCreateProject, {
-    onSuccess: () => queryClient.invalidateQueries("projects"),
-  });
 
   const handleAddProject = () => {
     if (projectTitle !== "") {
@@ -100,15 +85,15 @@ const Projects = () => {
       <Layout>
         <>
           {/* {loading && <Loader />} */}
-          {isLoading && <Loader />}
+          {/* {isLoading && <Loader />} */}
           <section
             className={`relative flex flex-col justify-start transition-all duration-300 ease-in-out lg:min-h-screen pt-0 mt-0 pb-20 z-20 `}
           >
             <div className="flex justify-between">
               <div>
                 <h1 className="text-4xl font-bold uppercase ">Projects</h1>
-                {data && (
-                  <p className="mb-5 text-white">Items: {data.length || 0}</p>
+                {projects && (
+                  <p className="mb-5 text-white">Items: {projects.length || 0}</p>
                 )}
               </div>
 
@@ -199,10 +184,10 @@ const Projects = () => {
               </Modal>
             </div>
 
-            {data && data.length > 0 ? (
+            {projects && projects.length > 0 ? (
               <div className="flex flex-col items-center md:grid md:grid-cols-2 lg:items-start lg:grid-cols-3 2xl:grid-cols-4 gap-5">
-                {data &&
-                  data.map((project: ProjectsNew, i: number) => {
+                {projects &&
+                  projects.map((project: ProjectsNew, i: number) => {
                     return (
                       <ProjectCard
                         key={i}

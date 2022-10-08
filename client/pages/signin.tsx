@@ -1,11 +1,12 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { FormEvent, useContext, useEffect, useState } from "react";
+import { FormEvent, useContext, useState } from "react";
 import Button from "../components/button";
 import Input from "../components/input";
 import { DarkModeContext } from "../context/darkModeContext";
 import { useAuth } from "../hooks/useAuth";
+import supabase from "../utils/supabaseClient";
 
 const Signin = () => {
   const { isDarkMode } = useContext(DarkModeContext);
@@ -18,17 +19,23 @@ const Signin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  useEffect(() => {
-    if (userToken) {
-      router.push("/projects");
-    }
-  }, [userToken]);
+  // useEffect(() => {
+  //   if (userToken) {
+  //     router.push("/projects");
+  //   }
+  // }, [userToken]);
 
   const handleSignIn = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await login(email, password);
-    if (!error) {
-      router.push("/projects");
+    const { error } = await supabase.auth.signIn({
+      email,
+      password
+    })
+    // await login(email, password);
+    if (error) {
+      alert(JSON.stringify(error))
+    } else {
+     router.push("/projects");
     }
   };
   return (

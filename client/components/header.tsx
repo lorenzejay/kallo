@@ -6,32 +6,18 @@ import { AiOutlineUser } from "react-icons/ai";
 import { FiLogOut, FiMoon, FiSun } from "react-icons/fi";
 import { RiTodoLine } from "react-icons/ri";
 import { DarkModeContext } from "../context/darkModeContext";
-import axios from "axios";
-import { configWithToken } from "../functions";
-import { useQuery } from "react-query";
-import Loader from "./loader";
-import { UserInfo } from "../types/userTypes";
 import { useAuth } from "../hooks/useAuth";
 
 const Header = () => {
   const auth = useAuth();
-  const { logout, userToken } = auth;
+  const { logout, user } = auth;
 
   const { isDarkMode, toggleDarkMode } = useContext(DarkModeContext);
   const router = useRouter();
 
-  const fetchLoggedInUserDetails = async () => {
-    if (!userToken) return;
-    const config = configWithToken(userToken);
-    const { data } = await axios.get<UserInfo>("/api/users/details", config);
-    return data;
-  };
-
-  const { data, isLoading } = useQuery("userInfo", fetchLoggedInUserDetails);
-
   const handleLogout = () => {
     logout();
-    if (userToken === null) {
+    if (user === null) {
       router.push("/signin");
     }
   };
@@ -48,7 +34,7 @@ const Header = () => {
         </h2>
       </Link>
 
-      {!userToken && (
+      {!user && (
         <ul className="flex justify-between items-center w-48 mr-3">
           <li>
             <Link href="/signin">Sign In</Link>
@@ -58,9 +44,9 @@ const Header = () => {
           </li>
         </ul>
       )}
-      {isLoading && <Loader />}
-      {data && userToken && !isLoading && (
-        <Dropdown title={data.username} className="right-0" width={"w-40"}>
+      {/* {isLoading && <Loader />} */}
+      {user && (
+        <Dropdown title={user.email} className="right-0" width={"w-40"}>
           <ul className="text-sm">
             <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
               <Link href="/projects">

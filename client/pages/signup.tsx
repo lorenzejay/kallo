@@ -7,6 +7,7 @@ import Button from "../components/button";
 import Input from "../components/input";
 import { DarkModeContext } from "../context/darkModeContext";
 import { useAuth } from "../hooks/useAuth";
+import useCreateUser from "../hooks/useCreateUser"
 
 const Signup = () => {
   const auth = useAuth();
@@ -22,12 +23,17 @@ const Signup = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [password, setPassword] = useState("");
   const [formError, setFormError] = useState("");
-
-  useEffect(() => {
-    if (userToken) {
-      router.push("/projects");
-    }
-  }, [userToken]);
+  const createUserMutation = useCreateUser({
+    email,password, firstName,lastName, username
+  })
+  if(createUserMutation.isSuccess) {
+    router.push("/projects")
+  } 
+  // useEffect(() => {
+  //   if (userToken) {
+  //     router.push("/projects");
+  //   }
+  // }, [userToken]);
 
   const handleSignUp = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -39,8 +45,9 @@ const Signup = () => {
         lastName !== "" &&
         password !== "" &&
         email !== ""
-      )
+      ){
         await register(email, username, firstName, lastName, password);
+      }
       else {
         return setFormError("Nothing must be blank.");
       }
@@ -74,7 +81,10 @@ const Signup = () => {
           className={`${
             isDarkMode ? "card-color text-white" : "bg-gray-100 text-black"
           } mt-10 py-10 px-2 flex items-center justify-center flex-col shadow-lg w-full sm:w-1/2 2xl:w-1/4 rounded-md`}
-          onSubmit={handleSignUp}
+          onSubmit={(e) => { 
+            e.preventDefault()
+            createUserMutation.mutate()}
+          }
         >
           <p className="mb-4  text-xl">Register.</p>
           <Input

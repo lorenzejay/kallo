@@ -1,9 +1,10 @@
 import { useContext, useState } from "react";
 import { DarkModeContext } from "../context/darkModeContext";
-const { default: Header } = require("./header");
+import Header from './header'
+// const { default: Header } = require("./header");
 
 type LayoutProps = {
-  children: React.ReactChild;
+  children: JSX.Element;
 };
 
 const Layout = ({ children }: LayoutProps) => {
@@ -11,7 +12,7 @@ const Layout = ({ children }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   return (
     <>
-      <Header setSidebarOpen={setSidebarOpen} sidebarOpen={sidebarOpen} />
+      <Header  />
 
       <div
         className={`px-7 lg:px-16 xl:px-32 min-h-screen 
