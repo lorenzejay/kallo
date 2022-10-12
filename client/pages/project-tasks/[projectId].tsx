@@ -1,4 +1,3 @@
-import axios from "axios";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useContext, useMemo } from "react";
@@ -9,14 +8,7 @@ import AllTags from "../../components/AllTags";
 import Dropdown from "../../components/dropdown";
 import Layout from "../../components/layout";
 import { DarkModeContext } from "../../context/darkModeContext";
-import { configWithToken } from "../../functions";
-import { useAuth } from "../../hooks/useAuth";
-import {
-  ReturnedApiStatus,
-  TagsType,
-  Task,
-  Todo as TodoType,
-} from "../../types/projectTypes";
+import { Task, Todo as TodoType } from "../../types/projectTypes";
 import { queryClient } from "../../utils/queryClient";
 import supabase from "../../utils/supabaseClient";
 import Todo from "../../components/Todo";
@@ -24,8 +16,6 @@ import Todo from "../../components/Todo";
 const Tasks = () => {
   const router = useRouter();
   const { isDarkMode } = useContext(DarkModeContext);
-  const auth = useAuth();
-  const { userToken } = auth;
   //also has access to taskId in router.query
   const { taskId, projectId } = router.query;
 
@@ -44,8 +34,8 @@ const Tasks = () => {
     //no config , add auth protection here
     if (!taskId) return;
     const { data, error } = await supabase.from('todos').select('*').match({ task_id: taskId });
-    if (error) throw error;
-    if (data) return data;
+    if (error) throw new Error(error.message);
+    return data;
   };
   //add todo
   const handleAddTodo = async () => {
@@ -60,16 +50,6 @@ const Tasks = () => {
       }
     ])
     if (error) throw error;
-    // const config = configWithToken(userToken);
-    // const { data } = await axios.post<ReturnedApiStatus | undefined>(
-    //   `/api/todos/create-todo/${projectId}/${taskId}`,
-    //   {
-    //     description: newTodoTitle,
-    //   },
-    //   config
-    // );
-    // if (!data)
-    //   return window.alert("You do not have privileges to add a new todo.");
     return data;
   };
 
@@ -91,7 +71,7 @@ const Tasks = () => {
   const { mutateAsync: createTodo } = useMutation(handleAddTodo, {
     onSuccess: () => queryClient.invalidateQueries([`allTodos-${taskId}`]),
   });
-  // console.log("allTodos", allTodos);
+
   const handleCreateTodo = async (e: FormEvent) => {
     e.preventDefault();
     if (newTodoTitle === "") {
@@ -110,24 +90,17 @@ const Tasks = () => {
   }, [taskDetails]);
 
   const deleteTask = async () => {
-    if (!userToken || !taskId) return;
-    const config = configWithToken(userToken);
-    const { data } = await axios.delete<ReturnedApiStatus | undefined>(
-      `/api/tasks/delete-task/${projectId}/${taskId}`,
-      config
-    );
-    if (!data)
-      return window.alert(
-        "You do not have project privileges to delete the task."
-      );
-    return data;
+    if (!taskId) return;
+    const { status ,error } = await supabase.from('tasks').delete().match({task_id: taskId});
+    if (error) throw new Error(error.message);
+    return status;
   };
   const { mutateAsync: deletingTask } = useMutation(deleteTask, {
     onSuccess: () => queryClient.invalidateQueries([`columns-${projectId}`]),
   });
   const handleDeleteTask = async () => {
     const res = await deletingTask();
-    if (res) {
+    if (res === 200) {
       router.back();
     }
   };
