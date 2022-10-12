@@ -1,10 +1,7 @@
-import axios from "axios";
 import React, { useEffect } from "react";
 import { useState } from "react";
 import { AiOutlineClose } from "react-icons/ai";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { configWithToken } from "../functions";
-import { useAuth } from "../hooks/useAuth";
 import supabase from "../utils/supabaseClient";
 
 type TagsProps = {

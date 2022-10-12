@@ -46,7 +46,6 @@ const AllTags = ({ taskId, projectId }: AllTagsProps) => {
   const { mutateAsync: createTag } = useMutation(handleAddTag, {
     onSuccess: () => queryClient.invalidateQueries([`allTags-${taskId}`]),
   });
-  console.log("allTags", allTags);
   return (
     <Modal
       modalName={
