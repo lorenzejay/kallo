@@ -7,9 +7,14 @@ import { FiLogOut, FiMoon, FiSun } from "react-icons/fi";
 import { RiTodoLine } from "react-icons/ri";
 import { DarkModeContext } from "../context/darkModeContext";
 import { useAuth } from "../hooks/useAuth";
+import useUser from "../hooks/useUser";
+import useLogout from "../hooks/useLogout";
 
 const Header = () => {
+  const logoutMuation = useLogout();
   const auth = useAuth();
+  const { data } = useUser();
+  console.log('dataheader', data)
   const { logout, user } = auth;
 
   const { isDarkMode, toggleDarkMode } = useContext(DarkModeContext);
@@ -21,6 +26,8 @@ const Header = () => {
       router.push("/signin");
     }
   };
+
+  if (logoutMuation.isSuccess) router.push('/signin');
 
   return (
     <header
@@ -34,7 +41,7 @@ const Header = () => {
         </h2>
       </Link>
 
-      {!user && (
+      {!data && (
         <ul className="flex justify-between items-center w-48 mr-3">
           <li>
             <Link href="/signin">Sign In</Link>
@@ -45,8 +52,8 @@ const Header = () => {
         </ul>
       )}
       {/* {isLoading && <Loader />} */}
-      {user && (
-        <Dropdown title={user.email} className="right-0" width={"w-40"}>
+      {data && (
+        <Dropdown title={data.email} className="right-0" width={"w-40"}>
           <ul className="text-sm">
             <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
               <Link href="/projects">

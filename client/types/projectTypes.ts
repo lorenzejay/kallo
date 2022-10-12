@@ -15,7 +15,7 @@ export type Task = {
 };
 
 //
-export type Columns = {
+export type Column = {
   column_id: string;
   name: string;
   index: number;
@@ -48,7 +48,7 @@ export type SharedUsers = {
   shared_id: string;
 };
 export interface Projects {
-  columns: Columns[];
+  columns: Column[];
   created_at: string;
   header_img: string;
   is_private: boolean;

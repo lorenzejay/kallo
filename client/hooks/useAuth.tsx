@@ -69,63 +69,95 @@ const useAuthProvider = () => {
   const [error, setError] = useState<string | null>(null);
   const [session, setSession] = useState<Session | null>(null)
   const [userDetails, setUserDetails] = useState<UserInfo | null>(null)
-  useEffect(() => {
-    const userToken = window.localStorage.getItem("userToken");
-    if (!userToken || userToken === null) {
-      window.localStorage.setItem("userToken", JSON.stringify(userToken));
-    }
-  }, []);
+  // useEffect(() => {
+  //   const userToken = window.localStorage.getItem("userToken");
+  //   if (!userToken || userToken === null) {
+  //     window.localStorage.setItem("userToken", JSON.stringify(userToken));
+  //   }
+  // }, []);
 
-  useEffect(() => {
-    const getLoggedInUser = async () => {
-      // const session = await supabase.auth.session()
-      const user = await supabase.auth.user();
-      setSession(session)
-      if(user){
-        setUser(user);
+  // useEffect(() => {
+  //   const getLoggedInUser = async () => {
+  //     // const session = await supabase.auth.session()
+  //     const user = await supabase.auth.user();
+
+  //     setSession(session)
+  //     if(user){
+  //       setUser(user);
+  //     }
+  //   }
+  //   getLoggedInUser()
+   
+  // }, [])
+  const getUserDetails = async () => {
+    if(user){
+      const {data} = await supabase.from('users').select().single();
+      if(data){
+        setUserDetails(data)
       }
+      // console.log('data',data)
     }
-    getLoggedInUser()
-  }, [])
-
+  }
+  useEffect(() => {
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (event){
+        console.log('event', event)
+      }
+      if (event === 'SIGNED_IN') {
+        getUserDetails()
+      }
+      if (event === 'SIGNED_OUT'){
+        setUser(null)
+      }
+      if (event === 'TOKEN_REFRESHED'){
+        console.log('token refreshed')
+      }
+      if (session){
+        console.log('session')
+      } 
+      // console.log(event, session)
+    })
+  },[])
+  // console.log('session', session)
+  console.log('user', user)
   useEffect(() => {
     const getUserDetails = async () => {
       if(user){
-        const {data} = await supabase.from('users').select();
+        const {data} = await supabase.from('users').select().single();
         if(data){
-          setUserDetails(data[0])
+          setUserDetails(data)
         }
         // console.log('data',data)
       }
     }
     getUserDetails()
-  },[user])
+  },[])
 
-  useEffect(() => {
-    if (userToken !== null) {
-      getUserId();
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (userToken !== null) {
+  //     getUserId();
+  //   }
+  // }, []);
 
-  useEffect(() => {
-    window.localStorage.setItem("userToken", JSON.stringify(userToken));
-  }, [userToken]);
+  // useEffect(() => {
+  //   window.localStorage.setItem("userToken", JSON.stringify(userToken));
+  // }, [userToken]);
 
-  const getUserId = async () => {
-    if (!userToken) return;
-    const config = {
-      headers: {
-        "Content-Type": "application/json",
-        token: userToken,
-      },
-    };
-    const { data } = await axios.get<{ userId: string }>(
-      "/api/users/identification",
-      config
-    );
-    setUserId(data.userId);
-    return data;
-  };
+  // const getUserId = async () => {
+  //   if (!userToken) return;
+  //   const config = {
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //       token: userToken,
+  //     },
+  //   };
+  //   const { data } = await axios.get<{ userId: string }>(
+  //     "/api/users/identification",
+  //     config
+  //   );
+  //   setUserId(data.userId);
+  //   return data;
+  // };
 
   const register = async (
     email: string,
@@ -161,43 +193,26 @@ const useAuthProvider = () => {
       if (data.success === false) {
         setError(data.message);
       }
-    } catch (error) {
+    } catch (error: any) {
       setError(error.message);
     }
   };
 
   const login = async (email: string, password: string) => {
-    try {
       setError(null);
-      const config = {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      };
-      const {
-        data,
-      }: { data: { success: boolean; token: string; message: string } } =
-        await axios.post("/api/users/login", { email, password }, config);
-
-      if (data.success === true) {
-        setUserToken(data.token);
-
-        return localStorage.setItem("userToken", JSON.stringify(data.token));
-      }
-      if (data.success == false) {
-        setError(data.message);
-      }
-    } catch (error) {
-      setError(error.message);
-    }
+      const {user, error} = await supabase.auth.signIn({
+        email,
+        password
+      });
+      if (error) setError(error.message);
+      else setUser(user);
   };
 
   const logout = async () => {
     
     const {error} = await supabase.auth.signOut();
     if(error) console.log('error', error)
-    // setUserToken(null);
-    // return localStorage.removeItem("userToken");
+    setUser(null);
   };
 
   //what our state has access too from useAuth hook

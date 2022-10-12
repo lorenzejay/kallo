@@ -1,43 +1,46 @@
-import axios from "axios";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { Draggable, Droppable } from "react-beautiful-dnd";
 import { AiOutlineEllipsis } from "react-icons/ai";
 import { FaTrash } from "react-icons/fa";
-import { useMutation } from "react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { DarkModeContext } from "../context/darkModeContext";
-import { configWithToken } from "../functions";
-import { useAuth } from "../hooks/useAuth";
-import { BoardColumns, ReturnedApiStatus } from "../types/projectTypes";
+import { Column } from "../types/projectTypes";
 import { queryClient } from "../utils/queryClient";
 import Dropdown from "./dropdown";
 import KanbanTask from "./kanbanTask";
 import NewTask from "./newTask";
-type KanbanColProps = {
+import supabase from "../utils/supabaseClient";
+import Loader from "./loader";
+
+interface KanbanColProps {
   index: number;
   id: string;
-  column: BoardColumns;
+  column: Column;
   projectId: string;
 };
 const KanbanColumn = ({ column, id, index, projectId }: KanbanColProps) => {
-  const auth = useAuth();
-  const { userToken } = auth;
-
-  const [columnName, setColumnName] = useState(column.column_title || "");
+  const [columnName, setColumnName] = useState(column.name || "");
   const [toggleDoubleClickEffect, setToggleDoubleClickEffect] = useState(false);
   const { isDarkMode } = useContext(DarkModeContext);
   const [openNewItem, setOpenNewItem] = useState(false);
   const [newItemTitle, setNewItemTitle] = useState("");
 
+  //query for column tasks
+  const fetchColumnTasks = async () => {
+    if(!column.column_id) return;
+    const { data, error } = await supabase.from('tasks').select('*').match({ column_id: column.column_id });
+    if (error) throw error;
+    if (data) return data;
+  }
+  const { data: columnTasks } = useQuery(
+    [`tasks-${column.column_id}`],
+    fetchColumnTasks
+  );
   const updateColumnName = async (name: string) => {
-    if (!userToken || !projectId) return;
-    const config = configWithToken(userToken);
-    const { data } = await axios.put(
-      `/api/columns/update-column-name/${projectId}/${column.column_id}`,
-      { name },
-      config
-    );
-    if (!data)
-      return window.alert("You do not have privleges to update column name.");
+    const { data, error } = await supabase.from('columns').update({ name }).match({ column_id: column.column_id });
+    if (error ) throw error.message;
+    if (data) setColumnName(data[0].name);
+    return data
   };
 
   const handleDeleteColumn = async () => {
@@ -46,36 +49,23 @@ const KanbanColumn = ({ column, id, index, projectId }: KanbanColProps) => {
         "Are you sure you want to delete this column?"
       );
       if (confirmDelete) {
-        if (!projectId || !column.column_id || !userToken) return;
-        const config = configWithToken(userToken);
-        const { data } = await axios.delete<ReturnedApiStatus | undefined>(
-          `/api/columns/delete-col/${projectId}/${column.column_id}`,
-          config
-        );
-
-        if (!data)
-          return window.alert(
-            "You do not have the privileges to delete this column."
-          );
-        return data;
+        if (!projectId || !column.column_id) return;
+        const { data, error } = await supabase.from('columns').delete().match({ column_id: column.column_id });
+        if (error) throw error.message;
+        return data
       }
     } catch (error) {
       return error;
     }
   };
 
-  const { mutateAsync: updateColName } = useMutation(updateColumnName, {
-    onSuccess: () => queryClient.invalidateQueries(`columns-${projectId}`),
+  const { mutateAsync: updateColName, isLoading } = useMutation(updateColumnName, {
+    onSuccess: () => queryClient.invalidateQueries([`columns-${projectId}`]),
   });
   const { mutateAsync: deleteColumn } = useMutation(handleDeleteColumn, {
-    onSuccess: () => queryClient.invalidateQueries(`columns-${projectId}`),
+    onSuccess: () => queryClient.invalidateQueries([`columns-${projectId}`]),
   });
 
-  useEffect(() => {
-    if (column) {
-      setColumnName(column.column_title);
-    }
-  }, [column.column_title]);
   return (
     <Draggable draggableId={id} index={index} key={id}>
       {(provided, snapshot) => (
@@ -96,7 +86,7 @@ const KanbanColumn = ({ column, id, index, projectId }: KanbanColProps) => {
                 }`}
                 onDoubleClick={() => setToggleDoubleClickEffect(true)}
               >
-                {column.column_title || columnName}
+                {columnName}
               </h2>
             ) : (
               <input
@@ -115,13 +105,14 @@ const KanbanColumn = ({ column, id, index, projectId }: KanbanColProps) => {
                 }}
               />
             )}
-            {column.tasks && (
+            {isLoading && <Loader size="w-4"/>}
+            {columnTasks && (
               <p
                 className={`${
                   isDarkMode && "text-gray-400 text-sm "
                 } flex-grow`}
               >
-                {column.tasks.length}
+                {columnTasks.length}
               </p>
             )}
             <div className="relative right-0 bg-none">
@@ -151,14 +142,14 @@ const KanbanColumn = ({ column, id, index, projectId }: KanbanColProps) => {
                   ref={provided.innerRef}
                 >
                   {column &&
-                    column.tasks &&
-                    column.tasks.map((item, index) => {
+                    columnTasks &&
+                    columnTasks.map((item, index) => {
                       return (
                         <KanbanTask
                           item={item}
                           index={index}
                           key={item.task_id}
-                          column={column}
+                          // column={column}
                           projectId={projectId}
                         />
                       );

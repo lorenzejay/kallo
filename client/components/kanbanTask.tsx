@@ -1,31 +1,30 @@
-import axios from "axios";
 import Link from "next/link";
 import React, { useContext } from "react";
 import { Draggable } from "react-beautiful-dnd";
-import { useQuery } from "react-query";
+import { useQuery } from "@tanstack/react-query";
 import { DarkModeContext } from "../context/darkModeContext";
-import { BoardColumns, Columns, TagsType, Task } from "../types/projectTypes";
+import { Column, Task } from "../types/projectTypes";
+import supabase from "../utils/supabaseClient";
 
 type KanbanTaskProps = {
   item: Task;
   index: number;
-  columns?: Columns[];
-  column: BoardColumns;
-  setColumns?: (x: Columns[]) => void;
-  // columnId: string;
+  columns?: Column[];
+  // column: BoardColumns;
+  setColumns?: (x: Column[]) => void;
   projectId: string;
 };
 
 const KanbanTask = ({ item, index, projectId }: KanbanTaskProps) => {
   const fetchTags = async () => {
+
     if (!item.task_id) return;
-    const { data } = await axios.get<TagsType[]>(
-      `/api/tags/fetch/${item.task_id}`
-    );
+    const { data, error } = await supabase.from('tags').select('*').match({ task_id: item.task_id });
+    if (error) throw Error(error.message);
     return data;
   };
 
-  const { data: allTags } = useQuery(`allTags-${item.task_id}`, fetchTags);
+  const { data: allTags } = useQuery([`allTags-${item.task_id}`], fetchTags);
   const { isDarkMode } = useContext(DarkModeContext);
 
   return (

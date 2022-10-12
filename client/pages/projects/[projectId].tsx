@@ -3,9 +3,9 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import React, { useContext, useEffect, useState } from "react";
 import { AiOutlinePlus } from "react-icons/ai";
-import { BsLock, BsUnlock } from "react-icons/bs";
-import { useMutation, useQuery } from "react-query";
-import InviteUsers from "../../components/inviteUsers";
+import { BsArrowReturnLeft, BsLock, BsUnlock } from "react-icons/bs";
+import { useMutation, useQuery } from "@tanstack/react-query";
+// import InviteUsers from "../../components/inviteUsers";
 import Kanban from "../../components/kanban";
 import Layout from "../../components/layout";
 import Loader from "../../components/loader";
@@ -22,6 +22,8 @@ import {
   UserProjectAccess,
 } from "../../types/projectTypes";
 import { queryClient } from "../../utils/queryClient";
+import supabase from "../../utils/supabaseClient";
+import useUser from "../../hooks/useUser";
 
 export type ProjectOwner = {
   username: string;
@@ -29,7 +31,8 @@ export type ProjectOwner = {
 
 const Project = () => {
   const auth = useAuth();
-  const { userToken } = auth;
+  // const { userToken, user } = auth;
+  const { data: user } = useUser()
   const router = useRouter();
   const { projectId } = router.query;
   const { isDarkMode } = useContext(DarkModeContext);
@@ -38,93 +41,100 @@ const Project = () => {
     {} as UserProjectAccess
   );
 
-  const fetchUsersProjectAccess = async () => {
-    try {
-      if (!userToken || !projectId) return;
-      const config = configWithToken(userToken);
-      const { data } = await axios.get(
-        `/api/projects/user-project-access/${projectId}`,
-        config
-      );
+  useEffect(() => {
+    if(user === null){
+      router.push('/signin')
+    }
+  }, [user])
 
-      setUserStatus(data);
-      return data;
-    } catch (error) {
-      return error;
+  // const fetchUsersProjectAccess = async () => {
+  //   try {
+  //     if ( !projectId) return;
+  //     // const config = configWithToken(userToken);
+  //     // const { data } = await axios.get(
+  //     //   `/api/projects/user-project-access/${projectId}`,
+  //     //   config
+  //     // );
+
+  //     // setUserStatus(data);
+  //     // return data;
+  //   } catch (error) {
+  //     return error;
+  //   }
+  // };
+  // useEffect(() => {
+  //   fetchUsersProjectAccess();
+  // }, [projectId]);
+  const [projectDeets, setProjectDeets] = useState<ProjectDeets>({} as ProjectDeets)
+  const getProjectDeets = async () => {
+    if(!projectId) BsArrowReturnLeft;
+    const { data, error } = await supabase.from('projects').select().eq('project_id', projectId)
+    if (error) return error;
+    if(data){
+      setProjectDeets(data[0])
     }
   };
   useEffect(() => {
-    fetchUsersProjectAccess();
-  }, [projectId]);
+    getProjectDeets()
+  }, [projectId])
+  console.log('projectDeets', projectDeets)
+  // const { data: projectDeets, isLoading } = useQuery<ProjectDeets>(
+  //   `projectDeets-${projectId?.toString()}`,
+  //   getProjectDeets
+  // );
 
-  const getProjectDeets = async () => {
-    if (!projectId) return;
+  // const updateProjectTitle = async (title: string) => {
+  //   try {
+  //     if (!userToken) return;
+  //     if (!projectId) return;
+  //     const config = configWithToken(userToken);
 
-    const { data } = await axios.get(
-      `/api/projects/project-assets/${projectId}`
-    );
-    if (data) {
-      return data;
-    }
-  };
-
-  const { data: projectDeets, isLoading } = useQuery<ProjectDeets>(
-    `projectDeets-${projectId?.toString()}`,
-    getProjectDeets
-  );
-
-  const updateProjectTitle = async (title: string) => {
-    try {
-      if (!userToken) return;
-      if (!projectId) return;
-      const config = configWithToken(userToken);
-
-      const { data } = await axios.put(
-        `/api/projects/update-project-title/${projectId}`,
-        { title },
-        config
-      );
-      if (!data)
-        return window.alert(
-          "You do not have privileges to update the project title."
-        );
-    } catch (error) {
-      console.error(error);
-    }
-  };
-  const { mutateAsync: updateTitle } = useMutation(updateProjectTitle, {
-    onSuccess: () => queryClient.invalidateQueries(`projectDeets-${projectId}`),
-  });
+  //     const { data } = await axios.put(
+  //       `/api/projects/update-project-title/${projectId}`,
+  //       { title },
+  //       config
+  //     );
+  //     if (!data)
+  //       return window.alert(
+  //         "You do not have privileges to update the project title."
+  //       );
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
+  // const { mutateAsync: updateTitle } = useMutation(updateProjectTitle, {
+  //   onSuccess: () => queryClient.invalidateQueries(`projectDeets-${projectId}`),
+  // });
 
   // console.log("projectDeets", projectDeets);
-  const fetchProjectOwner = async () => {
-    if (!userToken || !projectDeets || !projectId) return;
+  // const fetchProjectOwner = async () => {
+  //   if (!userToken || !projectDeets || !projectId) return;
 
-    const config = configWithToken(userToken);
-    const { data } = await axios.get<string>(
-      `/api/projects/project-owner/${projectDeets.project_owner}`,
-      config
-    );
-    return data;
-  };
-  const fetchProjectSharedUsers = async () => {
-    try {
-      if (!userToken || !projectId) return;
+  //   const config = configWithToken(userToken);
+  //   const { data } = await axios.get<string>(
+  //     `/api/projects/project-owner/${projectDeets.project_owner}`,
+  //     config
+  //   );
+  //   return data;
+  // };
+  // const fetchProjectSharedUsers = async () => {
+  //   try {
+  //     if (!userToken || !projectId) return;
 
-      const config = configWithToken(userToken);
-      const { data } = await axios.get(
-        `/api/sharing/list-of-shared-users/${projectId.toString()}`,
-        config
-      );
-      return data;
-    } catch (error) {
-      return error;
-    }
-  };
-  const { data: project_owner } = useQuery("username", fetchProjectOwner);
-  const { data: shared_users, isError: shared_users_error } = useQuery<
-    SharedUsers[]
-  >(`shared-users-${projectId?.toString()}`, fetchProjectSharedUsers);
+  //     const config = configWithToken(userToken);
+  //     const { data } = await axios.get(
+  //       `/api/sharing/list-of-shared-users/${projectId.toString()}`,
+  //       config
+  //     );
+  //     return data;
+  //   } catch (error) {
+  //     return error;
+  //   }
+  // };
+  // const { data: project_owner } = useQuery("username", fetchProjectOwner);
+  // const { data: shared_users, isError: shared_users_error } = useQuery<
+  //   SharedUsers[]
+  // >(`shared-users-${projectId?.toString()}`, fetchProjectSharedUsers);
 
   const [title, setTitle] = useState(projectDeets?.title || "Untitled");
   //set is private
@@ -170,14 +180,14 @@ const Project = () => {
       </Head>
       <Layout>
         <>
-          {isLoading && <Loader />}
+          {/* {isLoading && <Loader />} */}
           {projectDeets && (
             <main
               className={`text-white min-h-screen ${
                 isDarkMode ? "dark-body" : "bg-white-175"
               } `}
             >
-              {isLoading && <Loader />}
+              {/* {isLoading && <Loader />} */}
 
               {projectDeets && (
                 <>
@@ -202,14 +212,14 @@ const Project = () => {
                         )}
                       </button>
                       <div className="flex relative">
-                        {!shared_users_error &&
+                        {/* {!shared_users_error &&
                           Array.isArray(shared_users) &&
                           shared_users.map((user, i) => (
                             <SharedUserList
                               user_id={user.shared_user}
                               key={i}
                             />
-                          ))}
+                          ))} */}
                         <button
                           className="bg-blue-125 text-white-125 mr-3 rounded-full ml-3 p-1 w-9 h-9 r flex justify-center items-center"
                           onClick={() => setOpenInviteUsers(!openInviteUsers)}
@@ -217,15 +227,15 @@ const Project = () => {
                           <AiOutlinePlus size={21} />
                         </button>
                       </div>
-                      <InviteUsers
+                      {/* <InviteUsers
                         openInviteUsers={openInviteUsers}
                         setOpenInviteUsers={setOpenInviteUsers}
                         projectId={projectId}
                         formResult={formResult}
-                      />
+                      /> */}
                     </div>
 
-                    {projectDeets && (
+                    {/* {projectDeets && (
                       <ProjectDetailsPopup
                         data={projectDeets}
                         projectId={projectDeets.project_id}
@@ -233,7 +243,7 @@ const Project = () => {
                         sharedUsers={shared_users}
                         projectTitle={projectDeets.title}
                       />
-                    )}
+                    )} */}
                   </div>
                   {openPrivacyOptions && (
                     <PrivacyOptions
@@ -259,7 +269,7 @@ const Project = () => {
                   value={title}
                   onChange={(e) => {
                     setTitle(e.target.value);
-                    updateTitle(e.target.value);
+                    // updateTitle(e.target.value);
                   }}
                   className={`text-4xl w-full max-w-full font-bold mb-2 ${
                     isDarkMode ? "text-white" : "text-black"

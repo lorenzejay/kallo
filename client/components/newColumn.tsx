@@ -1,20 +1,19 @@
 import { AiOutlineClose } from "react-icons/ai";
 import { useContext } from "react";
 import { DarkModeContext } from "../context/darkModeContext";
-import { configWithToken } from "../functions";
-import axios from "axios";
 import { queryClient } from "../utils/queryClient";
-import { useMutation } from "react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "../hooks/useAuth";
-import { ReturnedApiStatus } from "../types/projectTypes";
+import supabase from "../utils/supabaseClient";
 
-type NewColumnProps = {
+interface NewColumnProps {
   openNewColumn: boolean;
   setOpenNewColumn: (x: boolean) => void;
   newColumnTitle: string;
   setNewColumnTitle: (x: string) => void;
   projectId: string;
 };
+
 const NewColumn = ({
   openNewColumn,
   setOpenNewColumn,
@@ -24,22 +23,23 @@ const NewColumn = ({
 }: NewColumnProps) => {
   const { isDarkMode } = useContext(DarkModeContext);
   const auth = useAuth();
-  const { userToken } = auth;
-
+  const { user } = auth;
   const createNewColumns = async () => {
-    if (!userToken) return;
-    const config = configWithToken(userToken);
-    const { data } = await axios.post<ReturnedApiStatus | undefined>(
-      `/api/columns/create-column/${projectId}`,
-      {
-        name: newColumnTitle,
-      },
-      config
-    );
-    if (!data) return window.alert("You can only view the file.");
+    if (!user || !projectId) return;
+    // need to check how many columns exist inside this project;
+    const { count, error: checkerError} = await supabase.from('columns').select('project_associated',{count: 'exact', head: true}).eq('project_associated', projectId);
+    if(checkerError) throw checkerError
+  
+    const { data, error } = await supabase.from('columns').insert([{
+      name: newColumnTitle,
+      project_associated: projectId,
+      index: count
+    }]);
+    if (error) throw error;
+    return data;
   };
   const { mutateAsync: newColumn } = useMutation(createNewColumns, {
-    onSuccess: () => queryClient.invalidateQueries(`columns-${projectId}`),
+    onSuccess: () => queryClient.invalidateQueries([`columns-${projectId}`]),
   });
 
   const handleAddNewColumn = () => {

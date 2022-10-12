@@ -1,21 +1,19 @@
-import axios from "axios";
 import { SetStateAction } from "react";
 import { Dispatch } from "react";
 import { useContext } from "react";
-import { useMutation } from "react-query";
+import { useMutation } from "@tanstack/react-query";
 import { DarkModeContext } from "../context/darkModeContext";
-import { configWithToken } from "../functions";
-import { useAuth } from "../hooks/useAuth";
-import { BoardColumns, ReturnedApiStatus } from "../types/projectTypes";
+import { Column } from "../types/projectTypes";
 import { queryClient } from "../utils/queryClient";
 import Loader from "./loader";
+import supabase from "../utils/supabaseClient";
 
 type NewItemProps = {
   openNewItem: boolean;
   setOpenNewItem: (x: boolean) => void;
   newItemTitle: string;
   setNewItemTitle: Dispatch<SetStateAction<string>>;
-  column: BoardColumns;
+  column: Column;
   projectId: string;
 };
 
@@ -28,26 +26,21 @@ const NewTask = ({
   projectId,
 }: NewItemProps) => {
   const { isDarkMode } = useContext(DarkModeContext);
-  const auth = useAuth();
-  const { userToken } = auth;
 
   const createNewTask = async () => {
-    try {
-      if (!userToken || !column.column_id || !projectId) return;
-      const config = configWithToken(userToken);
-      const { data } = await axios.post<ReturnedApiStatus | undefined>(
-        `/api/tasks/create-task/${projectId}/${column.column_id}`,
+      if (!column.column_id || !projectId) return;
+      const { count, error: taskCountError } = await supabase.from('tasks').select('column_id', { count: 'exact'}).match({ column_id: column.column_id });
+      if (taskCountError) throw taskCountError.message;
+      const { data, error } = await supabase.from('tasks').insert([
         {
           title: newItemTitle,
-        },
-        config
-      );
-      console.log(data);
-      if (!data)
-        return window.alert("You do not have access to create a new task.");
-    } catch (error) {
-      throw new Error(error.message);
-    }
+          column_id: column.column_id,
+          index: count
+
+        }
+      ]);
+      if (error) throw error.message;
+      if (data) return data;
   };
   const {
     mutateAsync: newTask,
@@ -55,7 +48,7 @@ const NewTask = ({
     isError,
     error,
   } = useMutation(createNewTask, {
-    onSuccess: () => queryClient.invalidateQueries(`columns-${projectId}`),
+    onSuccess: () => queryClient.invalidateQueries([`tasks-${column.column_id}`]),
   });
   const handleAddItem = () => {
     newTask()

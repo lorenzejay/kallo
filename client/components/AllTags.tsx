@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useState } from "react";
 import { FaTags } from "react-icons/fa";
-import { useMutation, useQuery, useQueryClient } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { configWithToken } from "../functions";
 import { useAuth } from "../hooks/useAuth";
 import { ReturnedApiStatus, TagsType } from "../types/projectTypes";
@@ -43,9 +43,9 @@ const AllTags = ({ taskId, projectId }: AllTagsProps) => {
       return window.alert("You do not have the privileges to add a tag");
     return data;
   };
-  const { data: allTags } = useQuery(`allTags-${taskId}`, fetchTags);
+  const { data: allTags } = useQuery([`allTags-${taskId}`], fetchTags);
   const { mutateAsync: createTag } = useMutation(handleAddTag, {
-    onSuccess: () => queryClient.invalidateQueries(`allTags-${taskId}`),
+    onSuccess: () => queryClient.invalidateQueries([`allTags-${taskId}`]),
   });
   // console.log(hexColor);
   return (

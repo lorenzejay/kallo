@@ -1,43 +1,42 @@
+import e from "cors";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { FormEvent, useContext, useState } from "react";
+import { FormEvent, useContext, useEffect, useState } from "react";
 import Button from "../components/button";
 import Input from "../components/input";
 import { DarkModeContext } from "../context/darkModeContext";
 import { useAuth } from "../hooks/useAuth";
-import supabase from "../utils/supabaseClient";
+import useLogin from "../hooks/useLogin";
 
 const Signin = () => {
   const { isDarkMode } = useContext(DarkModeContext);
+  // const { data: user , isError } = useUser();
   const auth = useAuth();
-  const { userToken, login, error } = auth;
+  const { session, login, error, user } = auth;
   const router = useRouter();
   // const userLogin = useSelector((state: RootState) => state.userLogin);
   // const { loading, userInfo, error } = userLogin;
-
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const loginMutation = useLogin({ email, password });
 
+  if (user !== null) {
+    router.push('/projects');
+  }
+  if (loginMutation.isSuccess) {
+    router.push('/projects')
+  }
   // useEffect(() => {
-  //   if (userToken) {
-  //     router.push("/projects");
-  //   }
-  // }, [userToken]);
+  //   console.log('loginMutation.user', user)
 
-  const handleSignIn = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const { error } = await supabase.auth.signIn({
-      email,
-      password
-    })
-    // await login(email, password);
-    if (error) {
-      alert(JSON.stringify(error))
-    } else {
-     router.push("/projects");
-    }
-  };
+  // }, [user])
+  const handleLogin = () => {
+    if (email === '' || password === '') return;
+    loginMutation.mutate()
+  }
+ 
   return (
     <>
       <Head>
@@ -57,12 +56,16 @@ const Signin = () => {
           Kallo
         </h1>
         {/* {loading && <p>loading....</p>} */}
-        {error && <p className="text-red-500 my-1">{error}</p>}
+        {error && <p className="text-red-500 my-1">{'something went wrong'}</p>}
         <form
           className={`${
             isDarkMode ? "card-color text-white" : "bg-gray-100 text-black"
           } mt-5 py-10  flex items-center justify-center flex-col shadow-lg w-full sm:w-1/2 2xl:w-1/4 rounded-md`}
-          onSubmit={handleSignIn}
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleLogin()
+            // login(email, password);
+          }}
         >
           <p className={`mb-4  text-xl `}>Log in.</p>
           <Input

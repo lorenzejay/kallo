@@ -13,9 +13,13 @@ import {
 } from "../../types/projectTypes";
 import { useAuth } from "../../hooks/useAuth";
 import supabase from "../../utils/supabaseClient";
+import useUser from "../../hooks/useUser";
+import ProtectedWrapper from "../../components/Protected";
 
 const Projects = () => {
   const auth = useAuth();
+  const { isLoading, isError, data: userData } = useUser();
+  console.log('userData', userData)
   const { user } = auth;
   const [projects, setProjects] = useState<any[]>([])
 
@@ -44,12 +48,13 @@ const Projects = () => {
   }, [])
   const createProject = async () => {
     try {
+      if(!userData) return;
       const trimmedTitle = projectTitle.trim()
       const { data, error } = await supabase.from('projects').insert([{
         title: trimmedTitle,
         header_img: projectHeader,
         is_private: isPrivateProject,
-        project_owner: user?.id
+        project_owner: userData.user_id
       }]).limit(1).single() //retrieves row back
       if(error) throw error
       setProjects([...projects, data])
@@ -78,7 +83,7 @@ const Projects = () => {
   };
 
   return (
-    <>
+    <ProtectedWrapper>
       <Head>
         <title>Projects | Kallo</title>
       </Head>
@@ -204,7 +209,7 @@ const Projects = () => {
           </section>
         </>
       </Layout>
-    </>
+    </ProtectedWrapper>
   );
 };
 
