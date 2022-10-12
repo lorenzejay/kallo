@@ -2,9 +2,10 @@ import axios from "axios";
 import React, { useEffect } from "react";
 import { useState } from "react";
 import { AiOutlineClose } from "react-icons/ai";
-import { useMutation, useQueryClient } from "react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { configWithToken } from "../functions";
 import { useAuth } from "../hooks/useAuth";
+import supabase from "../utils/supabaseClient";
 
 type TagsProps = {
   title: string;
@@ -13,23 +14,21 @@ type TagsProps = {
   taskId: string;
 };
 const Tag = ({ title, color, tag_id, taskId }: TagsProps) => {
-  const auth = useAuth();
-  const { userToken } = auth;
   const queryClient = useQueryClient();
 
   const [toggleDoubleClickEffect, setToggleDoubleClickEffect] = useState(false);
   const [tagTitle, setTagTitle] = useState(title);
 
-  const handleUpdateTagTitle = async (title: string) => {
-    if (!userToken || !tag_id) return;
-    const config = configWithToken(userToken);
-    await axios.put(`/api/tags/update-title/${tag_id}`, { title }, config);
+  const handleUpdateTagTitle = async () => {
+    if (!tag_id) return;
+    const { error } = await supabase.from('tags').update({ title: tagTitle }).match({tag_id});
+    if (error) throw new Error(error.message);
   };
 
   const handleDeleteTag = async () => {
-    if (!userToken || !tag_id) return;
-    const config = configWithToken(userToken);
-    await axios.delete(`/api/tags/delete-tag/${tag_id}`, config);
+    if (!tag_id) return;
+    const { error } = await supabase.from('tags').delete().match({ tag_id });
+    if (error) throw new Error(error.message);
   };
   useEffect(() => {
     if (title) {
@@ -37,10 +36,10 @@ const Tag = ({ title, color, tag_id, taskId }: TagsProps) => {
     }
   }, [title]);
   const { mutateAsync: updateTagTitle } = useMutation(handleUpdateTagTitle, {
-    onSuccess: () => queryClient.invalidateQueries(`allTags-${taskId}`),
+    onSuccess: () => queryClient.invalidateQueries([`allTags-${taskId}`]),
   });
   const { mutateAsync: deleteTag } = useMutation(handleDeleteTag, {
-    onSuccess: () => queryClient.invalidateQueries(`allTags-${taskId}`),
+    onSuccess: () => queryClient.invalidateQueries([`allTags-${taskId}`]),
   });
   return (
     <div
@@ -57,7 +56,7 @@ const Tag = ({ title, color, tag_id, taskId }: TagsProps) => {
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === "Escape") {
               // updateColName(columnName);
-              updateTagTitle(title);
+              updateTagTitle();
               setToggleDoubleClickEffect(false);
             }
           }}

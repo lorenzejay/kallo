@@ -8,46 +8,45 @@ import { ReturnedApiStatus, TagsType } from "../types/projectTypes";
 
 import Modal from "./modal";
 import Tag from "./Tag";
+import supabase from "../utils/supabaseClient";
 type AllTagsProps = {
   taskId: string;
   projectId: string;
 };
 const AllTags = ({ taskId, projectId }: AllTagsProps) => {
   const queryClient = useQueryClient();
-  const auth = useAuth();
-  const { userToken } = auth;
 
   const [openModal, setOpenModal] = useState(false);
   const [title, setTitle] = useState("");
   const [hexColor, setHexColor] = useState<string | null>(null);
 
   const fetchTags = async () => {
-    const { data } = await axios.get<TagsType[]>(`/api/tags/fetch/${taskId}`);
+    if (!taskId) return;
+    const { data, error } = await supabase.from('tags').select('*').match({ task_id: taskId });
+    if (error) throw new Error(error.message);
     return data;
   };
 
   const handleAddTag = async () => {
-    if (!userToken || !taskId || !projectId) return;
-    const config = configWithToken(userToken);
-    if (!title || title === "")
-      return window.alert("You must have a title for your tag.");
-    const { data } = await axios.post<ReturnedApiStatus | undefined>(
-      `/api/tags/create/${projectId}/${taskId}`,
+    if (!taskId || !projectId) return;
+    const { count , error: countError} = await supabase.from('tags').select('task_id', { count: 'exact' }).match({ task_id: taskId });
+    if (countError) throw Error(countError.message);
+    const { data , error } = await supabase.from('tags').insert([
       {
-        title: title,
-        hex_color: hexColor !== null ? hexColor : "#ffffff",
-      },
-      config
-    );
-    if (!data)
-      return window.alert("You do not have the privileges to add a tag");
+        title,
+        hex_color: hexColor,
+        task_id: taskId,
+        index: count,
+      }
+    ])
+    if (error) throw Error(error.message);
     return data;
   };
   const { data: allTags } = useQuery([`allTags-${taskId}`], fetchTags);
   const { mutateAsync: createTag } = useMutation(handleAddTag, {
     onSuccess: () => queryClient.invalidateQueries([`allTags-${taskId}`]),
   });
-  // console.log(hexColor);
+  console.log("allTags", allTags);
   return (
     <Modal
       modalName={
