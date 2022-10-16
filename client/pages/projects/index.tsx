@@ -160,14 +160,14 @@ const Projects = () => {
                           </>
                         )}
                       </button>
-                      {openPrivacyOptions && (
+                      {/* {openPrivacyOptions && (
                         <PrivacyOptions
                           setIsPrivateProject={setIsPrivateProject}
                           is_private={isPrivateProject}
                           setOpenPrivacyOptions={setOpenPrivacyOptions}
                           className=" top-5 right-0 z-50 mb-10 lg:right-10 shadow-2xl"
                         />
-                      )}
+                      )} */}
                     </div>
                   </div>
                   <div className="absolute bottom-3 right-3">

@@ -4,7 +4,7 @@ import { AiOutlineEllipsis } from "react-icons/ai";
 import { FaTrash } from "react-icons/fa";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { DarkModeContext } from "../context/darkModeContext";
-import { Column } from "../types/projectTypes";
+import { BoardColumn, Task } from "../types/projectTypes";
 import { queryClient } from "../utils/queryClient";
 import Dropdown from "./dropdown";
 import KanbanTask from "./kanbanTask";
@@ -12,23 +12,29 @@ import NewTask from "./newTask";
 import supabase from "../utils/supabaseClient";
 import Loader from "./loader";
 
+interface ColumnPropType {
+  column_id: string,
+  column_title: string,
+  column_index: number,
+  tasks: Task[],
+}
 interface KanbanColProps {
   index: number;
   id: string;
-  column: Column;
+  column: ColumnPropType;
   projectId: string;
 };
 const KanbanColumn = ({ column, id, index, projectId }: KanbanColProps) => {
-  const [columnName, setColumnName] = useState(column.name || "");
+  const [columnName, setColumnName] = useState(column.column_title || "");
   const [toggleDoubleClickEffect, setToggleDoubleClickEffect] = useState(false);
   const { isDarkMode } = useContext(DarkModeContext);
   const [openNewItem, setOpenNewItem] = useState(false);
   const [newItemTitle, setNewItemTitle] = useState("");
-
+  console.log('kanban column', column)
   //query for column tasks
   const fetchColumnTasks = async () => {
     if(!column.column_id) return;
-    const { data, error } = await supabase.from('tasks').select('*').match({ column_id: column.column_id });
+    const { data, error } = await supabase.from('tasks').select('*').match({ column_id: column.column_id }).order('index', { ascending: true });
     if (error) throw error;
     if (data) return data;
   }
@@ -106,13 +112,13 @@ const KanbanColumn = ({ column, id, index, projectId }: KanbanColProps) => {
               />
             )}
             {isLoading && <Loader size="w-4"/>}
-            {columnTasks && (
+            {column.tasks && (
               <p
                 className={`${
                   isDarkMode && "text-gray-400 text-sm "
                 } flex-grow`}
               >
-                {columnTasks.length}
+                {column.tasks.length}
               </p>
             )}
             <div className="relative right-0 bg-none">
@@ -141,9 +147,8 @@ const KanbanColumn = ({ column, id, index, projectId }: KanbanColProps) => {
                   {...provided.droppableProps}
                   ref={provided.innerRef}
                 >
-                  {column &&
-                    columnTasks &&
-                    columnTasks.map((item, index) => {
+                  {column.tasks &&
+                    column.tasks.map((item, index) => {
                       return (
                         <KanbanTask
                           item={item}

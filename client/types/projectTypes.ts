@@ -21,6 +21,12 @@ export type Column = {
   index: number;
   project_associated: string;
 };
+export type BoardColumn = {
+  column_id: string;
+  column_title: string;
+  index: number;
+  tasks: Task[]
+};
 
 export type ProjectsNew = {
   project_id: string;

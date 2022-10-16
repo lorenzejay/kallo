@@ -1,24 +1,18 @@
-import axios from "axios";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import React, { useContext, useEffect, useState } from "react";
 import { AiOutlinePlus } from "react-icons/ai";
-import { BsArrowReturnLeft, BsLock, BsUnlock } from "react-icons/bs";
+import { BsLock, BsUnlock } from "react-icons/bs";
 import { useMutation, useQuery } from "@tanstack/react-query";
 // import InviteUsers from "../../components/inviteUsers";
 import Kanban from "../../components/kanban";
 import Layout from "../../components/layout";
 import Loader from "../../components/loader";
 import PrivacyOptions from "../../components/privacyOptions";
-import ProjectDetailsPopup from "../../components/projectDetailsPopup";
-import SharedUserList from "../../components/SharedUserList";
 import { DarkModeContext } from "../../context/darkModeContext";
-import { configWithToken } from "../../functions";
 import { useAuth } from "../../hooks/useAuth";
 import {
-  FormResultType,
   ProjectDeets,
-  SharedUsers,
   UserProjectAccess,
 } from "../../types/projectTypes";
 import { queryClient } from "../../utils/queryClient";
@@ -30,7 +24,6 @@ export type ProjectOwner = {
 };
 
 const Project = () => {
-  const auth = useAuth();
   // const { userToken, user } = auth;
   const { data: user } = useUser()
   const router = useRouter();
@@ -65,46 +58,30 @@ const Project = () => {
   // useEffect(() => {
   //   fetchUsersProjectAccess();
   // }, [projectId]);
-  const [projectDeets, setProjectDeets] = useState<ProjectDeets>({} as ProjectDeets)
+  // const [projectDeets, setProjectDeets] = useState<ProjectDeets>({} as ProjectDeets)
   const getProjectDeets = async () => {
-    if(!projectId) BsArrowReturnLeft;
-    const { data, error } = await supabase.from('projects').select().eq('project_id', projectId)
-    if (error) return error;
-    if(data){
-      setProjectDeets(data[0])
+    if(!projectId) return;
+    const { data, error } = await supabase.from('projects').select().eq('project_id', projectId).single();
+    if (error) throw new Error(error.message);
+    return data;
+  };
+  // useEffect(() => {
+  //   getProjectDeets()
+  // }, [projectId])
+  const { data: projectDeets } = useQuery<ProjectDeets>([`projectDeets-${projectId}`], getProjectDeets);
+
+  const updateProjectTitle = async (title: string) => {
+    try {
+      if (!projectId) return;
+      const { error } = await supabase.from('projects').update({ title }).match({ project_id: projectId })
+      if (error) throw new Error(error.message);
+    } catch (error) {
+      console.error(error);
     }
   };
-  useEffect(() => {
-    getProjectDeets()
-  }, [projectId])
-  console.log('projectDeets', projectDeets)
-  // const { data: projectDeets, isLoading } = useQuery<ProjectDeets>(
-  //   `projectDeets-${projectId?.toString()}`,
-  //   getProjectDeets
-  // );
-
-  // const updateProjectTitle = async (title: string) => {
-  //   try {
-  //     if (!userToken) return;
-  //     if (!projectId) return;
-  //     const config = configWithToken(userToken);
-
-  //     const { data } = await axios.put(
-  //       `/api/projects/update-project-title/${projectId}`,
-  //       { title },
-  //       config
-  //     );
-  //     if (!data)
-  //       return window.alert(
-  //         "You do not have privileges to update the project title."
-  //       );
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // };
-  // const { mutateAsync: updateTitle } = useMutation(updateProjectTitle, {
-  //   onSuccess: () => queryClient.invalidateQueries(`projectDeets-${projectId}`),
-  // });
+  const { mutateAsync: updateTitle } = useMutation(updateProjectTitle, {
+    onSuccess: () => queryClient.invalidateQueries([`projectDeets-${projectId}`]),
+  });
 
   // console.log("projectDeets", projectDeets);
   // const fetchProjectOwner = async () => {
@@ -141,7 +118,7 @@ const Project = () => {
   const [openPrivacyOptions, setOpenPrivacyOptions] = useState(false);
   const [openInviteUsers, setOpenInviteUsers] = useState(false);
 
-  const [formResult] = useState<FormResultType>({} as FormResultType);
+  // const [formResult] = useState<FormResultType>({} as FormResultType);
 
   //gets the project info on load
   // useEffect(() => {
@@ -245,13 +222,13 @@ const Project = () => {
                       />
                     )} */}
                   </div>
-                  {openPrivacyOptions && (
+                  {/* {openPrivacyOptions && (
                     <PrivacyOptions
                       is_private={projectDeets.is_private}
                       setOpenPrivacyOptions={setOpenPrivacyOptions}
                       projectId={projectId}
                     />
-                  )}
+                  )} */}
                 </>
               )}
               {!toggleDoubleClickEffect ? (
@@ -269,7 +246,6 @@ const Project = () => {
                   value={title}
                   onChange={(e) => {
                     setTitle(e.target.value);
-                    // updateTitle(e.target.value);
                   }}
                   className={`text-4xl w-full max-w-full font-bold mb-2 ${
                     isDarkMode ? "text-white" : "text-black"
@@ -277,6 +253,7 @@ const Project = () => {
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === "Escape") {
                       setToggleDoubleClickEffect(false);
+                      updateTitle(title);
                     }
                   }}
                 />

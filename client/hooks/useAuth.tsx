@@ -119,7 +119,7 @@ const useAuthProvider = () => {
     })
   },[])
   // console.log('session', session)
-  console.log('user', user)
+  // console.log('user', user)
   useEffect(() => {
     const getUserDetails = async () => {
       if(user){

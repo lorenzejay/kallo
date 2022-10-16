@@ -55,7 +55,7 @@ const PrivacyOptions = ({
   };
   const { mutateAsync: updatePrivacy } = useMutation(handleUpdatePrivacy, {
     onSuccess: () =>
-      queryClient.invalidateQueries(`projectDeets-${projectId?.toString()}`),
+      queryClient.invalidateQueries([`projectDeets-${projectId?.toString()}`]),
   });
 
   // console.log("proejctid", projectId);

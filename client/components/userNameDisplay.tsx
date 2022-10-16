@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useEffect } from "react";
 import { useState } from "react";
-import { useMutation, useQueryClient } from "react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { configWithToken } from "../functions";
 import { useAuth } from "../hooks/useAuth";
 import { Status } from "../types/projectTypes";

@@ -74,7 +74,7 @@ const UnsplashImageSearch = ({
   };
 
   const { mutateAsync: updateHeaderImg } = useMutation(handleUpdateHeaderImg, {
-    onSuccess: () => queryClient.invalidateQueries(`projectDeets-${projectId}`),
+    onSuccess: () => queryClient.invalidateQueries([`projectDeets-${projectId}`]),
   });
   return (
     <div
