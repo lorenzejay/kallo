@@ -27,18 +27,10 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
 
   const [openNewColumn, setOpenNewColumn] = useState(false);
   const [newColumnTitle, setNewColumnTitle] = useState("");
-  // const [boardColumns, setBoardColumns] = useState<Column[]>([] as Column[]);
   //to make sure we can use drag and drop
   useEffect(() => {
     resetServerContext();
   }, []);
-
-  // useEffect(() => {
-  //   //get array of columns that live inside the project
-
-  //   //get all tasks associated to a project
-
-  // },[boardColumns])
 
   const getTasksForTheCol = async (arrOfCols: Column[]) => {
     const allTasks = [];
@@ -142,33 +134,35 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
   // const handleMoveCol = async (args: moveColArgs) => {
   //   try {
   //     if (!projectId) return;
-  //     const config = configWithToken(userToken);
-  //     const { data } = await axios.put(
-  //       `/api/columns/update-col-order/${projectId}`,
-  //       { movingCol: args.movingCol, newIndex: args.newIndex },
-  //       config
-  //     );
-  //     if (!data)
-  //       return window.alert(
-  //         "You do not have privileges to rearrange the columns."
-  //       );
+  //     // const config = configWithToken(userToken);
+  //     // const { data } = await axios.put(
+  //     //   `/api/columns/update-col-order/${projectId}`,
+  //     //   { movingCol: args.movingCol, newIndex: args.newIndex },
+  //     //   config
+  //     // );
+  //     // if (!data)
+  //     //   return window.alert(
+  //     //     "You do not have privileges to rearrange the columns."
+  //     //   );
   //   } catch (error) {
   //     console.error(error);
   //   }
   // };
-  // const handleMoveTaskAcrossCols = async (args: movingTaskArgs) => {
-  //   if (!!projectId) return;
-  //   const config = configWithToken(userToken);
-  //   const { data } = await axios.put(
-  //     `/api/tasks/update-task-to-different-col/${projectId}/${args.column_id}`,
-  //     { movingTaskId: args.movingTaskId, newIndex: args.newIndex },
-  //     config
-  //   );
-  //   if (!data)
-  //     return window.alert(
-  //       "You do not have privileges to rearrange the columns."
-  //     );
-  // };
+  const handleMoveTaskAcrossCols = async ({source, sourceItems, destination, destinationItems}: any) => {
+    console.log('source', sourceItems)
+    console.log('destinationItems', destinationItems)
+    for (let i = destination.index + 1; i <= destinationItems.length - 1; i++){
+      destinationItems[i].index = destinationItems[i].index + 1;
+    }
+    // source needs to decrement indexes starting from source.index
+    for (let i = source.index; i <= sourceItems.length - 1; i++){
+      sourceItems[i].index = sourceItems[i].index - 1;
+    }
+    const {error: upsertSource} = await supabase.from('tasks').upsert(sourceItems);
+    const {error: upsertDestination} = await supabase.from('tasks').upsert(destinationItems);
+    if(upsertSource) throw new Error(upsertSource.message)
+    if(upsertDestination) throw new Error(upsertDestination.message)
+  };
   // const { mutateAsync: moveColumn } = useMutation(handleMoveCol, {
   //   onSuccess: () => queryClient.invalidateQueries([`columns-${projectId}`]),
   // });
@@ -178,114 +172,106 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
       onSuccess: () => queryClient.invalidateQueries([`columns-${projectId}`]),
     }
   );
-  // const { mutateAsync: moveTaskAcrossCols } = useMutation(
-  //   handleMoveTaskAcrossCols,
-  //   {
-  //     onSuccess: () => queryClient.invalidateQueries([`columns-${projectId}`]),
-  //   }
-  // );
-
-  // const handleOnDragEnd = async (result: DropResult) => {
-  //   const { source, destination, type } = result;
-  //   if (!destination) return; //if the card or column doesnt go anywhere do nothing
-  //   //moving columns here
-  //   if (!boardColumns) return;
-  //   if (type === "column") {
-  //     const { column_id } = boardColumns[source.index];
-
-  //     if (source.index === destination.index) return;
-  //     const [removed] = boardColumns.splice(source.index, 1);
-  //     boardColumns.splice(destination.index, 0, removed);
-
-  //     return moveColumn({
-  //       movingCol: column_id,
-  //       newIndex: destination.index,
-  //     });
-  //   }
-
-  //   // //moving task cards here
-  //   // if we are moving items to a different column
-  //   else if (source.droppableId !== destination.droppableId) {
-  //     const sourceColumn = boardColumns.find(
-  //       (col) => col.column_id == source.droppableId
-  //     );
-  //     if (!sourceColumn) return;
-  //     const destinationColumn = boardColumns.find(
-  //       (col) => col.column_id == destination.droppableId
-  //     );
-  //     if (!destinationColumn) return;
-  //     const sourceItems = sourceColumn.tasks;
-
-  //     const destinationItems = destinationColumn.tasks;
-
-  //     const [removed] = sourceItems.splice(source.index, 1);
-
-  //     if (destinationItems.length === 0) {
-  //       destinationItems.push(removed);
-  //     } else {
-  //       destinationItems.splice(destination.index, 0, removed);
-  //     }
-  //     if (!removed || !destinationColumn) return;
-  //     return moveTaskAcrossCols({
-  //       column_id: destinationColumn.column_id,
-  //       movingTaskId: removed.task_id,
-  //       newIndex: destination.index,
-  //     });
-  //   }
-
-  //   //re-ordering columns from the same column
-  //   //source.droppable id = column_id
-  //   else {
-  //     const column = boardColumns.find(
-  //       (col) => col.column_id === source.droppableId
-  //     );
-  //     if (!column) return;
-  //     const copiedItems = [...column.tasks]; //copy of the tasks inside items array
-
-  //     const [removed] = copiedItems.splice(source.index, 1);
-  //     copiedItems.splice(destination.index, 0, removed); //add the removed item
-  //     //array without this column
-
-  //     for (var i in boardColumns) {
-  //       if (boardColumns[i].column_id == column.column_id) {
-  //         boardColumns[i].tasks = copiedItems;
-  //         break; //Stop this loop, we found it!
-  //       }
-  //     }
-  //     return moveTaskInSameCol({
-  //       column_id: source.droppableId,
-  //       movingTaskId: removed.task_id,
-  //       newIndex: destination.index,
-  //     });
-  //   }
-  // };
-  const handleMovingTaskInCol = async (result: DropResult) => {
-    if(!boardColumns) return;
-    const { source, destination, type } = result;
-
-    const column = boardColumns.find(
-      (col) => col.column_id === source.droppableId
-      );
-    if (!column) return;
-    const copiedItems = [...column.tasks]; //copy of the tasks inside items array
-
-    const [removed] = copiedItems.splice(source.index, 1);
-    copiedItems.splice(destination.index, 0, removed); //add the removed item
-    //array without this column
-
-    for (var i in boardColumns) {
-      if (boardColumns[i].column_id == column.column_id) {
-        boardColumns[i].tasks = copiedItems;
-        break; //Stop this loop, we found it!
-      }
+  const { mutateAsync: moveTaskAcrossCols } = useMutation(
+    handleMoveTaskAcrossCols,
+    {
+      onSuccess: () => queryClient.invalidateQueries([`columns-${projectId}`]),
     }
-    console.log('destination.index', destination)
-    return moveTaskInSameCol({
-      column_id: source.droppableId,
-      movingTaskId: removed.task_id,
-      newIndex: destination.index,
-    });
-  }
+  );
+
+  const handleOnDragEnd = async (result: DropResult) => {
+    const { source, destination, type } = result;
+    if (!destination) return; //if the card or column doesnt go anywhere do nothing
+    //moving columns here
+    if (!boardColumns) return;
+    if (type === "column") {
+      const { column_id } = boardColumns[source.index];
+
+      if (source.index === destination.index) return;
+      const [removed] = boardColumns.splice(source.index, 1);
+      boardColumns.splice(destination.index, 0, removed);
+
+      return moveColumn({
+        movingCol: column_id,
+        newIndex: destination.index,
+      });
+    }
+
+    // //moving task cards here
+    // if we are moving items to a different column
+    else if (source.droppableId !== destination.droppableId) {
+      const sourceColumn = boardColumns.find(
+        (col) => col.column_id == source.droppableId
+      );
+      if (!sourceColumn) return;
+      const destinationColumn = boardColumns.find(
+        (col) => col.column_id == destination.droppableId
+      );
+      if (!destinationColumn) return;
+      const sourceItems = sourceColumn.tasks;
+
+      const destinationItems = destinationColumn.tasks;
+
+      const [removed] = sourceItems.splice(source.index, 1);
+      if (destinationItems.length === 0) {
+        destinationItems.push({...removed, index: destination.index, column_id: destinationColumn.column_id});
+      } else {
+        destinationItems.splice(destination.index, 0, {...removed, index: destination.index, column_id: destinationColumn.column_id});
+      }
+      if (!removed || !destinationColumn) return;
+      moveTaskAcrossCols({source, sourceItems,  destination, destinationItems})    
+    }
+
+    //re-ordering columns from the same column
+    //source.droppable id = column_id
+    else {
+      const column = boardColumns.find(
+        (col) => col.column_id === source.droppableId
+      );
+      if (!column) return;
+      const copiedItems = [...column.tasks]; //copy of the tasks inside items array
+
+      const [removed] = copiedItems.splice(source.index, 1);
+      copiedItems.splice(destination.index, 0, removed); //add the removed item
+      //array without this column
+
+      for (var i in boardColumns) {
+        if (boardColumns[i].column_id == column.column_id) {
+          boardColumns[i].tasks = copiedItems;
+          break; //Stop this loop, we found it!
+        }
+      }
+      return moveTaskInSameCol({
+        column_id: source.droppableId,
+        movingTaskId: removed.task_id,
+        newIndex: destination.index,
+      });
+    }
+  };
+  // const handleMovingTaskInCol = async (result: DropResult) => {
+  //   const { source, destination } = result;
+  //   if(!boardColumns || !destination || !source) return;
+
+  //   const column = boardColumns.find((col) => col.column_id === source.droppableId);
+  //   if (!column) return;
+  //   const copiedItems = [...column.tasks]; //copy of the tasks inside items array
+
+  //   const [removed] = copiedItems.splice(source.index, 1);
+  //   copiedItems.splice(destination.index, 0, removed); //add the removed item
+  //   //array without this column
+
+  //   for (var i in boardColumns) {
+  //     if (boardColumns[i].column_id == column.column_id) {
+  //       boardColumns[i].tasks = copiedItems;
+  //       break; //Stop this loop, we found it!
+  //     }
+  //   }
+  //   return moveTaskInSameCol({
+  //     column_id: source.droppableId,
+  //     movingTaskId: removed.task_id,
+  //     newIndex: destination.index,
+  //   });
+  // }
   
   const [loadedImage, setLoadedImage] = useState(false);
   return (
@@ -305,7 +291,7 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
           />
         )}
         {boardColumns && (
-          <DragDropContext onDragEnd={(result) => handleMovingTaskInCol(result)}>
+          <DragDropContext onDragEnd={(result) => handleOnDragEnd(result)}>
             <Droppable
               droppableId={"columns"}
               type="column"
