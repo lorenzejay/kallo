@@ -4,24 +4,18 @@ import Modal from "../../components/modal";
 import { BsUnlock, BsLock, BsFillImageFill } from "react-icons/bs";
 
 import UnsplashImageSearch from "../../components/unsplashImageSearch";
-import PrivacyOptions from "../../components/privacyOptions";
+// import PrivacyOptions from "../../components/privacyOptions";
 import ProjectCard from "../../components/projectCard";
 import Head from "next/head";
 
-import {
-  ProjectsNew,
-} from "../../types/projectTypes";
-import { useAuth } from "../../hooks/useAuth";
+import { ProjectsNew } from "../../types/projectTypes";
 import supabase from "../../utils/supabaseClient";
 import useUser from "../../hooks/useUser";
 import ProtectedWrapper from "../../components/Protected";
 
 const Projects = () => {
-  const auth = useAuth();
-  const { isLoading, isError, data: userData } = useUser();
-  console.log('userData', userData)
-  const { user } = auth;
-  const [projects, setProjects] = useState<any[]>([])
+  const { data: userData } = useUser();
+  const [projects, setProjects] = useState<any[]>([]);
 
   const [openModal, setOpenModal] = useState(false);
   const [projectTitle, setProjectTitle] = useState("");
@@ -34,32 +28,37 @@ const Projects = () => {
 
   const [revealImageSearch, setRevealImageSearch] = useState(false);
 
-
   const fetchProjects = async () => {
     const { data, error } = await supabase.from("projects").select();
-    if(error) throw error
- 
-    if(data) {
+    if (error) throw error;
+
+    if (data) {
       setProjects(data);
-    };
+    }
   };
   useEffect(() => {
-    fetchProjects()
-  }, [])
+    fetchProjects();
+  }, []);
   const createProject = async () => {
     try {
-      if(!userData) return;
-      const trimmedTitle = projectTitle.trim()
-      const { data, error } = await supabase.from('projects').insert([{
-        title: trimmedTitle,
-        header_img: projectHeader,
-        is_private: isPrivateProject,
-        project_owner: userData.user_id
-      }]).limit(1).single() //retrieves row back
-      if(error) throw error
-      setProjects([...projects, data])
+      if (!userData) return;
+      const trimmedTitle = projectTitle.trim();
+      const { data, error } = await supabase
+        .from("projects")
+        .insert([
+          {
+            title: trimmedTitle,
+            header_img: projectHeader,
+            is_private: isPrivateProject,
+            project_owner: userData.user_id,
+          },
+        ])
+        .limit(1)
+        .single(); //retrieves row back
+      if (error) throw error;
+      setProjects([...projects, data]);
     } catch (error) {
-      throw Error
+      throw Error;
     }
   };
 
@@ -98,7 +97,9 @@ const Projects = () => {
               <div>
                 <h1 className="text-4xl font-bold uppercase ">Projects</h1>
                 {projects && (
-                  <p className="mb-5 text-white">Items: {projects.length || 0}</p>
+                  <p className="mb-5 text-white">
+                    Items: {projects.length || 0}
+                  </p>
                 )}
               </div>
 
