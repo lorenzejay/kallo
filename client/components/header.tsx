@@ -30,8 +30,8 @@ const Header = () => {
 
   return (
     <header
-      className={`flex justify-between items-center h-24 px-7 lg:px-16 xl:px-32 shadow-2xl text-black ${
-        isDarkMode ? "darkBody text-white" : "bg-white-175 "
+      className={`flex justify-between items-center h-24 px-7 lg:px-16 2xl:px-0 text-black ${
+        isDarkMode ? "darkBody text-white" : ""
       }`}
     >
       <Link href="/">
