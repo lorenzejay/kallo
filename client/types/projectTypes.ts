@@ -98,3 +98,11 @@ export interface UserProjectAccess {
   adminStatus: boolean;
   editingStatus: boolean;
 }
+
+export interface ColumnsWithTasksType {
+  column_id: string,
+  name: string,
+  index: number,
+  project_associated: string,
+  tasks: Task[],
+}

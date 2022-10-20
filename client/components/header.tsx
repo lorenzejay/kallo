@@ -14,7 +14,6 @@ const Header = () => {
   const logoutMuation = useLogout();
   const auth = useAuth();
   const { data } = useUser();
-  console.log('dataheader', data)
   const { logout, user } = auth;
 
   const { isDarkMode, toggleDarkMode } = useContext(DarkModeContext);
@@ -27,7 +26,7 @@ const Header = () => {
     }
   };
 
-  if (logoutMuation.isSuccess) router.push('/signin');
+  if (logoutMuation.isSuccess) router.push("/signin");
 
   return (
     <header

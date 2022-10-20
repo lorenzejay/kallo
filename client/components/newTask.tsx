@@ -3,22 +3,17 @@ import { Dispatch } from "react";
 import { useContext } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { DarkModeContext } from "../context/darkModeContext";
-import { Task } from "../types/projectTypes";
+import { ColumnsWithTasksType } from "../types/projectTypes";
 import { queryClient } from "../utils/queryClient";
 import Loader from "./loader";
 import supabase from "../utils/supabaseClient";
-interface ColumnPropType {
-  column_id: string,
-  column_title: string,
-  column_index: number,
-  tasks: Task[],
-}
+
 type NewItemProps = {
   openNewItem: boolean;
   setOpenNewItem: (x: boolean) => void;
   newItemTitle: string;
   setNewItemTitle: Dispatch<SetStateAction<string>>;
-  column: ColumnPropType;
+  column: ColumnsWithTasksType;
   projectId: string;
 };
 

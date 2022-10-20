@@ -2,9 +2,9 @@ import { useContext, useState } from "react";
 import { Draggable, Droppable } from "react-beautiful-dnd";
 import { AiOutlineEllipsis } from "react-icons/ai";
 import { FaTrash } from "react-icons/fa";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { DarkModeContext } from "../context/darkModeContext";
-import { BoardColumn, Task } from "../types/projectTypes";
+import { ColumnsWithTasksType } from "../types/projectTypes";
 import { queryClient } from "../utils/queryClient";
 import Dropdown from "./dropdown";
 import KanbanTask from "./kanbanTask";
@@ -12,41 +12,27 @@ import NewTask from "./newTask";
 import supabase from "../utils/supabaseClient";
 import Loader from "./loader";
 
-interface ColumnPropType {
-  column_id: string,
-  column_title: string,
-  column_index: number,
-  tasks: Task[],
-}
 interface KanbanColProps {
   index: number;
   id: string;
-  column: ColumnPropType;
+  column: ColumnsWithTasksType;
   projectId: string;
-};
+}
 const KanbanColumn = ({ column, id, index, projectId }: KanbanColProps) => {
-  const [columnName, setColumnName] = useState(column.column_title || "");
+  const [columnName, setColumnName] = useState(column.name || "");
   const [toggleDoubleClickEffect, setToggleDoubleClickEffect] = useState(false);
   const { isDarkMode } = useContext(DarkModeContext);
   const [openNewItem, setOpenNewItem] = useState(false);
   const [newItemTitle, setNewItemTitle] = useState("");
-  console.log('kanban column', column)
-  //query for column tasks
-  const fetchColumnTasks = async () => {
-    if(!column.column_id) return;
-    const { data, error } = await supabase.from('tasks').select('*').match({ column_id: column.column_id }).order('index', { ascending: true });
-    if (error) throw error;
-    if (data) return data;
-  }
-  const { data: columnTasks } = useQuery(
-    [`tasks-${column.column_id}`],
-    fetchColumnTasks
-  );
+
   const updateColumnName = async (name: string) => {
-    const { data, error } = await supabase.from('columns').update({ name }).match({ column_id: column.column_id });
-    if (error ) throw error.message;
+    const { data, error } = await supabase
+      .from("columns")
+      .update({ name })
+      .match({ column_id: column.column_id });
+    if (error) throw error.message;
     if (data) setColumnName(data[0].name);
-    return data
+    return data;
   };
 
   const handleDeleteColumn = async () => {
@@ -56,18 +42,24 @@ const KanbanColumn = ({ column, id, index, projectId }: KanbanColProps) => {
       );
       if (confirmDelete) {
         if (!projectId || !column.column_id) return;
-        const { data, error } = await supabase.from('columns').delete().match({ column_id: column.column_id });
+        const { data, error } = await supabase
+          .from("columns")
+          .delete()
+          .match({ column_id: column.column_id });
         if (error) throw error.message;
-        return data
+        return data;
       }
     } catch (error) {
       return error;
     }
   };
 
-  const { mutateAsync: updateColName, isLoading } = useMutation(updateColumnName, {
-    onSuccess: () => queryClient.invalidateQueries([`columns-${projectId}`]),
-  });
+  const { mutateAsync: updateColName, isLoading } = useMutation(
+    updateColumnName,
+    {
+      onSuccess: () => queryClient.invalidateQueries([`columns-${projectId}`]),
+    }
+  );
   const { mutateAsync: deleteColumn } = useMutation(handleDeleteColumn, {
     onSuccess: () => queryClient.invalidateQueries([`columns-${projectId}`]),
   });
@@ -92,13 +84,14 @@ const KanbanColumn = ({ column, id, index, projectId }: KanbanColProps) => {
                 }`}
                 onDoubleClick={() => setToggleDoubleClickEffect(true)}
               >
-                {columnName}
+                {column.name || columnName}
               </h2>
             ) : (
               <input
                 className={`text-xl my-3 p-1 mr-2 rounded-sm `}
                 type="text"
                 name="column title"
+                maxLength={25}
                 value={columnName}
                 onChange={(e) => {
                   setColumnName(e.target.value);
@@ -111,7 +104,7 @@ const KanbanColumn = ({ column, id, index, projectId }: KanbanColProps) => {
                 }}
               />
             )}
-            {isLoading && <Loader size="w-4"/>}
+            {isLoading && <Loader size="w-4" />}
             {column.tasks && (
               <p
                 className={`${
