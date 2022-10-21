@@ -6,7 +6,7 @@ import {
   createContext,
   ReactChild,
 } from "react";
-import {Session, User} from '@supabase/supabase-js'
+import { Session, User } from "@supabase/supabase-js";
 import supabase from "../utils/supabaseClient";
 import { UserInfo } from "../types/userTypes";
 
@@ -17,7 +17,7 @@ type AuthContextType = {
     username: string,
     first_name: string,
     last_name: string,
-    password: string,
+    password: string
   ) => Promise<void>;
   error: string | null;
   logout: () => void;
@@ -25,7 +25,7 @@ type AuthContextType = {
   userId: string | null;
   session: Session | null;
   user: User | null;
-  userDetails: UserInfo | null
+  userDetails: UserInfo | null;
 };
 const ISSERVER = typeof window === "undefined";
 //initalizing user context, by defaults should be empty
@@ -42,7 +42,7 @@ const AuthContext = createContext<AuthContextType>({
   userId: null,
   session: null,
   user: null,
-  userDetails: null
+  userDetails: null,
 });
 const { Provider } = AuthContext;
 
@@ -67,8 +67,8 @@ const useAuthProvider = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null); // used if there is a logged in user
   const [error, setError] = useState<string | null>(null);
-  const [session, setSession] = useState<Session | null>(null)
-  const [userDetails, setUserDetails] = useState<UserInfo | null>(null)
+  const [session, setSession] = useState<Session | null>(null);
+  const [userDetails, setUserDetails] = useState<UserInfo | null>(null);
   // useEffect(() => {
   //   const userToken = window.localStorage.getItem("userToken");
   //   if (!userToken || userToken === null) {
@@ -87,51 +87,53 @@ const useAuthProvider = () => {
   //     }
   //   }
   //   getLoggedInUser()
-   
+
   // }, [])
   const getUserDetails = async () => {
-    if(user){
-      const {data} = await supabase.from('users').select().single();
-      if(data){
-        setUserDetails(data)
+    if (user) {
+      const { data } = await supabase.from("users").select().single();
+      if (data) {
+        setUserDetails(data);
       }
       // console.log('data',data)
     }
-  }
+  };
   useEffect(() => {
     supabase.auth.onAuthStateChange((event, session) => {
-      if (event){
-        console.log('event', event)
+      if (event) {
+        console.log("event", event);
       }
-      if (event === 'SIGNED_IN') {
-        getUserDetails()
+      if (event === "SIGNED_IN") {
+        getUserDetails();
       }
-      if (event === 'SIGNED_OUT'){
-        setUser(null)
+      if (event === "SIGNED_OUT") {
+        setUser(null);
       }
-      if (event === 'TOKEN_REFRESHED'){
-        console.log('token refreshed')
+      if (event === "TOKEN_REFRESHED") {
+        console.log("token refreshed");
       }
-      if (session){
-        console.log('session')
-      } 
+      if (session) {
+        console.log("session");
+      }
       // console.log(event, session)
-    })
-  },[])
+    });
+  }, []);
   // console.log('session', session)
   // console.log('user', user)
   useEffect(() => {
     const getUserDetails = async () => {
-      if(user){
-        const {data} = await supabase.from('users').select().single();
-        if(data){
-          setUserDetails(data)
+      if (user) {
+        const { data, error } = await supabase.from("users").select().single();
+        if (error) throw new Error(error.message);
+        console.log("data", data);
+        if (data) {
+          setUserDetails(data);
         }
         // console.log('data',data)
       }
-    }
-    getUserDetails()
-  },[])
+    };
+    getUserDetails();
+  }, []);
 
   // useEffect(() => {
   //   if (userToken !== null) {
@@ -199,19 +201,18 @@ const useAuthProvider = () => {
   };
 
   const login = async (email: string, password: string) => {
-      setError(null);
-      const {user, error} = await supabase.auth.signIn({
-        email,
-        password
-      });
-      if (error) setError(error.message);
-      else setUser(user);
+    setError(null);
+    const { user, error } = await supabase.auth.signIn({
+      email,
+      password,
+    });
+    if (error) setError(error.message);
+    else setUser(user);
   };
 
   const logout = async () => {
-    
-    const {error} = await supabase.auth.signOut();
-    if(error) console.log('error', error)
+    const { error } = await supabase.auth.signOut();
+    if (error) console.log("error", error);
     setUser(null);
   };
 
@@ -225,6 +226,6 @@ const useAuthProvider = () => {
     userId,
     session,
     user,
-    userDetails
+    userDetails,
   };
 };

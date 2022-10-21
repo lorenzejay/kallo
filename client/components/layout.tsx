@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import { DarkModeContext } from "../context/darkModeContext";
 import Header from "./header";
 // const { default: Header } = require("./header");

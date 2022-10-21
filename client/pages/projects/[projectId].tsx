@@ -7,17 +7,12 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 // import InviteUsers from "../../components/inviteUsers";
 import Kanban from "../../components/kanban";
 import Layout from "../../components/layout";
-import Loader from "../../components/loader";
-import PrivacyOptions from "../../components/privacyOptions";
 import { DarkModeContext } from "../../context/darkModeContext";
-import { useAuth } from "../../hooks/useAuth";
-import {
-  ProjectDeets,
-  UserProjectAccess,
-} from "../../types/projectTypes";
+import { ProjectDeets, UserProjectAccess } from "../../types/projectTypes";
 import { queryClient } from "../../utils/queryClient";
 import supabase from "../../utils/supabaseClient";
 import useUser from "../../hooks/useUser";
+import ProtectedWrapper from "../../components/Protected";
 
 export type ProjectOwner = {
   username: string;
@@ -25,7 +20,7 @@ export type ProjectOwner = {
 
 const Project = () => {
   // const { userToken, user } = auth;
-  const { data: user } = useUser()
+  const { data: user } = useUser();
   const router = useRouter();
   const { projectId } = router.query;
   const { isDarkMode } = useContext(DarkModeContext);
@@ -33,12 +28,11 @@ const Project = () => {
   const [userStatus, setUserStatus] = useState<UserProjectAccess>(
     {} as UserProjectAccess
   );
-
   useEffect(() => {
-    if(user === null){
-      router.push('/signin')
+    if (user === null) {
+      router.push("/signin");
     }
-  }, [user])
+  }, [user]);
 
   // const fetchUsersProjectAccess = async () => {
   //   try {
@@ -60,30 +54,38 @@ const Project = () => {
   // }, [projectId]);
   // const [projectDeets, setProjectDeets] = useState<ProjectDeets>({} as ProjectDeets)
   const getProjectDeets = async () => {
-    if(!projectId) return;
-    const { data, error } = await supabase.from('projects').select().eq('project_id', projectId).single();
+    if (!projectId) return;
+    const { data, error } = await supabase
+      .from("projects")
+      .select()
+      .eq("project_id", projectId)
+      .single();
     if (error) throw new Error(error.message);
     return data;
   };
-  // useEffect(() => {
-  //   getProjectDeets()
-  // }, [projectId])
-  const { data: projectDeets } = useQuery<ProjectDeets>([`projectDeets-${projectId}`], getProjectDeets);
+
+  const { data: projectDeets, isLoading: loadingProjectDetails } =
+    useQuery<ProjectDeets>([`projectDeets-${projectId}`], getProjectDeets, {
+      enabled: !!projectId,
+    });
 
   const updateProjectTitle = async (title: string) => {
     try {
       if (!projectId) return;
-      const { error } = await supabase.from('projects').update({ title }).match({ project_id: projectId })
+      const { error } = await supabase
+        .from("projects")
+        .update({ title })
+        .match({ project_id: projectId });
       if (error) throw new Error(error.message);
     } catch (error) {
       console.error(error);
     }
   };
   const { mutateAsync: updateTitle } = useMutation(updateProjectTitle, {
-    onSuccess: () => queryClient.invalidateQueries([`projectDeets-${projectId}`]),
+    onSuccess: () =>
+      queryClient.invalidateQueries([`projectDeets-${projectId}`]),
   });
 
-  // console.log("projectDeets", projectDeets);
   // const fetchProjectOwner = async () => {
   //   if (!userToken || !projectDeets || !projectId) return;
 
@@ -119,14 +121,6 @@ const Project = () => {
   const [openInviteUsers, setOpenInviteUsers] = useState(false);
 
   // const [formResult] = useState<FormResultType>({} as FormResultType);
-
-  //gets the project info on load
-  // useEffect(() => {
-  //   if (projectDeets && userToken === null && projectDeets.is_private) {
-  //     router.push("/signin");
-  //   }
-  // }, [userToken, projectDeets]);
-
   //add to set state in order to update state
   useEffect(() => {
     if (projectDeets && projectDeets.title) {
@@ -156,16 +150,13 @@ const Project = () => {
         )}
       </Head>
       <Layout>
-        <>
-          {/* {isLoading && <Loader />} */}
-          {projectDeets && (
+        <ProtectedWrapper>
+          {projectDeets && !loadingProjectDetails && (
             <main
               className={`text-white min-h-screen ${
                 isDarkMode ? "dark-body" : "bg-white-175"
               } `}
             >
-              {/* {isLoading && <Loader />} */}
-
               {projectDeets && (
                 <>
                   <div className="flex justify-between items-center">
@@ -266,7 +257,7 @@ const Project = () => {
               )}
             </main>
           )}
-        </>
+        </ProtectedWrapper>
       </Layout>
     </>
   );

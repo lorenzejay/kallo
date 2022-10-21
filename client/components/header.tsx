@@ -67,7 +67,7 @@ const Header = () => {
               </Link>
             </li>
             <hr />
-            <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
+            {/* <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
               <Link href="/sharedProjects">
                 <div className="flex items-center ">
                   <RiTodoLine
@@ -78,7 +78,7 @@ const Header = () => {
                   Shared Projects
                 </div>
               </Link>
-            </li>
+            </li> */}
             <hr />
             <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
               <Link href="/profile">

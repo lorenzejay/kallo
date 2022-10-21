@@ -19,7 +19,7 @@ type KanbanProps = {
 };
 
 const Kanban = ({ headerImage, projectId }: KanbanProps) => {
-  if (!projectId) return;
+  if (!projectId) return <></>;
   const queryClient = useQueryClient();
 
   const { isDarkMode } = useContext(DarkModeContext);

@@ -12,6 +12,7 @@ import { Task, Todo as TodoType } from "../../types/projectTypes";
 import { queryClient } from "../../utils/queryClient";
 import supabase from "../../utils/supabaseClient";
 import Todo from "../../components/Todo";
+import ProtectedWrapper from "../../components/Protected";
 
 const Tasks = () => {
   const router = useRouter();
@@ -24,7 +25,10 @@ const Tasks = () => {
 
   const fetchTask = async () => {
     if (!taskId) return;
-    const { data, error } = await supabase.from('tasks').select('*').match({ task_id: taskId });
+    const { data, error } = await supabase
+      .from("tasks")
+      .select("*")
+      .match({ task_id: taskId });
     if (error) throw error;
     if (data) return data[0];
   };
@@ -33,40 +37,57 @@ const Tasks = () => {
   const fetchTodos = async () => {
     //no config , add auth protection here
     if (!taskId) return;
-    const { data, error } = await supabase.from('todos').select('*').match({ task_id: taskId });
+    const { data, error } = await supabase
+      .from("todos")
+      .select("*")
+      .match({ task_id: taskId });
     if (error) throw new Error(error.message);
     return data;
   };
   //add todo
   const handleAddTodo = async () => {
     if (!taskId || !projectId) return;
-    const { count, error: checkerError} = await supabase.from('todos').select('task_id', { count: 'exact', head: true }).eq('task_id', taskId);
+    const { count, error: checkerError } = await supabase
+      .from("todos")
+      .select("task_id", { count: "exact", head: true })
+      .eq("task_id", taskId);
     if (checkerError) throw checkerError.message;
-    const { data, error } = await supabase.from('todos').insert([
+    const { data, error } = await supabase.from("todos").insert([
       {
         description: newTodoTitle,
         task_id: taskId,
-        index: count
-      }
-    ])
+        index: count,
+      },
+    ]);
     if (error) throw error;
     return data;
   };
 
-  const { data: taskDetails } = useQuery<Task>([`taskDetails-${taskId}`], fetchTask);
-  const { data: allTodos } = useQuery<TodoType[] | undefined>([`allTodos-${taskId}`], fetchTodos);
+  const { data: taskDetails } = useQuery<Task>(
+    [`taskDetails-${taskId}`],
+    fetchTask,
+    {
+      enabled: !!taskId,
+    }
+  );
+  const { data: allTodos } = useQuery<TodoType[] | undefined>(
+    [`allTodos-${taskId}`],
+    fetchTodos,
+    { enabled: !!taskId }
+  );
 
   const completedTodos = useMemo(() => {
     // show only completed todos
-    const completedTodos = allTodos?.filter(todo => todo.is_checked === true);
+    const completedTodos = allTodos?.filter((todo) => todo.is_checked === true);
     return completedTodos;
-  }, [allTodos])
+  }, [allTodos]);
   const notCompletedTodos = useMemo(() => {
-    // show only completed todos
-    const unfinishedTodos = allTodos?.filter(todo => todo.is_checked === false);
+    // show only uncompleted todos
+    const unfinishedTodos = allTodos?.filter(
+      (todo) => todo.is_checked === false
+    );
     return unfinishedTodos;
-  }, [allTodos])
-
+  }, [allTodos]);
 
   const { mutateAsync: createTodo } = useMutation(handleAddTodo, {
     onSuccess: () => queryClient.invalidateQueries([`allTodos-${taskId}`]),
@@ -91,7 +112,10 @@ const Tasks = () => {
 
   const deleteTask = async () => {
     if (!taskId) return;
-    const { status ,error } = await supabase.from('tasks').delete().match({task_id: taskId});
+    const { status, error } = await supabase
+      .from("tasks")
+      .delete()
+      .match({ task_id: taskId });
     if (error) throw new Error(error.message);
     return status;
   };
@@ -104,9 +128,9 @@ const Tasks = () => {
       router.back();
     }
   };
-  // console.log("allTags", allTags);
+
   return (
-    <>
+    <ProtectedWrapper>
       <Head>
         <title>{taskTitle} | Kallo</title>
       </Head>
@@ -191,7 +215,7 @@ const Tasks = () => {
           )}
         </main>
       </Layout>
-    </>
+    </ProtectedWrapper>
   );
 };
 

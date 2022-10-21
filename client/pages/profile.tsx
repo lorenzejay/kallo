@@ -1,40 +1,33 @@
-import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
 import Head from "next/head";
-import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
-import { useQuery } from "react-query";
+import React from "react";
 import Layout from "../components/layout";
 import Loader from "../components/loader";
-import { configWithToken } from "../functions";
-import { useAuth } from "../hooks/useAuth";
+import ProtectedWrapper from "../components/Protected";
+import useUser from "../hooks/useUser";
 import { UserInfo } from "../types/userTypes";
 import supabase from "../utils/supabaseClient";
 
 const Profile = () => {
-  const router = useRouter();
-  const auth = useAuth();
-  const { user, userDetails } = auth;
-  // const [userDetails, setUserDetails] = useState({})
+  const user = useUser();
 
-  useEffect(() => {
-    if (!user) {
-      router.push("/signin");
-    } else {
-      // const fetchUserDeets = async () => {
-      //   const {data} = await supabase.from('users').select('username', 'first_name',);
-      //   console.log('data',data)
-      //   setUserDetails(data)
-      // };
-      // fetchUserDeets()
+  const fetchUserProfile = async () => {
+    if (!user.data?.user_id) return;
+    const { data, error } = await supabase.from("users").select().single();
+    if (error) throw new Error(error.message);
+    if (data) return data;
+  };
+  const { data: userDetails, isLoading } = useQuery<UserInfo>(
+    [`user-${user.data?.user_id}`],
+    fetchUserProfile,
+    {
+      enabled: !!user.data?.user_id,
     }
-  }, [user]);
-  
-
-  // const { data: userDetails, isLoading } = useQuery(`userInfo`, fetchUserDeets);
+  );
 
   return (
     <Layout>
-      <>
+      <ProtectedWrapper>
         <Head>
           <title>Kallo | Profile</title>
           <link rel="icon" href="/home-1.png" />
@@ -42,9 +35,9 @@ const Profile = () => {
         <main
           className={`flex flex-col items-center justify-center w-full min-h-screen relative`}
         >
-          {/* <div className="absolute top-0 right-0 left-0 bottom-0">
+          <div className="absolute top-0 right-0 left-0 bottom-0">
             {isLoading && <Loader />}
-          </div> */}
+          </div>
           <h1 className="text-3xl lg:text-5xl">Your Profile</h1>
           {user && userDetails && (
             <section className="w-full flex flex-col justify-between text-lg lg:text-2xl lg:justify-center lg:w-1/2">
@@ -63,7 +56,7 @@ const Profile = () => {
             </section>
           )}
         </main>
-      </>
+      </ProtectedWrapper>
     </Layout>
   );
 };

@@ -1,9 +1,6 @@
-// import Head from "next/head";
 import Link from "next/link";
 import { FaArrowRight } from "react-icons/fa";
 import Layout from "../components/layout";
-// import { DarkModeContext } from "../context/darkModeContext";
-// import { useContext } from "react";
 
 const isDarkMode = false;
 const Index = () => {
@@ -72,6 +69,6 @@ const Index = () => {
       </Layout>
     </div>
   );
-}
+};
 
 export default Index;

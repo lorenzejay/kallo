@@ -6,13 +6,14 @@ import Loader from "./loader";
 
 export default function ProtectedWrapper({ children }: { children: any }) {
   const router = useRouter();
-  const { isLoading, isError } = useUser();
+  const { isLoading, isError, data } = useUser();
   useEffect(() => {
-    supabase.auth.onAuthStateChange((event, session) => {
-      console.log("event", event);
-      console.log("session", session);
+    supabase.auth.onAuthStateChange((event, _) => {
+      if (event === "SIGNED_OUT") {
+        router.push("/signin");
+      }
     });
-  }, []);
+  }, [router, data]);
   if (isLoading) {
     return (
       <div className="h-screen grid place-items-center">
