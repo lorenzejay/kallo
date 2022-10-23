@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Layout from "../../components/layout";
 import Modal from "../../components/modal";
 import { BsUnlock, BsLock, BsFillImageFill } from "react-icons/bs";
@@ -18,7 +18,6 @@ import Loader from "../../components/loader";
 
 const Projects = () => {
   const { data: userData } = useUser();
-  // const [projects, setProjects] = useState<any[]>([]);
 
   const [openModal, setOpenModal] = useState(false);
   const [projectTitle, setProjectTitle] = useState("");
@@ -59,7 +58,6 @@ const Projects = () => {
         .limit(1)
         .single(); //retrieves row back
       if (error) throw new Error(error.message);
-      // setProjects([...projects, data]);
     } catch (error) {
       throw Error;
     }
@@ -83,8 +81,6 @@ const Projects = () => {
     } else {
       window.alert("You must include a project title.");
     }
-
-    // setProjects([...projects, {}])
   };
 
   return (
