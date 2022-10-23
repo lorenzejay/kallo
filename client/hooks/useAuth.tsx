@@ -98,26 +98,26 @@ const useAuthProvider = () => {
       // console.log('data',data)
     }
   };
-  useEffect(() => {
-    supabase.auth.onAuthStateChange((event, session) => {
-      if (event) {
-        console.log("event", event);
-      }
-      if (event === "SIGNED_IN") {
-        getUserDetails();
-      }
-      if (event === "SIGNED_OUT") {
-        setUser(null);
-      }
-      if (event === "TOKEN_REFRESHED") {
-        console.log("token refreshed");
-      }
-      if (session) {
-        console.log("session");
-      }
-      // console.log(event, session)
-    });
-  }, []);
+  // useEffect(() => {
+  //   supabase.auth.onAuthStateChange((event, session) => {
+  //     if (event) {
+  //       console.log("event", event);
+  //     }
+  //     if (event === "SIGNED_IN") {
+  //       getUserDetails();
+  //     }
+  //     if (event === "SIGNED_OUT") {
+  //       setUser(null);
+  //     }
+  //     if (event === "TOKEN_REFRESHED") {
+  //       console.log("token refreshed");
+  //     }
+  //     if (session) {
+  //       console.log("session");
+  //     }
+  //     // console.log(event, session)
+  //   });
+  // }, []);
   // console.log('session', session)
   // console.log('user', user)
   useEffect(() => {

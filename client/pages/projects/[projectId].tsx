@@ -139,6 +139,7 @@ const Project = () => {
       </Layout>
     );
   }
+
   //if project is public or they have access
   return (
     <>

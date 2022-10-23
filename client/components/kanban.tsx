@@ -323,11 +323,10 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
   const [loadedImage, setLoadedImage] = useState(false);
   return (
     <main className="relative flex-col">
-      {isLoading && <Loader />}
       {movingColumnIsError && <p>{moveColumnError as string}</p>}
       {fetchingBoardIsError && <p>{fetchingBoardError as string}</p>}
       <>
-        {headerImage !== "" && headerImage !== null && (
+        {headerImage !== "" && headerImage !== null && !isLoading && (
           <img
             onLoad={() => setLoadedImage(true)}
             loading={"eager"}
@@ -338,6 +337,8 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
             alt="Board header img"
           />
         )}
+        {isLoading && <Loader />}
+
         {boardColumns && (
           <DragDropContext onDragEnd={(result) => handleOnDragEnd(result)}>
             <Droppable
