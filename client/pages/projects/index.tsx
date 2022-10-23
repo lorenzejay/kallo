@@ -12,10 +12,13 @@ import { ProjectsNew } from "../../types/projectTypes";
 import supabase from "../../utils/supabaseClient";
 import useUser from "../../hooks/useUser";
 import ProtectedWrapper from "../../components/Protected";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { queryClient } from "../../utils/queryClient";
+import Loader from "../../components/loader";
 
 const Projects = () => {
   const { data: userData } = useUser();
-  const [projects, setProjects] = useState<any[]>([]);
+  // const [projects, setProjects] = useState<any[]>([]);
 
   const [openModal, setOpenModal] = useState(false);
   const [projectTitle, setProjectTitle] = useState("");
@@ -32,18 +35,18 @@ const Projects = () => {
     const { data, error } = await supabase.from("projects").select();
     if (error) throw error;
 
-    if (data) {
-      setProjects(data);
-    }
+    return data;
   };
-  useEffect(() => {
-    fetchProjects();
-  }, []);
+
+  const { data: projects, isLoading: loadingProjects } = useQuery(
+    ["projects"],
+    fetchProjects
+  );
   const createProject = async () => {
     try {
       if (!userData) return;
       const trimmedTitle = projectTitle.trim();
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("projects")
         .insert([
           {
@@ -55,16 +58,19 @@ const Projects = () => {
         ])
         .limit(1)
         .single(); //retrieves row back
-      if (error) throw error;
-      setProjects([...projects, data]);
+      if (error) throw new Error(error.message);
+      // setProjects([...projects, data]);
     } catch (error) {
       throw Error;
     }
   };
 
+  const { mutateAsync: createProjectMutation } = useMutation(createProject, {
+    onSuccess: () => queryClient.invalidateQueries(["projects"]),
+  });
   const handleAddProject = () => {
     if (projectTitle !== "") {
-      createProject()
+      createProjectMutation()
         .then(() => {
           setProjectTitle("");
           setProjectHeader("");
@@ -88,8 +94,7 @@ const Projects = () => {
       </Head>
       <Layout>
         <>
-          {/* {loading && <Loader />} */}
-          {/* {isLoading && <Loader />} */}
+          {loadingProjects && <Loader />}
           <section
             className={`relative flex flex-col justify-start transition-all duration-300 ease-in-out lg:min-h-screen pt-0 mt-0 pb-20 z-20 `}
           >
