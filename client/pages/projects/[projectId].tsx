@@ -4,15 +4,22 @@ import React, { useContext, useEffect, useState } from "react";
 import { AiOutlinePlus } from "react-icons/ai";
 import { BsLock, BsUnlock } from "react-icons/bs";
 import { useMutation, useQuery } from "@tanstack/react-query";
-// import InviteUsers from "../../components/inviteUsers";
+import InviteUsers from "../../components/inviteUsers";
 import Kanban from "../../components/kanban";
 import Layout from "../../components/layout";
 import { DarkModeContext } from "../../context/darkModeContext";
-import { ProjectDeets, UserProjectAccess } from "../../types/projectTypes";
+import {
+  FormResultType,
+  ProjectDeets,
+  UserProjectAccess,
+} from "../../types/projectTypes";
 import { queryClient } from "../../utils/queryClient";
 import supabase from "../../utils/supabaseClient";
 import useUser from "../../hooks/useUser";
 import ProtectedWrapper from "../../components/Protected";
+import SharedUserList from "../../components/SharedUserList";
+import PrivacyOptions from "../../components/privacyOptions";
+import ProjectDetailsPopup from "../../components/projectDetailsPopup";
 
 export type ProjectOwner = {
   username: string;
@@ -25,6 +32,11 @@ const Project = () => {
   const { projectId } = router.query;
   const { isDarkMode } = useContext(DarkModeContext);
   const [toggleDoubleClickEffect, setToggleDoubleClickEffect] = useState(false);
+  //set is private
+  const [openPrivacyOptions, setOpenPrivacyOptions] = useState(false);
+  const [openInviteUsers, setOpenInviteUsers] = useState(false);
+
+  const [formResult] = useState<FormResultType>({} as FormResultType);
   const [userStatus, setUserStatus] = useState<UserProjectAccess>(
     {} as UserProjectAccess
   );
@@ -34,21 +46,21 @@ const Project = () => {
     }
   }, [user]);
 
-  // const fetchUsersProjectAccess = async () => {
-  //   try {
-  //     if ( !projectId) return;
-  //     // const config = configWithToken(userToken);
-  //     // const { data } = await axios.get(
-  //     //   `/api/projects/user-project-access/${projectId}`,
-  //     //   config
-  //     // );
-
-  //     // setUserStatus(data);
-  //     // return data;
-  //   } catch (error) {
-  //     return error;
-  //   }
-  // };
+  const fetchUsersProjectAccess = async () => {
+    try {
+      if (!projectId) return;
+      const { data } = await supabase
+        .from("projects")
+        .select("project_owner")
+        .eq("project_id", projectId)
+        .single();
+      console.log("data", data);
+      setUserStatus(data);
+      return data;
+    } catch (error) {
+      return error;
+    }
+  };
   // useEffect(() => {
   //   fetchUsersProjectAccess();
   // }, [projectId]);
@@ -86,41 +98,37 @@ const Project = () => {
       queryClient.invalidateQueries([`projectDeets-${projectId}`]),
   });
 
-  // const fetchProjectOwner = async () => {
-  //   if (!userToken || !projectDeets || !projectId) return;
-
-  //   const config = configWithToken(userToken);
-  //   const { data } = await axios.get<string>(
-  //     `/api/projects/project-owner/${projectDeets.project_owner}`,
-  //     config
-  //   );
-  //   return data;
-  // };
-  // const fetchProjectSharedUsers = async () => {
-  //   try {
-  //     if (!userToken || !projectId) return;
-
-  //     const config = configWithToken(userToken);
-  //     const { data } = await axios.get(
-  //       `/api/sharing/list-of-shared-users/${projectId.toString()}`,
-  //       config
-  //     );
-  //     return data;
-  //   } catch (error) {
-  //     return error;
-  //   }
-  // };
-  // const { data: project_owner } = useQuery("username", fetchProjectOwner);
-  // const { data: shared_users, isError: shared_users_error } = useQuery<
-  //   SharedUsers[]
-  // >(`shared-users-${projectId?.toString()}`, fetchProjectSharedUsers);
+  const fetchProjectOwner = async () => {
+    if (!projectDeets || !projectId) return;
+    const { data, error } = await supabase
+      .from("users")
+      .select("username")
+      .eq("user_id", projectDeets.project_owner)
+      .single();
+    if (error) throw new Error(error.message);
+    return data.username;
+  };
+  const fetchProjectSharedUsers = async () => {
+    if (!projectId) return;
+    const { data, error } = await supabase
+      .from("shared_users")
+      .select("*")
+      .eq("shared_project", projectId);
+    if (error) throw new Error(error.message);
+    return data;
+  };
+  const { data: project_owner } = useQuery(
+    ["project-owner-username"],
+    fetchProjectOwner,
+    { enabled: !!projectDeets }
+  );
+  const { data: shared_users, isError: shared_users_error } = useQuery(
+    [`shared-users-${projectId?.toString()}`],
+    fetchProjectSharedUsers,
+    { enabled: !!projectId }
+  );
 
   const [title, setTitle] = useState(projectDeets?.title || "Untitled");
-  //set is private
-  const [openPrivacyOptions, setOpenPrivacyOptions] = useState(false);
-  const [openInviteUsers, setOpenInviteUsers] = useState(false);
-
-  // const [formResult] = useState<FormResultType>({} as FormResultType);
   //add to set state in order to update state
   useEffect(() => {
     if (projectDeets && projectDeets.title) {
@@ -130,15 +138,15 @@ const Project = () => {
 
   if (!projectId) return <h1>There is no project</h1>;
 
-  if (userStatus && !userStatus.access && projectDeets?.is_private) {
-    return (
-      <Layout>
-        <h2 className="flex items-center justify-center pt-36 text-center">
-          User does not have access to view this project.
-        </h2>
-      </Layout>
-    );
-  }
+  // if (userStatus && !userStatus.access && projectDeets?.is_private) {
+  //   return (
+  //     <Layout>
+  //       <h2 className="flex items-center justify-center pt-36 text-center">
+  //         User does not have access to view this project.
+  //       </h2>
+  //     </Layout>
+  //   );
+  // }
 
   //if project is public or they have access
   return (
@@ -181,14 +189,14 @@ const Project = () => {
                         )}
                       </button>
                       <div className="flex relative">
-                        {/* {!shared_users_error &&
+                        {!shared_users_error &&
                           Array.isArray(shared_users) &&
                           shared_users.map((user, i) => (
                             <SharedUserList
                               user_id={user.shared_user}
                               key={i}
                             />
-                          ))} */}
+                          ))}
                         <button
                           className="bg-blue-125 text-white-125 mr-3 rounded-full ml-3 p-1 w-9 h-9 r flex justify-center items-center"
                           onClick={() => setOpenInviteUsers(!openInviteUsers)}
@@ -196,15 +204,15 @@ const Project = () => {
                           <AiOutlinePlus size={21} />
                         </button>
                       </div>
-                      {/* <InviteUsers
+                      <InviteUsers
                         openInviteUsers={openInviteUsers}
                         setOpenInviteUsers={setOpenInviteUsers}
                         projectId={projectId}
                         formResult={formResult}
-                      /> */}
+                      />
                     </div>
 
-                    {/* {projectDeets && (
+                    {projectDeets && project_owner && (
                       <ProjectDetailsPopup
                         data={projectDeets}
                         projectId={projectDeets.project_id}
@@ -212,15 +220,15 @@ const Project = () => {
                         sharedUsers={shared_users}
                         projectTitle={projectDeets.title}
                       />
-                    )} */}
+                    )}
                   </div>
-                  {/* {openPrivacyOptions && (
+                  {openPrivacyOptions && (
                     <PrivacyOptions
                       is_private={projectDeets.is_private}
                       setOpenPrivacyOptions={setOpenPrivacyOptions}
                       projectId={projectId}
                     />
-                  )} */}
+                  )}
                 </>
               )}
               {!toggleDoubleClickEffect ? (

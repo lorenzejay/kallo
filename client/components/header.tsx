@@ -16,7 +16,7 @@ const Header = () => {
   const { data } = useUser();
   const { logout, user } = auth;
 
-  const { isDarkMode, toggleDarkMode } = useContext(DarkModeContext);
+  const { isDarkMode } = useContext(DarkModeContext);
   const router = useRouter();
 
   const handleLogout = () => {
@@ -88,7 +88,7 @@ const Header = () => {
               </Link>
             </li>
             <hr />
-            <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
+            {/* <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
               <button onClick={toggleDarkMode} className="flex items-center">
                 {isDarkMode ? (
                   <FiMoon className="mr-3" />
@@ -97,7 +97,7 @@ const Header = () => {
                 )}{" "}
                 {isDarkMode ? "Light Mode" : "Dark Mode"}
               </button>
-            </li>
+            </li> */}
             <hr />
             <li className="hover:bg-gray-300 hover:text-black rounded-md my-3 p-2 ">
               <button onClick={handleLogout} className="flex items-center">

@@ -1,10 +1,9 @@
-import axios from "axios";
-import { useEffect } from "react";
+import { memo, useEffect } from "react";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { configWithToken } from "../functions";
-import { useAuth } from "../hooks/useAuth";
 import { Status } from "../types/projectTypes";
+import supabase from "../utils/supabaseClient";
+import useCheckAccessStatus from "../hooks/useProjectAccess";
 interface UsernameDisplayProps {
   user_id: string;
   width: string;
@@ -20,16 +19,18 @@ const UsernameDisplay = ({
   shared_id,
   projectId,
 }: UsernameDisplayProps) => {
-  const auth = useAuth();
-  const { userToken } = auth;
   const queryClient = useQueryClient();
-
   const [username, setUsername] = useState("");
-  // const [newStatus, setNewStatus] = useState<Status>(status);
 
   const getUsername = async () => {
-    const { data } = await axios.get(`/api/users/username/${user_id}`);
-    setUsername(data);
+    const { data, error } = await supabase
+      .from("users")
+      .select("username")
+      .eq("user_id", user_id)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    setUsername(data.username);
     return data;
   };
   useEffect(() => {
@@ -37,27 +38,22 @@ const UsernameDisplay = ({
   }, []);
 
   const handleUpdateUserStatus = async (status: Status) => {
-    try {
-      //you must be an admin or owner
-
-      if (userToken === null || !projectId) return;
-
-      const config = configWithToken(userToken);
-      const { data } = await axios.put(
-        `/api/sharing/update-user-status/${projectId}`,
-        { status, shared_id },
-        config
-      );
-
+    //you must be an admin or owner to update settings
+    const accessStatus = await useCheckAccessStatus(projectId);
+    if (accessStatus === Status.admin) {
+      const { data, error } = await supabase
+        .from("shared_users")
+        .update({ status })
+        .eq("shared_id", shared_id);
+      if (error) throw new Error(error.message);
       return data;
-    } catch (error) {
-      // console.log(error);
-      return error.message;
     }
+    return window.alert("You do not have access to modify this file");
   };
 
   const { mutateAsync: updateStatus } = useMutation(handleUpdateUserStatus, {
-    onSuccess: () => queryClient.invalidateQueries(`shared-users-${projectId}`),
+    onSuccess: () =>
+      queryClient.invalidateQueries([`shared-users-${projectId}`]),
   });
 
   return (
@@ -79,4 +75,4 @@ const UsernameDisplay = ({
   );
 };
 
-export default UsernameDisplay;
+export default memo(UsernameDisplay);

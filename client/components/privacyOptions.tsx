@@ -1,12 +1,10 @@
-import axios from "axios";
 import { Dispatch, SetStateAction, useContext } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import { AiOutlineClose } from "react-icons/ai";
-import { useMutation } from "react-query";
+import { useMutation } from "@tanstack/react-query";
 import { DarkModeContext } from "../context/darkModeContext";
-import { configWithToken } from "../functions";
-import { useAuth } from "../hooks/useAuth";
 import { queryClient } from "../utils/queryClient";
+import supabase from "../utils/supabaseClient";
 
 type PrivacyOptionsType = {
   setOpenPrivacyOptions: (
@@ -27,31 +25,28 @@ const PrivacyOptions = ({
   className,
   newProject,
 }: PrivacyOptionsType) => {
-  const auth = useAuth();
-  const { userToken } = auth;
   const { isDarkMode } = useContext(DarkModeContext);
 
   // const userLogin = useSelector((state: RootState) => state.userLogin);
   // const { userInfo } = userLogin;
   const ref = useRef<HTMLDivElement>(null);
 
-  const [response, setResponse] =
-    useState<{ success: boolean; message: string }>();
+  // const [response, setResponse] = useState<{
+  //   success: boolean;
+  //   message: string;
+  // }>();
 
   //update privacy
-  const handleUpdatePrivacy = async (projectIsPrivate: boolean) => {
-    try {
-      if (!userToken || !userToken === null) return;
-      const config = configWithToken(userToken);
-      const { data } = await axios.put(
-        `/api/projects/update-privacy/${projectId}`,
-        { is_private: projectIsPrivate },
-        config
-      );
-      setResponse(data);
-    } catch (error) {
-      console.log(error.message);
-    }
+  const handleUpdatePrivacy = async (is_private: boolean) => {
+    if (!projectId) return;
+    const { data, error } = await supabase
+      .from("projects")
+      .update({
+        is_private,
+      })
+      .eq("project_id", projectId);
+    if (error) throw new Error(error.message);
+    return data;
   };
   const { mutateAsync: updatePrivacy } = useMutation(handleUpdatePrivacy, {
     onSuccess: () =>
@@ -60,11 +55,11 @@ const PrivacyOptions = ({
 
   // console.log("proejctid", projectId);
 
-  useEffect(() => {
-    if (response && response.success === false) {
-      window.alert(response.message);
-    }
-  }, [response]);
+  // useEffect(() => {
+  //   if (response && response.success === false) {
+  //     window.alert(response.message);
+  //   }
+  // }, [response]);
 
   const closePrivacyOptions = () => {
     if (ref.current === null) return;
@@ -74,9 +69,9 @@ const PrivacyOptions = ({
       }
     });
   };
-  useEffect(() => {
-    closePrivacyOptions();
-  }, [ref]);
+  // useEffect(() => {
+  //   closePrivacyOptions();
+  // }, [ref]);
   // console.log("isPrivateProject", isPrivateProject);
   return (
     <div

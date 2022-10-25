@@ -82,12 +82,6 @@ export interface TagsType {
   created_at: string;
 }
 
-export enum Status {
-  admin = "admin",
-  viewer = "viewer",
-  editor = "editor",
-}
-
 export interface ReturnedApiStatus {
   success: boolean;
   message: string;
@@ -99,6 +93,13 @@ export interface UserProjectAccess {
   editingStatus: boolean;
 }
 
+export enum Status {
+  owner = "owner",
+  admin = "admin",
+  viewer = "viewer",
+  editor = "editor",
+  none = "none"
+}
 export interface ColumnsWithTasksType {
   column_id: string,
   name: string,
