@@ -8,11 +8,7 @@ import InviteUsers from "../../components/inviteUsers";
 import Kanban from "../../components/kanban";
 import Layout from "../../components/layout";
 import { DarkModeContext } from "../../context/darkModeContext";
-import {
-  FormResultType,
-  ProjectDeets,
-  UserProjectAccess,
-} from "../../types/projectTypes";
+import { FormResultType, ProjectDeets, Status } from "../../types/projectTypes";
 import { queryClient } from "../../utils/queryClient";
 import supabase from "../../utils/supabaseClient";
 import useUser from "../../hooks/useUser";
@@ -20,6 +16,7 @@ import ProtectedWrapper from "../../components/Protected";
 import SharedUserList from "../../components/SharedUserList";
 import PrivacyOptions from "../../components/privacyOptions";
 import ProjectDetailsPopup from "../../components/projectDetailsPopup";
+import useCheckAccessStatus from "../../hooks/useProjectAccess";
 
 export type ProjectOwner = {
   username: string;
@@ -37,9 +34,7 @@ const Project = () => {
   const [openInviteUsers, setOpenInviteUsers] = useState(false);
 
   const [formResult] = useState<FormResultType>({} as FormResultType);
-  const [userStatus, setUserStatus] = useState<UserProjectAccess>(
-    {} as UserProjectAccess
-  );
+  const [userStatus, setUserStatus] = useState<Status>();
   useEffect(() => {
     if (user === null) {
       router.push("/signin");
@@ -47,24 +42,14 @@ const Project = () => {
   }, [user]);
 
   const fetchUsersProjectAccess = async () => {
-    try {
-      if (!projectId) return;
-      const { data } = await supabase
-        .from("projects")
-        .select("project_owner")
-        .eq("project_id", projectId)
-        .single();
-      console.log("data", data);
-      setUserStatus(data);
-      return data;
-    } catch (error) {
-      return error;
-    }
+    if (!projectId) return;
+    const userProjectStatus = await useCheckAccessStatus(projectId as string);
+    setUserStatus(userProjectStatus);
   };
-  // useEffect(() => {
-  //   fetchUsersProjectAccess();
-  // }, [projectId]);
-  // const [projectDeets, setProjectDeets] = useState<ProjectDeets>({} as ProjectDeets)
+  useEffect(() => {
+    fetchUsersProjectAccess();
+  }, [projectId]);
+
   const getProjectDeets = async () => {
     if (!projectId) return;
     const { data, error } = await supabase
@@ -136,21 +121,21 @@ const Project = () => {
     }
   }, [projectDeets]);
 
-  if (!projectId) return <h1>There is no project</h1>;
+  if (!projectId && !loadingProjectDetails) return <h1>There is no project</h1>;
 
-  // if (userStatus && !userStatus.access && projectDeets?.is_private) {
-  //   return (
-  //     <Layout>
-  //       <h2 className="flex items-center justify-center pt-36 text-center">
-  //         User does not have access to view this project.
-  //       </h2>
-  //     </Layout>
-  //   );
-  // }
+  if (userStatus && userStatus === Status.none && projectDeets?.is_private) {
+    return (
+      <Layout>
+        <h2 className="flex items-center justify-center pt-36 text-center">
+          User does not have access to view this project.
+        </h2>
+      </Layout>
+    );
+  }
 
   //if project is public or they have access
   return (
-    <>
+    <ProtectedWrapper>
       <Head>
         {projectDeets ? (
           <title>{projectDeets.title} | Kallo</title>
@@ -159,7 +144,7 @@ const Project = () => {
         )}
       </Head>
       <Layout>
-        <ProtectedWrapper>
+        <>
           {projectDeets && !loadingProjectDetails && (
             <main
               className={`text-white min-h-screen ${
@@ -207,7 +192,7 @@ const Project = () => {
                       <InviteUsers
                         openInviteUsers={openInviteUsers}
                         setOpenInviteUsers={setOpenInviteUsers}
-                        projectId={projectId}
+                        projectId={projectId as string}
                         formResult={formResult}
                       />
                     </div>
@@ -266,9 +251,9 @@ const Project = () => {
               )}
             </main>
           )}
-        </ProtectedWrapper>
+        </>
       </Layout>
-    </>
+    </ProtectedWrapper>
   );
 };
 

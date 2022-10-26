@@ -6,24 +6,17 @@ import { AiOutlineUser } from "react-icons/ai";
 import { FiLogOut, FiMoon, FiSun } from "react-icons/fi";
 import { RiTodoLine } from "react-icons/ri";
 import { DarkModeContext } from "../context/darkModeContext";
-import { useAuth } from "../hooks/useAuth";
 import useUser from "../hooks/useUser";
 import useLogout from "../hooks/useLogout";
 
 const Header = () => {
   const logoutMuation = useLogout();
-  const auth = useAuth();
   const { data } = useUser();
-  const { logout, user } = auth;
-
   const { isDarkMode } = useContext(DarkModeContext);
   const router = useRouter();
 
   const handleLogout = () => {
-    logout();
-    if (user === null) {
-      router.push("/signin");
-    }
+    logoutMuation.mutate();
   };
 
   if (logoutMuation.isSuccess) router.push("/signin");

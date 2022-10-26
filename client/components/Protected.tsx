@@ -1,19 +1,16 @@
 import { useRouter } from "next/router";
 import React, { useEffect } from "react";
 import useUser from "../hooks/useUser";
-import supabase from "../utils/supabaseClient";
 import Loader from "./loader";
 
 export default function ProtectedWrapper({ children }: { children: any }) {
   const router = useRouter();
-  const { isLoading, isError, data } = useUser();
+  const { isLoading, isError, data: user } = useUser();
   useEffect(() => {
-    supabase.auth.onAuthStateChange((event, _) => {
-      if (event === "SIGNED_OUT") {
-        router.push("/signin");
-      }
-    });
-  }, [router, data]);
+    if (!user && !isLoading) {
+      router.push("/signin");
+    }
+  }, [router, user]);
   if (isLoading) {
     return (
       <div className="h-screen grid place-items-center">

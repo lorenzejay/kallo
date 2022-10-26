@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
 import Button from "../components/button";
 import Input from "../components/input";
+import Layout from "../components/layout";
 import Loader from "../components/loader";
 import { DarkModeContext } from "../context/darkModeContext";
 import useLogin from "../hooks/useLogin";
@@ -11,40 +12,41 @@ import useUser from "../hooks/useUser";
 
 const Signin = () => {
   const { isDarkMode } = useContext(DarkModeContext);
-  const { error, data: user, isLoading } = useUser();
+  const { data: user } = useUser();
   const router = useRouter();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const loginMutation = useLogin({ email, password });
+  const {
+    mutate: loginMutation,
+    isLoading,
+    error,
+    isSuccess: loginMutationSuccess,
+  } = useLogin({ email, password });
 
   useEffect(() => {
-    console.log("loginMutation.user", user);
-    if (user !== null) {
+    if ((!isLoading && user) || (loginMutationSuccess && !error)) {
       router.push("/projects");
     }
-    if (loginMutation.isSuccess) {
-      router.push("/projects");
-    }
-  }, [user]);
+  }, [user, loginMutationSuccess, isLoading]);
 
   const handleLogin = () => {
     if (email === "" || password === "") return;
-    loginMutation.mutate();
+    loginMutation();
   };
 
   return (
-    <>
-      <Head>
-        <title>Kallo | Sign In</title>
-        <link rel="icon" href="/home-1.png" />
-      </Head>
+    <Layout>
       <main
         className={`${
-          isDarkMode ? "darkBody text-white" : "lightBody text-black"
-        } min-h-screen flex flex-col items-center justify-center px-7 lg:px-16 lg:pt-24`}
+          isDarkMode ? "darkBody text-white" : " text-black"
+        } min-h-screen flex flex-col items-center lg:justify-center px-7 pt-12 lg:px-16`}
       >
         <>
+          <Head>
+            <title>Kallo | Sign In</title>
+            <link rel="icon" href="/home-1.png" />
+          </Head>
           <h1
             className={`text-5xl font-semibold  ${
               isDarkMode ? " text-white" : " text-black"
@@ -53,13 +55,11 @@ const Signin = () => {
             Kallo
           </h1>
           {isLoading && <Loader />}
-          {error && (
-            <p className="text-red-500 my-1">{"something went wrong"}</p>
-          )}
+          {error && <p className="text-red-500 my-1">{error.message as any}</p>}
           <form
             className={`${
               isDarkMode ? "card-color text-white" : "bg-gray-100 text-black"
-            } mt-5 py-10  flex items-center justify-center flex-col shadow-lg w-full sm:w-1/2 2xl:w-1/4 rounded-md`}
+            } mt-5 py-10 flex items-center justify-center flex-col shadow-xl border w-full max-w-[450px] rounded-md`}
             onSubmit={(e) => {
               e.preventDefault();
               handleLogin();
@@ -102,7 +102,7 @@ const Signin = () => {
           </section>
         </>
       </main>
-    </>
+    </Layout>
   );
 };
 

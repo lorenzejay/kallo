@@ -4,7 +4,6 @@ import Modal from "../../components/modal";
 import { BsUnlock, BsLock, BsFillImageFill } from "react-icons/bs";
 
 import UnsplashImageSearch from "../../components/unsplashImageSearch";
-// import PrivacyOptions from "../../components/privacyOptions";
 import ProjectCard from "../../components/projectCard";
 import Head from "next/head";
 
@@ -15,10 +14,10 @@ import ProtectedWrapper from "../../components/Protected";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient } from "../../utils/queryClient";
 import Loader from "../../components/loader";
+import PrivacyOptions from "../../components/privacyOptions";
 
 const Projects = () => {
-  const { data: userData } = useUser();
-
+  const { data: user } = useUser();
   const [openModal, setOpenModal] = useState(false);
   const [projectTitle, setProjectTitle] = useState("");
   const [projectHeader, setProjectHeader] = useState(
@@ -29,9 +28,12 @@ const Projects = () => {
   const [openPrivacyOptions, setOpenPrivacyOptions] = useState(false);
 
   const [revealImageSearch, setRevealImageSearch] = useState(false);
-
   const fetchProjects = async () => {
-    const { data, error } = await supabase.from("projects").select();
+    if (!user?.user_id) return;
+    const { data, error } = await supabase
+      .from("projects")
+      .select("*")
+      .match({ project_owner: user.user_id });
     if (error) throw error;
 
     return data;
@@ -39,11 +41,12 @@ const Projects = () => {
 
   const { data: projects, isLoading: loadingProjects } = useQuery(
     ["projects"],
-    fetchProjects
+    fetchProjects,
+    { enabled: !!user?.user_id }
   );
   const createProject = async () => {
     try {
-      if (!userData) return;
+      if (!user) return;
       const trimmedTitle = projectTitle.trim();
       const { error } = await supabase
         .from("projects")
@@ -52,7 +55,7 @@ const Projects = () => {
             title: trimmedTitle,
             header_img: projectHeader,
             is_private: isPrivateProject,
-            project_owner: userData.user_id,
+            project_owner: user.user_id,
           },
         ])
         .limit(1)
@@ -83,14 +86,24 @@ const Projects = () => {
     }
   };
 
+  if (loadingProjects)
+    return (
+      <ProtectedWrapper>
+        <Layout>
+          <>
+            <h1 className="text-4xl font-bold uppercase ">Projects</h1>
+            <Loader />
+          </>
+        </Layout>
+      </ProtectedWrapper>
+    );
   return (
     <ProtectedWrapper>
-      <Head>
-        <title>Projects | Kallo</title>
-      </Head>
       <Layout>
         <>
-          {loadingProjects && <Loader />}
+          <Head>
+            <title>Projects | Kallo</title>
+          </Head>
           <section
             className={`relative flex flex-col justify-start transition-all duration-300 ease-in-out lg:min-h-screen pt-0 mt-0 pb-20 z-20 `}
           >
@@ -162,14 +175,14 @@ const Projects = () => {
                           </>
                         )}
                       </button>
-                      {/* {openPrivacyOptions && (
+                      {openPrivacyOptions && (
                         <PrivacyOptions
                           setIsPrivateProject={setIsPrivateProject}
                           is_private={isPrivateProject}
                           setOpenPrivacyOptions={setOpenPrivacyOptions}
                           className=" top-5 right-0 z-50 mb-10 lg:right-10 shadow-2xl"
                         />
-                      )} */}
+                      )}
                     </div>
                   </div>
                   <div className="absolute bottom-3 right-3">
