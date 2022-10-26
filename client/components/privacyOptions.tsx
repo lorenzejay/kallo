@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useContext } from "react";
+import { Dispatch, SetStateAction, useContext, useEffect } from "react";
 import { useRef } from "react";
 import { AiOutlineClose } from "react-icons/ai";
 import { useMutation } from "@tanstack/react-query";
@@ -26,15 +26,7 @@ const PrivacyOptions = ({
   newProject,
 }: PrivacyOptionsType) => {
   const { isDarkMode } = useContext(DarkModeContext);
-
-  // const userLogin = useSelector((state: RootState) => state.userLogin);
-  // const { userInfo } = userLogin;
   const ref = useRef<HTMLDivElement>(null);
-
-  // const [response, setResponse] = useState<{
-  //   success: boolean;
-  //   message: string;
-  // }>();
 
   //update privacy
   const handleUpdatePrivacy = async (is_private: boolean) => {
@@ -53,31 +45,24 @@ const PrivacyOptions = ({
       queryClient.invalidateQueries([`projectDeets-${projectId?.toString()}`]),
   });
 
-  // console.log("proejctid", projectId);
-
-  // useEffect(() => {
-  //   if (response && response.success === false) {
-  //     window.alert(response.message);
-  //   }
-  // }, [response]);
-
   const closePrivacyOptions = () => {
     if (ref.current === null) return;
+    console.log("ref.current", ref.current);
     document.addEventListener("click", (e: any) => {
       if (ref.current && !ref.current.contains(e.target)) {
         setOpenPrivacyOptions(false);
       }
     });
   };
-  // useEffect(() => {
-  //   closePrivacyOptions();
-  // }, [ref]);
-  // console.log("isPrivateProject", isPrivateProject);
+  useEffect(() => {
+    document.addEventListener("mousedown", closePrivacyOptions);
+    return () => document.removeEventListener("mousedown", closePrivacyOptions);
+  }, [ref]);
   return (
     <div
       className={`${
         isDarkMode ? "card-color" : "bg-gray-150"
-      } text-white absolute w-72 rounded-md p-3 z-30 ${className}`}
+      } text-white absolute w-72 rounded-md shadow-2xl p-3 z-30 ${className}`}
       ref={ref}
       onClick={closePrivacyOptions}
     >
@@ -88,8 +73,6 @@ const PrivacyOptions = ({
         <AiOutlineClose size={24} />
       </button>
       <p className="text-2xl">Visibility</p>
-      {/* {response && response.success === false && <p className='text-red-400'>{response.message}</p>}
-      {response && response.success === true && <p className='text-red-400'>{response.message}</p>} */}
       <p className="text-base">Choose who is able to see this board.</p>
       {projectId && !newProject ? (
         <button
