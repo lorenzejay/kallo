@@ -3,7 +3,7 @@ import { FormEvent, useState } from "react";
 import { AiOutlineClose } from "react-icons/ai";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { DarkModeContext } from "../context/darkModeContext";
-import { useAuth } from "../hooks/useAuth";
+// import { useAuth } from "../hooks/useAuth";
 import { FormResultType } from "../types/projectTypes";
 import Loader from "./loader";
 import supabase from "../utils/supabaseClient";

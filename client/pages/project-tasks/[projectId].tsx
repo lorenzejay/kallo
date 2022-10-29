@@ -35,23 +35,28 @@ const Tasks = () => {
     if (error) throw new Error(error.message);
     return data;
   };
-  const { data: allTags } = useQuery([`allTags-${taskId}`], fetchTags);
+  const { data: allTags } = useQuery([`allTags-${taskId}`], fetchTags, {
+    enabled: !!taskId,
+  });
 
-  useEffect(() => {
+  const fetchUsersProjectAccess = async () => {
     if (!projectId) return;
-    async () => {
-      const accessType = await useCheckAccessStatus(projectId as string);
-      setUserStatus(accessType);
-    };
+    const userProjectStatus = await useCheckAccessStatus(projectId as string);
+    setUserStatus(userProjectStatus);
+  };
+  useEffect(() => {
+    fetchUsersProjectAccess();
   }, [projectId]);
   const fetchTask = async () => {
+    // make sure the user can even see this project
     if (!taskId) return;
     const { data, error } = await supabase
       .from("tasks")
       .select("*")
-      .match({ task_id: taskId });
+      .match({ task_id: taskId })
+      .single();
     if (error) throw error;
-    if (data) return data[0];
+    if (data) return data;
   };
 
   //fetch todos
@@ -68,6 +73,8 @@ const Tasks = () => {
   //add todo
   const handleAddTodo = async () => {
     if (!taskId || !projectId) return;
+    if (userStatus === Status.viewer || userStatus === Status.none)
+      return window.alert("You do not have access to modify this file");
     const { count, error: checkerError } = await supabase
       .from("todos")
       .select("task_id", { count: "exact", head: true })
@@ -150,6 +157,8 @@ const Tasks = () => {
     onSuccess: () => queryClient.invalidateQueries([`columns-${projectId}`]),
   });
   const handleDeleteTask = async () => {
+    if (userStatus === Status.viewer || userStatus === Status.none)
+      return window.alert("You do not have access to modify this file");
     const res = await deletingTask();
     if (res === 200) {
       router.back();

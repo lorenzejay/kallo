@@ -51,7 +51,7 @@ const KanbanTask = ({
             <div
               className={` ${
                 isDarkMode ? "border card-color" : "bg-gray-100"
-              } rounded-md border-black border-solid p-4 mb-4 w-64 flex flex-col justify-start border-rounded z-8 ${
+              } hover:cursor-pointer rounded-md border-black border-solid shadow p-4 mb-4 w-64 flex flex-col justify-start border-rounded z-8 ${
                 snapshot.isDragging ? "opacity-75 " : "opacity-100"
               }`}
               ref={provided.innerRef}

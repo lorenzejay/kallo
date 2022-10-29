@@ -9,7 +9,7 @@ const getUserAccessProject = async (
   if (!userId) throw Error("No user");
   const { data, error } = await supabase
     .from("users")
-    .select()
+    .select("user_id")
     .match({ user_id: userId })
     .single();
 
@@ -41,12 +41,12 @@ const getUserAccessProject = async (
     (sharedUser) => sharedUser.shared_user === userId
   );
   if (verifyUser) return verifyUser.status as Status;
+  console.log("no status");
   return Status.none;
 };
 
 export default async function useCheckAccessStatus(projectId: string) {
   const user = supabase.auth.user();
-
   if (!user || !projectId) return;
 
   const accessStatus = await getUserAccessProject(user?.id, projectId);

@@ -7,7 +7,7 @@ import axios from "axios";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "../utils/queryClient";
 import { configWithToken } from "../functions";
-import { useAuth } from "../hooks/useAuth";
+// import { useAuth } from "../hooks/useAuth";
 import { ReturnedApiStatus } from "../types/projectTypes";
 
 interface UnsplashImageSearchProps {
@@ -28,8 +28,8 @@ const UnsplashImageSearch = ({
   projectId,
 }: UnsplashImageSearchProps) => {
   const { isDarkMode } = useContext(DarkModeContext);
-  const auth = useAuth();
-  const { userToken } = auth;
+  // const auth = useAuth();
+  // const { userToken } = auth;
 
   const [keywords, setKeywords] = useState("");
   const [images, setImages] = useState<any[]>([]);
@@ -74,7 +74,8 @@ const UnsplashImageSearch = ({
   };
 
   const { mutateAsync: updateHeaderImg } = useMutation(handleUpdateHeaderImg, {
-    onSuccess: () => queryClient.invalidateQueries([`projectDeets-${projectId}`]),
+    onSuccess: () =>
+      queryClient.invalidateQueries([`projectDeets-${projectId}`]),
   });
   return (
     <div

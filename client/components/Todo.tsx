@@ -1,14 +1,12 @@
-import axios from "axios";
 import React, { useContext, useState } from "react";
 import { useEffect } from "react";
 import { FaTrash } from "react-icons/fa";
 import { useMutation } from "@tanstack/react-query";
 import { DarkModeContext } from "../context/darkModeContext";
-import { configWithToken } from "../functions";
-import { useAuth } from "../hooks/useAuth";
-import { Todo as TodoType } from "../types/projectTypes";
+import { Status, Todo as TodoType } from "../types/projectTypes";
 import { queryClient } from "../utils/queryClient";
 import supabase from "../utils/supabaseClient";
+import useCheckAccessStatus from "../hooks/useProjectAccess";
 
 type TodoProps = {
   todo: TodoType;
@@ -18,55 +16,59 @@ type TodoProps = {
 };
 const Todo = ({ todo, index, taskId, project_id }: TodoProps) => {
   const { isDarkMode } = useContext(DarkModeContext);
-  const auth = useAuth();
-  const { userToken } = auth;
   const [showTodoSettings, setShowTodoSettings] = useState(false);
 
-  let config:
-    | {
-        headers: {
-          "Content-Type": string;
-          token: string;
-        };
-      }
-    | undefined;
-  if (!userToken) {
-    config = undefined;
-  } else {
-    config = configWithToken(userToken);
-  }
   const [todoDescription, setTodoDescription] = useState("");
   const [toggleDoubleClickEffect, setToggleDoubleClickEffect] = useState(false);
+  const [userStatus, setUserStatus] = useState<Status | undefined>();
+  const fetchUsersProjectAccess = async () => {
+    if (!project_id) return;
+    const userProjectStatus = await useCheckAccessStatus(project_id as string);
+    setUserStatus(userProjectStatus);
+  };
+  useEffect(() => {
+    fetchUsersProjectAccess();
+  }, [project_id]);
 
   useEffect(() => {
     if (todo) {
       setTodoDescription(todo.description);
     }
-  }, [todo]);
+  }, []);
   const handleUpdateTodoIsCompleted = async () => {
+    if (userStatus === Status.viewer || userStatus === Status.none)
+      return window.alert("You do not have access to modify this file");
     if (!todo || !todo.todo_id) return;
-    const { error } = await supabase.from('todos').update({ is_checked: !todo.is_checked }).match({ todo_id: todo.todo_id });
+    const { error } = await supabase
+      .from("todos")
+      .update({ is_checked: !todo.is_checked })
+      .match({ todo_id: todo.todo_id });
     if (error) throw error;
   };
 
   const handleUpdateTodoDescription = async (description: string) => {
-    if (!todo || !todo.todo_id || !config) return;
-    await axios.put(
-      `/api/todos/update-todo-description/${todo.todo_id}`,
-      { description },
-      config
-    );
+    if (userStatus === Status.viewer || userStatus === Status.none)
+      return window.alert("You do not have access to modify this file");
+    if (!todo.todo_id) return;
+    const { error } = await supabase
+      .from("todos")
+      .update({
+        description,
+      })
+      .eq("todo_id", todo.todo_id);
+    if (error) throw new Error(error.message);
   };
 
   //on hover we need to show a delete component
   const handleDeleteTodo = async () => {
+    if (userStatus === Status.viewer || userStatus === Status.none)
+      return window.alert("You do not have access to modify this file");
     if (!todo || !todo.todo_id) return;
-    const { data } = await axios.delete(
-      `/api/todos/delete-todo/${project_id}/${todo.todo_id}`,
-      config
-    );
-    if (!data)
-      return window.alert("You do not have privileges to delete this todo.");
+    const { error } = await supabase
+      .from("todos")
+      .delete()
+      .eq("todo_id", todo.todo_id);
+    if (error) throw new Error(error.message);
   };
 
   const { mutateAsync: updateIsChecked } = useMutation(
@@ -100,8 +102,13 @@ const Todo = ({ todo, index, taskId, project_id }: TodoProps) => {
       <input
         type="checkbox"
         checked={todo.is_checked}
-        className="mr-3"
+        className="mr-3 disabled:opacity-75"
         onChange={() => updateIsChecked()}
+        disabled={
+          userStatus === Status.none || userStatus === Status.viewer
+            ? true
+            : false
+        }
       />
       {toggleDoubleClickEffect ? (
         <input
