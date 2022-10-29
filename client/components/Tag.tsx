@@ -18,13 +18,16 @@ const Tag = ({ title, color, tag_id, taskId }: TagsProps) => {
 
   const handleUpdateTagTitle = async () => {
     if (!tag_id) return;
-    const { error } = await supabase.from('tags').update({ title: tagTitle }).match({tag_id});
+    const { error } = await supabase
+      .from("tags")
+      .update({ title: tagTitle })
+      .match({ tag_id });
     if (error) throw new Error(error.message);
   };
 
   const handleDeleteTag = async () => {
     if (!tag_id) return;
-    const { error } = await supabase.from('tags').delete().match({ tag_id });
+    const { error } = await supabase.from("tags").delete().match({ tag_id });
     if (error) throw new Error(error.message);
   };
   useEffect(() => {
@@ -40,7 +43,7 @@ const Tag = ({ title, color, tag_id, taskId }: TagsProps) => {
   });
   return (
     <div
-      className="rounded-md px-3 py-1 m-2 text-black relative"
+      className="rounded-md px-3 py-1 m-2 text-black relative w-16 whitespace-nowrap"
       style={{ backgroundColor: color }}
     >
       {!toggleDoubleClickEffect ? (

@@ -3,23 +3,30 @@ import React, { useContext } from "react";
 import { Draggable } from "react-beautiful-dnd";
 import { useQuery } from "@tanstack/react-query";
 import { DarkModeContext } from "../context/darkModeContext";
-import { Column, Task } from "../types/projectTypes";
+import { Column, Status, Task } from "../types/projectTypes";
 import supabase from "../utils/supabaseClient";
 
 type KanbanTaskProps = {
   item: Task;
   index: number;
   columns?: Column[];
-  // column: BoardColumns;
   setColumns?: (x: Column[]) => void;
   projectId: string;
+  userStatus: Status | undefined;
 };
 
-const KanbanTask = ({ item, index, projectId }: KanbanTaskProps) => {
+const KanbanTask = ({
+  item,
+  index,
+  projectId,
+  userStatus,
+}: KanbanTaskProps) => {
   const fetchTags = async () => {
-
     if (!item.task_id) return;
-    const { data, error } = await supabase.from('tags').select('*').match({ task_id: item.task_id });
+    const { data, error } = await supabase
+      .from("tags")
+      .select("*")
+      .match({ task_id: item.task_id });
     if (error) throw Error(error.message);
     return data;
   };
@@ -28,7 +35,16 @@ const KanbanTask = ({ item, index, projectId }: KanbanTaskProps) => {
   const { isDarkMode } = useContext(DarkModeContext);
 
   return (
-    <Draggable key={item.task_id} draggableId={item.task_id} index={index}>
+    <Draggable
+      key={item.task_id}
+      draggableId={item.task_id}
+      index={index}
+      isDragDisabled={
+        userStatus === "viewer" || userStatus === "none" || !userStatus
+          ? true
+          : false
+      }
+    >
       {(provided, snapshot) => {
         return (
           <Link href={`/project-tasks/${projectId}?taskId=${item.task_id}`}>
@@ -49,7 +65,7 @@ const KanbanTask = ({ item, index, projectId }: KanbanTaskProps) => {
                   <div className="flex flex-wrap w-auto h-auto justify-start">
                     {allTags.map((t, i) => (
                       <div
-                        className="rounded-sm mr-2 my-2 text-sm"
+                        className="rounded-md mr-2 my-2 text-sm"
                         style={{
                           backgroundColor: t.hex_color,
                           padding: "1px 10px",

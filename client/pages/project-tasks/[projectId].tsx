@@ -8,11 +8,13 @@ import AllTags from "../../components/AllTags";
 import Dropdown from "../../components/dropdown";
 import Layout from "../../components/layout";
 import { DarkModeContext } from "../../context/darkModeContext";
-import { Task, Todo as TodoType } from "../../types/projectTypes";
+import { Status, Task, Todo as TodoType } from "../../types/projectTypes";
 import { queryClient } from "../../utils/queryClient";
 import supabase from "../../utils/supabaseClient";
 import Todo from "../../components/Todo";
 import ProtectedWrapper from "../../components/Protected";
+import useCheckAccessStatus from "../../hooks/useProjectAccess";
+import Tag from "../../components/Tag";
 
 const Tasks = () => {
   const router = useRouter();
@@ -22,7 +24,26 @@ const Tasks = () => {
 
   const [taskTitle, setTaskTitle] = useState("");
   const [newTodoTitle, setNewTodoTitle] = useState("");
+  const [userStatus, setUserStatus] = useState<Status | undefined>();
 
+  const fetchTags = async () => {
+    if (!taskId) return;
+    const { data, error } = await supabase
+      .from("tags")
+      .select("*")
+      .match({ task_id: taskId });
+    if (error) throw new Error(error.message);
+    return data;
+  };
+  const { data: allTags } = useQuery([`allTags-${taskId}`], fetchTags);
+
+  useEffect(() => {
+    if (!projectId) return;
+    async () => {
+      const accessType = await useCheckAccessStatus(projectId as string);
+      setUserStatus(accessType);
+    };
+  }, [projectId]);
   const fetchTask = async () => {
     if (!taskId) return;
     const { data, error } = await supabase
@@ -111,6 +132,12 @@ const Tasks = () => {
   }, [taskDetails]);
 
   const deleteTask = async () => {
+    if (
+      userStatus === Status.none ||
+      userStatus === Status.viewer ||
+      userStatus === Status.editor
+    )
+      return;
     if (!taskId) return;
     const { status, error } = await supabase
       .from("tasks")
@@ -136,6 +163,19 @@ const Tasks = () => {
       </Head>
       <Layout>
         <main className="min-h-screen">
+          {allTags && (
+            <div className="flex items-center flex-wrap">
+              {allTags.map((tag, i) => (
+                <Tag
+                  key={i}
+                  title={tag.title}
+                  color={tag.hex_color}
+                  tag_id={tag.tag_id}
+                  taskId={tag.task_id}
+                />
+              ))}
+            </div>
+          )}
           {taskId && projectId && (
             <>
               <section className="w-full max-w-full flex items-center">
@@ -147,7 +187,6 @@ const Tasks = () => {
                 >
                   <FaAngleLeft />
                 </button>
-
                 <h1 className="flex-grow">{taskTitle}</h1>
                 <Dropdown>
                   <>
@@ -155,11 +194,15 @@ const Tasks = () => {
                       taskId={taskId.toString()}
                       projectId={projectId.toString()}
                     />
-                    <div className="flex items-center justify-around w-32 border-t pt-5">
-                      <FaTrash />
-                      <button onClick={handleDeleteTask}>Delete</button>
-                      <hr />
-                    </div>
+
+                    {userStatus === Status.admin ||
+                      (userStatus === Status.owner && (
+                        <div className="flex items-center justify-around w-32 border-t pt-5">
+                          <FaTrash />
+                          <button onClick={handleDeleteTask}>Delete</button>
+                          <hr />
+                        </div>
+                      ))}
                   </>
                 </Dropdown>
               </section>

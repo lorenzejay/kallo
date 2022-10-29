@@ -51,8 +51,13 @@ const DeleteProjectButton = ({ projectId }: { projectId: string }) => {
 
   return (
     <button
-      className="flex items-center mt-2 bg-gray-300 text-black w-36 p-1 hover:bg-red-500 hover:text-white-175 transition-all duration-500 rounded-md"
+      className="disabled:opacity-70 disabled:pointer-events-none flex items-center mt-2 bg-gray-300 text-black w-36 p-1 hover:bg-red-500 hover:text-white-175 transition-all duration-500 rounded-md"
       onClick={removeProject}
+      disabled={
+        userStatus === "viewer" || userStatus === "none" || !userStatus
+          ? true
+          : false
+      }
     >
       <FaTrash className="mr-3" /> Delete
     </button>

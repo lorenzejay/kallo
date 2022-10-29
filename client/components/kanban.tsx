@@ -8,7 +8,7 @@ import {
 } from "react-beautiful-dnd";
 import { DarkModeContext } from "../context/darkModeContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Column, ColumnsWithTasksType } from "../types/projectTypes";
+import { Column, ColumnsWithTasksType, Status } from "../types/projectTypes";
 import KanbanColumn from "./kanbanColumn";
 import supabase from "../utils/supabaseClient";
 import Loader from "./loader";
@@ -16,9 +16,10 @@ import Loader from "./loader";
 type KanbanProps = {
   headerImage: string;
   projectId: string;
+  userStatus: Status | undefined;
 };
 
-const Kanban = ({ headerImage, projectId }: KanbanProps) => {
+const Kanban = ({ headerImage, projectId, userStatus }: KanbanProps) => {
   if (!projectId) return <></>;
   const queryClient = useQueryClient();
 
@@ -368,6 +369,7 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
                               column={column}
                               index={index}
                               projectId={projectId}
+                              userStatus={userStatus}
                             />
                           </div>
                         );
@@ -376,7 +378,14 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
                   {provided.placeholder}
                   <div className="relative self-start h-96">
                     <button
-                      className={`rounded-md w-64 text-xl mb-3 px-3 py-1 ${
+                      disabled={
+                        userStatus === Status.none ||
+                        userStatus === Status.viewer ||
+                        !userStatus
+                          ? true
+                          : false
+                      }
+                      className={`rounded-md w-64 text-xl mb-3 px-3 py-1 disabled:opacity-70 ${
                         isDarkMode
                           ? "bg-gray-700 text-white"
                           : "bg-gray-125 text-gray-700"

@@ -1,10 +1,6 @@
-import axios from "axios";
 import { useState } from "react";
 import { FaTags } from "react-icons/fa";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { configWithToken } from "../functions";
-import { useAuth } from "../hooks/useAuth";
-import { ReturnedApiStatus, TagsType } from "../types/projectTypes";
 
 import Modal from "./modal";
 import Tag from "./Tag";
@@ -22,23 +18,29 @@ const AllTags = ({ taskId, projectId }: AllTagsProps) => {
 
   const fetchTags = async () => {
     if (!taskId) return;
-    const { data, error } = await supabase.from('tags').select('*').match({ task_id: taskId });
+    const { data, error } = await supabase
+      .from("tags")
+      .select("*")
+      .match({ task_id: taskId });
     if (error) throw new Error(error.message);
     return data;
   };
 
   const handleAddTag = async () => {
     if (!taskId || !projectId) return;
-    const { count , error: countError} = await supabase.from('tags').select('task_id', { count: 'exact' }).match({ task_id: taskId });
+    const { count, error: countError } = await supabase
+      .from("tags")
+      .select("task_id", { count: "exact" })
+      .match({ task_id: taskId });
     if (countError) throw Error(countError.message);
-    const { data , error } = await supabase.from('tags').insert([
+    const { data, error } = await supabase.from("tags").insert([
       {
         title,
         hex_color: hexColor,
         task_id: taskId,
         index: count,
-      }
-    ])
+      },
+    ]);
     if (error) throw Error(error.message);
     return data;
   };

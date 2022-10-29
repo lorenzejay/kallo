@@ -125,7 +125,6 @@ const useAuthProvider = () => {
       if (user) {
         const { data, error } = await supabase.from("users").select().single();
         if (error) throw new Error(error.message);
-        console.log("data", data);
         if (data) {
           setUserDetails(data);
         }
