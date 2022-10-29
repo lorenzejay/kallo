@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { useContext } from "react";
 import Dropdown from "./dropdown";
 import { AiOutlineUser } from "react-icons/ai";
-import { FiLogOut, FiMoon, FiSun } from "react-icons/fi";
+import { FiLogOut } from "react-icons/fi";
 import { RiTodoLine } from "react-icons/ri";
 import { DarkModeContext } from "../context/darkModeContext";
 import useUser from "../hooks/useUser";

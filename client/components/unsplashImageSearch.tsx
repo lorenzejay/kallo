@@ -9,6 +9,7 @@ import { queryClient } from "../utils/queryClient";
 import { configWithToken } from "../functions";
 // import { useAuth } from "../hooks/useAuth";
 import { ReturnedApiStatus } from "../types/projectTypes";
+import supabase from "../utils/supabaseClient";
 
 interface UnsplashImageSearchProps {
   setProjectHeader?: (x: string) => void;
@@ -60,8 +61,12 @@ const UnsplashImageSearch = ({
   };
 
   const handleUpdateHeaderImg = async (image: string) => {
-    if (!userToken || !projectId) return;
-    const config = configWithToken(userToken);
+    if (!projectId) return;
+    const {} = await supabase
+      .from("projects")
+      .update({ header_img: image })
+      .eq("project_id", projectId);
+    // const config = configWithToken(userToken);
     const { data } = await axios.put<ReturnedApiStatus | undefined>(
       `/api/projects/update-header-img/${projectId}`,
       { header_img: image },

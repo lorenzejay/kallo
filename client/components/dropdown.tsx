@@ -48,23 +48,25 @@ const Dropdown = ({
           isDarkMode ? "text-white-175" : "black"
         }`}
       >
-        {title}
-        {openDropdown ? (
-          <RiArrowDropDownLine
-            size={20}
-            className={`pointer-events-none bg-tranparent ${
-              showArrow ? "block" : "hidden"
-            }`}
-          />
-        ) : (
-          <RiArrowDropUpLine
-            size={20}
-            className={`pointer-events-none bg-none ${
-              showArrow ? "block" : "hidden"
-            }`}
-            onClick={() => setOpenDropdown(true)}
-          />
-        )}
+        <>
+          {title}
+          {openDropdown ? (
+            <RiArrowDropDownLine
+              size={20}
+              className={`pointer-events-none bg-tranparent ${
+                showArrow ? "block" : "hidden"
+              }`}
+            />
+          ) : (
+            <RiArrowDropUpLine
+              size={20}
+              className={`pointer-events-none bg-none ${
+                showArrow ? "block" : "hidden"
+              }`}
+              onClick={() => setOpenDropdown(true)}
+            />
+          )}
+        </>
       </button>
       <div
         className={`${width ? width : "w-40"} ${

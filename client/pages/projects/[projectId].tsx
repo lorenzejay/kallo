@@ -11,7 +11,6 @@ import { DarkModeContext } from "../../context/darkModeContext";
 import { FormResultType, ProjectDeets, Status } from "../../types/projectTypes";
 import { queryClient } from "../../utils/queryClient";
 import supabase from "../../utils/supabaseClient";
-import useUser from "../../hooks/useUser";
 import ProtectedWrapper from "../../components/Protected";
 import SharedUserList from "../../components/SharedUserList";
 import PrivacyOptions from "../../components/privacyOptions";
