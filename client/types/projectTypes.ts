@@ -15,11 +15,17 @@ export type Task = {
 };
 
 //
-export type Columns = {
+export type Column = {
   column_id: string;
   name: string;
   index: number;
   project_associated: string;
+};
+export type BoardColumn = {
+  column_id: string;
+  column_title: string;
+  index: number;
+  tasks: Task[]
 };
 
 export type ProjectsNew = {
@@ -48,7 +54,7 @@ export type SharedUsers = {
   shared_id: string;
 };
 export interface Projects {
-  columns: Columns[];
+  columns: Column[];
   created_at: string;
   header_img: string;
   is_private: boolean;
@@ -76,12 +82,6 @@ export interface TagsType {
   created_at: string;
 }
 
-export enum Status {
-  admin = "admin",
-  viewer = "viewer",
-  editor = "editor",
-}
-
 export interface ReturnedApiStatus {
   success: boolean;
   message: string;
@@ -91,4 +91,19 @@ export interface UserProjectAccess {
   access: boolean;
   adminStatus: boolean;
   editingStatus: boolean;
+}
+
+export enum Status {
+  owner = "owner",
+  admin = "admin",
+  viewer = "viewer",
+  editor = "editor",
+  none = "none"
+}
+export interface ColumnsWithTasksType {
+  column_id: string,
+  name: string,
+  index: number,
+  project_associated: string,
+  tasks: Task[],
 }

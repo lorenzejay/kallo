@@ -4,7 +4,7 @@ import { AiOutlineClose, AiOutlineSearch } from "react-icons/ai";
 import { useContext } from "react";
 import { DarkModeContext } from "../context/darkModeContext";
 import axios from "axios";
-import { useMutation } from "react-query";
+import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "../utils/queryClient";
 import { configWithToken } from "../functions";
 import { useAuth } from "../hooks/useAuth";
@@ -74,7 +74,7 @@ const UnsplashImageSearch = ({
   };
 
   const { mutateAsync: updateHeaderImg } = useMutation(handleUpdateHeaderImg, {
-    onSuccess: () => queryClient.invalidateQueries(`projectDeets-${projectId}`),
+    onSuccess: () => queryClient.invalidateQueries([`projectDeets-${projectId}`]),
   });
   return (
     <div

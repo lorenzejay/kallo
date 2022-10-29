@@ -1,8 +1,12 @@
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { useState } from "react";
 import { DarkModeContext } from "./darkModeContext";
 
-export const ThemeProvider: React.FC = ({ children }) => {
+export const ThemeProvider = ({
+  children,
+}: {
+  children: React.ReactElement;
+}) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);

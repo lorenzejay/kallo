@@ -1,21 +1,22 @@
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import { DarkModeContext } from "../context/darkModeContext";
-const { default: Header } = require("./header");
+import Header from "./header";
+// const { default: Header } = require("./header");
 
 type LayoutProps = {
-  children: React.ReactChild;
+  children: JSX.Element;
 };
 
 const Layout = ({ children }: LayoutProps) => {
   const { isDarkMode } = useContext(DarkModeContext);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  // const [sidebarOpen, setSidebarOpen] = useState(false);
   return (
     <>
-      <Header setSidebarOpen={setSidebarOpen} sidebarOpen={sidebarOpen} />
+      <Header />
 
       <div
-        className={`px-7 lg:px-16 xl:px-32 min-h-screen 
-        }  ${isDarkMode ? "darkBody" : "bg-white-175"} `}
+        className={`px-7 lg:px-16 2xl:px-0 min-h-screen 
+        }  ${isDarkMode ? "darkBody" : ""} `}
       >
         {children}
       </div>

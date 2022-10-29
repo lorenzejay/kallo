@@ -2,12 +2,13 @@ import axios from "axios";
 import React, { useContext, useState } from "react";
 import { useEffect } from "react";
 import { FaTrash } from "react-icons/fa";
-import { useMutation } from "react-query";
+import { useMutation } from "@tanstack/react-query";
 import { DarkModeContext } from "../context/darkModeContext";
 import { configWithToken } from "../functions";
 import { useAuth } from "../hooks/useAuth";
 import { Todo as TodoType } from "../types/projectTypes";
 import { queryClient } from "../utils/queryClient";
+import supabase from "../utils/supabaseClient";
 
 type TodoProps = {
   todo: TodoType;
@@ -43,12 +44,9 @@ const Todo = ({ todo, index, taskId, project_id }: TodoProps) => {
     }
   }, [todo]);
   const handleUpdateTodoIsCompleted = async () => {
-    if (!todo || !todo.todo_id || !config) return;
-    await axios.put(
-      `/api/todos/update-todo-is-checked/${todo.todo_id}`,
-      { is_checked: !todo.is_checked },
-      config
-    );
+    if (!todo || !todo.todo_id) return;
+    const { error } = await supabase.from('todos').update({ is_checked: !todo.is_checked }).match({ todo_id: todo.todo_id });
+    if (error) throw error;
   };
 
   const handleUpdateTodoDescription = async (description: string) => {
@@ -74,19 +72,19 @@ const Todo = ({ todo, index, taskId, project_id }: TodoProps) => {
   const { mutateAsync: updateIsChecked } = useMutation(
     handleUpdateTodoIsCompleted,
     {
-      onSuccess: () => queryClient.invalidateQueries(`allTodos-${taskId}`),
+      onSuccess: () => queryClient.invalidateQueries([`allTodos-${taskId}`]),
     }
   );
   const { mutateAsync: updateDescription } = useMutation(
     handleUpdateTodoDescription,
     {
-      onSuccess: () => queryClient.invalidateQueries(`allTodos-${taskId}`),
+      onSuccess: () => queryClient.invalidateQueries([`allTodos-${taskId}`]),
     }
   );
 
   const { mutateAsync: deleteTodo } = useMutation(handleDeleteTodo, {
     onSuccess: () => {
-      queryClient.invalidateQueries(`allTodos-${taskId}`);
+      queryClient.invalidateQueries([`allTodos-${taskId}`]);
     },
   });
 

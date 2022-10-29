@@ -6,40 +6,25 @@ import { AiOutlineUser } from "react-icons/ai";
 import { FiLogOut, FiMoon, FiSun } from "react-icons/fi";
 import { RiTodoLine } from "react-icons/ri";
 import { DarkModeContext } from "../context/darkModeContext";
-import axios from "axios";
-import { configWithToken } from "../functions";
-import { useQuery } from "react-query";
-import Loader from "./loader";
-import { UserInfo } from "../types/userTypes";
-import { useAuth } from "../hooks/useAuth";
+import useUser from "../hooks/useUser";
+import useLogout from "../hooks/useLogout";
 
 const Header = () => {
-  const auth = useAuth();
-  const { logout, userToken } = auth;
-
-  const { isDarkMode, toggleDarkMode } = useContext(DarkModeContext);
+  const logoutMuation = useLogout();
+  const { data } = useUser();
+  const { isDarkMode } = useContext(DarkModeContext);
   const router = useRouter();
 
-  const fetchLoggedInUserDetails = async () => {
-    if (!userToken) return;
-    const config = configWithToken(userToken);
-    const { data } = await axios.get<UserInfo>("/api/users/details", config);
-    return data;
-  };
-
-  const { data, isLoading } = useQuery("userInfo", fetchLoggedInUserDetails);
-
   const handleLogout = () => {
-    logout();
-    if (userToken === null) {
-      router.push("/signin");
-    }
+    logoutMuation.mutate();
   };
+
+  if (logoutMuation.isSuccess) router.push("/signin");
 
   return (
     <header
-      className={`flex justify-between items-center h-24 px-7 lg:px-16 xl:px-32 shadow-2xl text-black ${
-        isDarkMode ? "darkBody text-white" : "bg-white-175 "
+      className={`flex justify-between items-center h-24 px-7 lg:px-16 2xl:px-0 text-black ${
+        isDarkMode ? "darkBody text-white" : ""
       }`}
     >
       <Link href="/">
@@ -48,7 +33,7 @@ const Header = () => {
         </h2>
       </Link>
 
-      {!userToken && (
+      {!data && (
         <ul className="flex justify-between items-center w-48 mr-3">
           <li>
             <Link href="/signin">Sign In</Link>
@@ -58,9 +43,9 @@ const Header = () => {
           </li>
         </ul>
       )}
-      {isLoading && <Loader />}
-      {data && userToken && !isLoading && (
-        <Dropdown title={data.username} className="right-0" width={"w-40"}>
+      {/* {isLoading && <Loader />} */}
+      {data && (
+        <Dropdown title={data.email} className="right-0" width={"w-40"}>
           <ul className="text-sm">
             <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
               <Link href="/projects">
@@ -75,7 +60,7 @@ const Header = () => {
               </Link>
             </li>
             <hr />
-            <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
+            {/* <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
               <Link href="/sharedProjects">
                 <div className="flex items-center ">
                   <RiTodoLine
@@ -86,7 +71,7 @@ const Header = () => {
                   Shared Projects
                 </div>
               </Link>
-            </li>
+            </li> */}
             <hr />
             <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
               <Link href="/profile">
@@ -96,7 +81,7 @@ const Header = () => {
               </Link>
             </li>
             <hr />
-            <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
+            {/* <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
               <button onClick={toggleDarkMode} className="flex items-center">
                 {isDarkMode ? (
                   <FiMoon className="mr-3" />
@@ -105,7 +90,7 @@ const Header = () => {
                 )}{" "}
                 {isDarkMode ? "Light Mode" : "Dark Mode"}
               </button>
-            </li>
+            </li> */}
             <hr />
             <li className="hover:bg-gray-300 hover:text-black rounded-md my-3 p-2 ">
               <button onClick={handleLogout} className="flex items-center">

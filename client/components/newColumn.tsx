@@ -1,20 +1,19 @@
 import { AiOutlineClose } from "react-icons/ai";
 import { useContext } from "react";
 import { DarkModeContext } from "../context/darkModeContext";
-import { configWithToken } from "../functions";
-import axios from "axios";
 import { queryClient } from "../utils/queryClient";
-import { useMutation } from "react-query";
-import { useAuth } from "../hooks/useAuth";
-import { ReturnedApiStatus } from "../types/projectTypes";
+import { useMutation } from "@tanstack/react-query";
+import supabase from "../utils/supabaseClient";
+import useUser from "../hooks/useUser";
 
-type NewColumnProps = {
+interface NewColumnProps {
   openNewColumn: boolean;
   setOpenNewColumn: (x: boolean) => void;
   newColumnTitle: string;
   setNewColumnTitle: (x: string) => void;
   projectId: string;
 };
+
 const NewColumn = ({
   openNewColumn,
   setOpenNewColumn,
@@ -23,23 +22,23 @@ const NewColumn = ({
   projectId,
 }: NewColumnProps) => {
   const { isDarkMode } = useContext(DarkModeContext);
-  const auth = useAuth();
-  const { userToken } = auth;
-
+  const { data } = useUser();
   const createNewColumns = async () => {
-    if (!userToken) return;
-    const config = configWithToken(userToken);
-    const { data } = await axios.post<ReturnedApiStatus | undefined>(
-      `/api/columns/create-column/${projectId}`,
-      {
-        name: newColumnTitle,
-      },
-      config
-    );
-    if (!data) return window.alert("You can only view the file.");
+    if (data === null || !projectId) return;
+    // need to check how many columns exist inside this project;
+    const { count, error: checkerError} = await supabase.from('columns').select('project_associated',{count: 'exact', head: true}).eq('project_associated', projectId);
+    if(checkerError) throw checkerError
+  
+    const { data: insertData, error } = await supabase.from('columns').insert([{
+      name: newColumnTitle,
+      project_associated: projectId,
+      index: count
+    }]);
+    if (error) throw new Error(error.message);
+    return insertData;
   };
   const { mutateAsync: newColumn } = useMutation(createNewColumns, {
-    onSuccess: () => queryClient.invalidateQueries(`columns-${projectId}`),
+    onSuccess: () => queryClient.invalidateQueries([`columns-${projectId}`]),
   });
 
   const handleAddNewColumn = () => {

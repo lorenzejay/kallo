@@ -1,34 +1,21 @@
-import axios from "axios";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { FaTrash } from "react-icons/fa";
-import { useMutation } from "react-query";
-import { configWithToken } from "../functions";
-import { useAuth } from "../hooks/useAuth";
-import { ReturnedApiStatus, UserProjectAccess } from "../types/projectTypes";
+import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "../utils/queryClient";
+import useCheckAccessStatus from "../hooks/useProjectAccess";
+import supabase from "../utils/supabaseClient";
+import { Status } from "../types/projectTypes";
 
 const DeleteProjectButton = ({ projectId }: { projectId: string }) => {
   const router = useRouter();
-  const auth = useAuth();
-  const { userToken } = auth;
-  const [userStatus, setUserStatus] = useState<UserProjectAccess>(
-    {} as UserProjectAccess
-  );
+  const [userStatus, setUserStatus] = useState<Status>(Status.viewer);
 
   const fetchUsersProjectAccess = async () => {
-    try {
-      if (!projectId || !userToken) return;
-      const config = configWithToken(userToken);
-      const { data } = await axios.get(
-        `/api/projects/user-project-access/:${projectId}`,
-        config
-      );
-      setUserStatus(data);
-      return data;
-    } catch (error) {
-      // console.log(error)
-      return error;
+    if (!projectId) return;
+    const accessType = await useCheckAccessStatus(projectId);
+    if (accessType) {
+      setUserStatus(accessType);
     }
   };
   useEffect(() => {
@@ -36,39 +23,29 @@ const DeleteProjectButton = ({ projectId }: { projectId: string }) => {
   }, [projectId]);
 
   const handleDeleleProject = async () => {
-    try {
-      if (!userToken || !projectId) return;
-      const config = configWithToken(userToken);
-      const { data } = await axios.delete<ReturnedApiStatus | undefined>(
-        `/api/projects/delete-project/${projectId}`,
-        config
-      );
-      if (!data)
-        return window.alert("Only the project owner can delete the project.");
-      return data;
-    } catch (error) {
-      return error;
+    if (!projectId) return;
+    const accessType = await useCheckAccessStatus(projectId);
+    if (accessType && accessType !== Status.owner) {
+      return window.alert("Only the project owner can delete the project.");
     }
+    const { error } = await supabase
+      .from("projects")
+      .delete()
+      .eq("project_id", projectId);
+    if (error) throw new Error(error.message);
   };
-  const { mutateAsync: deleteProject } = useMutation<
-    ReturnedApiStatus | undefined
-  >(handleDeleleProject, {
-    onSuccess: () => queryClient.invalidateQueries(`projects`),
+  const { mutateAsync: deleteProject } = useMutation(handleDeleleProject, {
+    onSuccess: () => queryClient.invalidateQueries([`projects`]),
   });
 
   const removeProject = async () => {
-    try {
-      if (userStatus.adminStatus === false) return;
-      const continueDelete = window.confirm(
-        "Are you sure you want to delete? This action cannot be undone."
-      );
-      if (continueDelete) {
-        await deleteProject();
-        router.push("/projects");
-      }
-    } catch (error) {
-      console.log(error);
-      return error.message;
+    if (userStatus !== Status.owner) return;
+    const continueDelete = window.confirm(
+      "Are you sure you want to delete? This action cannot be undone."
+    );
+    if (continueDelete) {
+      await deleteProject();
+      router.push("/projects");
     }
   };
 

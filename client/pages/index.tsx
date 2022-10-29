@@ -1,18 +1,16 @@
-import Head from "next/head";
 import Link from "next/link";
 import { FaArrowRight } from "react-icons/fa";
 import Layout from "../components/layout";
-import { DarkModeContext } from "../context/darkModeContext";
-import { useContext } from "react";
 
-export default function Home() {
-  const { isDarkMode } = useContext(DarkModeContext);
+const isDarkMode = false;
+const Index = () => {
+  // const { isDarkMode } = useContext(DarkModeContext);
   return (
     <div>
-      <Head>
+      {/* <Head>
         <title>Kallo</title>
         <link rel="icon" href="/home-1.png" />
-      </Head>
+      </Head> */}
       <Layout>
         <>
           <main
@@ -71,4 +69,6 @@ export default function Home() {
       </Layout>
     </div>
   );
-}
+};
+
+export default Index;

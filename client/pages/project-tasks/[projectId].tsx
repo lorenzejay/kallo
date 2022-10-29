@@ -1,30 +1,22 @@
-import axios from "axios";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useContext } from "react";
-import { FormEvent, useEffect } from "react";
-import { useState } from "react";
+import { useContext, useMemo } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { FaAngleLeft, FaPlus, FaTrash } from "react-icons/fa";
-import { useMutation, useQuery } from "react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import AllTags from "../../components/AllTags";
 import Dropdown from "../../components/dropdown";
 import Layout from "../../components/layout";
-import Todo from "../../components/Todo";
 import { DarkModeContext } from "../../context/darkModeContext";
-import { configWithToken } from "../../functions";
-import { useAuth } from "../../hooks/useAuth";
-import {
-  ReturnedApiStatus,
-  Task,
-  Todo as TodoType,
-} from "../../types/projectTypes";
+import { Task, Todo as TodoType } from "../../types/projectTypes";
 import { queryClient } from "../../utils/queryClient";
+import supabase from "../../utils/supabaseClient";
+import Todo from "../../components/Todo";
+import ProtectedWrapper from "../../components/Protected";
 
 const Tasks = () => {
   const router = useRouter();
   const { isDarkMode } = useContext(DarkModeContext);
-  const auth = useAuth();
-  const { userToken } = auth;
   //also has access to taskId in router.query
   const { taskId, projectId } = router.query;
 
@@ -32,58 +24,75 @@ const Tasks = () => {
   const [newTodoTitle, setNewTodoTitle] = useState("");
 
   const fetchTask = async () => {
-    if (!userToken || !taskId) return;
-    const config = configWithToken(userToken);
-    const { data } = await axios.get<Task>(
-      `/api/tasks/get-task/${taskId}`,
-      config
-    );
-    return data;
+    if (!taskId) return;
+    const { data, error } = await supabase
+      .from("tasks")
+      .select("*")
+      .match({ task_id: taskId });
+    if (error) throw error;
+    if (data) return data[0];
   };
 
-  // const fetchTags = async () => {
-  //   const { data } = await axios.get<TagsType[]>(`/api/tags/fetch/${taskId}`);
-  //   return data;
-  // };
-
-  type FetchedTodos = {
-    completedTodos: TodoType[];
-    notCompletedTodos: TodoType[];
-  };
   //fetch todos
   const fetchTodos = async () => {
     //no config , add auth protection here
     if (!taskId) return;
-    const { data } = await axios.get<FetchedTodos>(
-      `/api/todos/get-all-todos/${taskId.toString()}`
-    );
-
+    const { data, error } = await supabase
+      .from("todos")
+      .select("*")
+      .match({ task_id: taskId });
+    if (error) throw new Error(error.message);
     return data;
   };
   //add todo
   const handleAddTodo = async () => {
-    if (!taskId || !projectId || !userToken) return;
-
-    const config = configWithToken(userToken);
-    const { data } = await axios.post<ReturnedApiStatus | undefined>(
-      `/api/todos/create-todo/${projectId}/${taskId}`,
+    if (!taskId || !projectId) return;
+    const { count, error: checkerError } = await supabase
+      .from("todos")
+      .select("task_id", { count: "exact", head: true })
+      .eq("task_id", taskId);
+    if (checkerError) throw checkerError.message;
+    const { data, error } = await supabase.from("todos").insert([
       {
         description: newTodoTitle,
+        task_id: taskId,
+        index: count,
       },
-      config
-    );
-    if (!data)
-      return window.alert("You do not have privileges to add a new todo.");
+    ]);
+    if (error) throw error;
     return data;
   };
 
-  const { data: taskDetails } = useQuery(`taskDetails-${taskId}`, fetchTask);
-  const { data: allTodos } = useQuery(`allTodos-${taskId}`, fetchTodos);
-  // const { data: allTags } = useQuery(`allTags-${taskId}`, fetchTags);
+  const { data: taskDetails } = useQuery<Task>(
+    [`taskDetails-${taskId}`],
+    fetchTask,
+    {
+      enabled: !!taskId,
+    }
+  );
+  const { data: allTodos } = useQuery<TodoType[] | undefined>(
+    [`allTodos-${taskId}`],
+    fetchTodos,
+    { enabled: !!taskId }
+  );
+
+  const completedTodos = useMemo(() => {
+    // show only completed todos
+    const completedTodos = allTodos?.filter((todo) => todo.is_checked === true);
+    return completedTodos;
+  }, [allTodos]);
+  const notCompletedTodos = useMemo(() => {
+    // show only uncompleted todos
+    const unfinishedTodos = allTodos?.filter(
+      (todo) => todo.is_checked === false
+    );
+    return unfinishedTodos;
+  }, [allTodos]);
+
   const { mutateAsync: createTodo } = useMutation(handleAddTodo, {
-    onSuccess: () => queryClient.invalidateQueries(`allTodos-${taskId}`),
+    onSuccess: () => queryClient.invalidateQueries([`allTodos-${taskId}`]),
   });
-  // console.log("allTodos", allTodos);
+
   const handleCreateTodo = async (e: FormEvent) => {
     e.preventDefault();
     if (newTodoTitle === "") {
@@ -94,11 +103,7 @@ const Tasks = () => {
       setNewTodoTitle("");
     }
   };
-  useEffect(() => {
-    if (!userToken || userToken === null) {
-      router.push("/signin");
-    }
-  }, [userToken]);
+
   useEffect(() => {
     if (taskDetails) {
       setTaskTitle(taskDetails.title);
@@ -106,30 +111,26 @@ const Tasks = () => {
   }, [taskDetails]);
 
   const deleteTask = async () => {
-    if (!userToken || !taskId) return;
-    const config = configWithToken(userToken);
-    const { data } = await axios.delete<ReturnedApiStatus | undefined>(
-      `/api/tasks/delete-task/${projectId}/${taskId}`,
-      config
-    );
-    if (!data)
-      return window.alert(
-        "You do not have project privileges to delete the task."
-      );
-    return data;
+    if (!taskId) return;
+    const { status, error } = await supabase
+      .from("tasks")
+      .delete()
+      .match({ task_id: taskId });
+    if (error) throw new Error(error.message);
+    return status;
   };
   const { mutateAsync: deletingTask } = useMutation(deleteTask, {
-    onSuccess: () => queryClient.invalidateQueries(`columns`),
+    onSuccess: () => queryClient.invalidateQueries([`columns-${projectId}`]),
   });
   const handleDeleteTask = async () => {
     const res = await deletingTask();
-    if (res) {
+    if (res === 200) {
       router.back();
     }
   };
-  // console.log("allTags", allTags);
+
   return (
-    <>
+    <ProtectedWrapper>
       <Head>
         <title>{taskTitle} | Kallo</title>
       </Head>
@@ -182,10 +183,10 @@ const Tasks = () => {
                   onChange={(e) => setNewTodoTitle(e.target.value)}
                 />
               </form>
-              {allTodos && projectId && allTodos.notCompletedTodos && (
+              {allTodos && projectId && completedTodos && (
                 <>
-                  <p>Tasks - {allTodos.notCompletedTodos.length}</p>
-                  {allTodos.notCompletedTodos.map((todo, i) => (
+                  <p>Tasks - {completedTodos.length}</p>
+                  {completedTodos.map((todo, i) => (
                     <Todo
                       todo={todo}
                       index={i}
@@ -196,10 +197,10 @@ const Tasks = () => {
                   ))}
                 </>
               )}
-              {allTodos && projectId && allTodos.completedTodos && (
+              {allTodos && projectId && notCompletedTodos && (
                 <>
-                  <p>Completed - {allTodos.completedTodos.length}</p>
-                  {allTodos.completedTodos.map((todo, i) => (
+                  <p>Completed - {notCompletedTodos.length}</p>
+                  {notCompletedTodos.map((todo, i) => (
                     <Todo
                       todo={todo}
                       index={i}
@@ -214,7 +215,7 @@ const Tasks = () => {
           )}
         </main>
       </Layout>
-    </>
+    </ProtectedWrapper>
   );
 };
 

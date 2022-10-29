@@ -11,6 +11,13 @@ export type LoginCredentials = {
   password: string;
 };
 
+export interface SignUpCredSupbaseAuth {
+  email: string;
+  password: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+}
 export type SignUpCredentials = {
   email: string;
   password: string;

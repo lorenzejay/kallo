@@ -7,12 +7,11 @@ import {
   resetServerContext,
 } from "react-beautiful-dnd";
 import { DarkModeContext } from "../context/darkModeContext";
-import axios from "axios";
-import { configWithToken } from "../functions";
-import { useMutation, useQuery, useQueryClient } from "react-query";
-import { BoardColumns } from "../types/projectTypes";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Column, ColumnsWithTasksType } from "../types/projectTypes";
 import KanbanColumn from "./kanbanColumn";
-import { useAuth } from "../hooks/useAuth";
+import supabase from "../utils/supabaseClient";
+import Loader from "./loader";
 
 type KanbanProps = {
   headerImage: string;
@@ -20,32 +19,56 @@ type KanbanProps = {
 };
 
 const Kanban = ({ headerImage, projectId }: KanbanProps) => {
-  const auth = useAuth();
-  const { userToken } = auth;
+  if (!projectId) return <></>;
   const queryClient = useQueryClient();
 
   const { isDarkMode } = useContext(DarkModeContext);
 
   const [openNewColumn, setOpenNewColumn] = useState(false);
   const [newColumnTitle, setNewColumnTitle] = useState("");
-
   //to make sure we can use drag and drop
   useEffect(() => {
     resetServerContext();
   }, []);
 
+  const getTasksForTheCol = async (arrOfCols: Column[]) => {
+    const allTasks = [];
+    for (const col of arrOfCols) {
+      const { data: tasks, error } = await supabase
+        .from("tasks")
+        .select("*")
+        .eq("column_id", col.column_id)
+        .order("index", { ascending: true });
+      if (error) throw new Error(error.message);
+      allTasks.push({
+        column_id: col.column_id,
+        name: col.name,
+        index: col.index,
+        project_associated: col.project_associated,
+        tasks: tasks,
+      });
+    }
+    return allTasks;
+  };
+
   const fetchColumns = async () => {
     if (!projectId) return;
-    // const config = configWithToken(userToken);
-    const { data } = await axios.get(
-      `/api/columns/get-project-columns/${projectId}`
-    );
-    return data;
+    const { data, error } = await supabase
+      .from("columns")
+      .select("*")
+      .eq("project_associated", projectId)
+      .order("index", { ascending: true });
+    if (error) throw new Error(error.message);
+    const colsWithTasks = await getTasksForTheCol(data);
+    return colsWithTasks;
   };
-  const { data: boardColumns } = useQuery<BoardColumns[]>(
-    `columns-${projectId}`,
-    fetchColumns
-  );
+
+  const {
+    data: boardColumns,
+    isLoading,
+    error: fetchingBoardError,
+    isError: fetchingBoardIsError,
+  } = useQuery([`columns-${projectId}`], fetchColumns);
 
   type moveColArgs = {
     movingCol: string;
@@ -57,60 +80,143 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
     movingTaskId: string;
     newIndex: number;
   };
+  function array_move(arr: any[], old_index: number, new_index: number) {
+    var element = arr[old_index];
+    arr.splice(old_index, 1);
+    arr.splice(new_index, 0, element);
+    return arr;
+  }
   const handleMoveTaskInsideTheSameCol = async (args: movingTaskArgs) => {
-    if (!userToken || !projectId) return;
-    const config = configWithToken(userToken);
-    const { data } = await axios.put(
-      `/api/tasks/update-task-within-same-col/${projectId}/${args.column_id}`,
-      { movingTaskId: args.movingTaskId, newIndex: args.newIndex },
-      config
+    if (!projectId || !args) return;
+    const { data, error: countError } = await supabase
+      .from("tasks")
+      .select("*", { count: "exact" })
+      .match({ column_id: args.column_id });
+    if (countError) throw new Error(countError.message);
+    const movingTaskIndex = data.find(
+      (task) => task.task_id === args.movingTaskId
+    ).index;
+    const originalTaskIndex = data.findIndex(
+      (task) => task.index === args.newIndex
     );
-    if (!data)
-      return window.alert("You do not have the privileges to move the task.");
-  };
-  const handleMoveCol = async (args: moveColArgs) => {
-    try {
-      if (!userToken || !projectId) return;
-      const config = configWithToken(userToken);
-      const { data } = await axios.put(
-        `/api/columns/update-col-order/${projectId}`,
-        { movingCol: args.movingCol, newIndex: args.newIndex },
-        config
+    //previous task at the newIndex
+    const previousTaskAtNewIndexId = data[args.newIndex].task_id;
+
+    // or check directly with match
+    if (movingTaskIndex < 0)
+      throw new Error("Something went wrong moving this task");
+    //checks if the task moved from one index
+    if (args.newIndex === movingTaskIndex) return;
+    // just switching places
+    if (
+      movingTaskIndex - originalTaskIndex === 1 ||
+      originalTaskIndex - movingTaskIndex === 1
+    ) {
+      const { data: movingData, error: movingError } = await supabase
+        .from("tasks")
+        .update({ index: args.newIndex })
+        .eq("task_id", args.movingTaskId);
+      const { error: movingDataPreviousTaskAtNewIndexError } = await supabase
+        .from("tasks")
+        .update({ index: movingTaskIndex })
+        .eq("task_id", previousTaskAtNewIndexId);
+      if (movingError) throw new Error(movingError.message);
+      if (movingDataPreviousTaskAtNewIndexError)
+        throw new Error(movingDataPreviousTaskAtNewIndexError.message);
+      return movingData;
+    }
+    const { data: tasksInAffectedCol, error } = await supabase
+      .from("tasks")
+      .select("*")
+      .match({ column_id: args.column_id })
+      .order("index", { ascending: true });
+    if (error) throw new Error(error.message);
+    if (!tasksInAffectedCol)
+      throw new Error("something wrong with getting tasks from col");
+    if (args.newIndex > movingTaskIndex) {
+      const copyOfTasksInAffedctedCol = [...tasksInAffectedCol];
+      //moving indexes
+      const newTasksMovedArr = array_move(
+        copyOfTasksInAffedctedCol,
+        movingTaskIndex,
+        args.newIndex
       );
-      if (!data)
-        return window.alert(
-          "You do not have privileges to rearrange the columns."
-        );
-    } catch (error) {
-      console.error(error);
+      if (!newTasksMovedArr) return;
+      //adjusting indexes to remakes the array
+      for (let i = movingTaskIndex; i <= args.newIndex; i++) {
+        if (i === args.newIndex) {
+          newTasksMovedArr[i].index = args.newIndex;
+          break;
+        }
+        newTasksMovedArr[i].index = newTasksMovedArr[i].index - 1;
+      }
+      const { error: upsertError } = await supabase
+        .from("tasks")
+        .upsert(newTasksMovedArr);
+      if (upsertError) throw new Error(upsertError.message);
+    } else if (movingTaskIndex > args.newIndex) {
+      const copyOfTasksInAffedctedCol = [...tasksInAffectedCol];
+      const newTasksMovedArr = array_move(
+        copyOfTasksInAffedctedCol,
+        movingTaskIndex,
+        args.newIndex
+      );
+      newTasksMovedArr[args.newIndex].index = args.newIndex;
+      for (let i = args.newIndex + 1; i <= newTasksMovedArr.length - 1; i++) {
+        newTasksMovedArr[i].index = newTasksMovedArr[i].index + 1;
+      }
+      const { error: upsertError } = await supabase
+        .from("tasks")
+        .upsert(newTasksMovedArr);
+      if (upsertError) throw new Error(upsertError.message);
     }
   };
-  const handleMoveTaskAcrossCols = async (args: movingTaskArgs) => {
-    if (!userToken || !projectId) return;
-    const config = configWithToken(userToken);
-    const { data } = await axios.put(
-      `/api/tasks/update-task-to-different-col/${projectId}/${args.column_id}`,
-      { movingTaskId: args.movingTaskId, newIndex: args.newIndex },
-      config
-    );
-    if (!data)
-      return window.alert(
-        "You do not have privileges to rearrange the columns."
-      );
+  const handleMoveCol = async (boardColumnsMoving: ColumnsWithTasksType[]) => {
+    const { error, data } = await supabase
+      .from("columns")
+      .upsert(boardColumnsMoving);
+    if (error) throw new Error(error.message);
+    return data;
   };
-  const { mutateAsync: moveColumn } = useMutation(handleMoveCol, {
-    onSuccess: () => queryClient.invalidateQueries(`columns-${projectId}`),
+  const handleMoveTaskAcrossCols = async ({
+    source,
+    sourceItems,
+    destination,
+    destinationItems,
+  }: any) => {
+    for (let i = destination.index + 1; i <= destinationItems.length - 1; i++) {
+      destinationItems[i].index = destinationItems[i].index + 1;
+    }
+    // source needs to decrement indexes starting from source.index
+    for (let i = source.index; i <= sourceItems.length - 1; i++) {
+      sourceItems[i].index = sourceItems[i].index - 1;
+    }
+    const { error: upsertSource } = await supabase
+      .from("tasks")
+      .upsert(sourceItems);
+    const { error: upsertDestination } = await supabase
+      .from("tasks")
+      .upsert(destinationItems);
+    if (upsertSource) throw new Error(upsertSource.message);
+    if (upsertDestination) throw new Error(upsertDestination.message);
+  };
+  const {
+    mutateAsync: moveColumn,
+    isError: movingColumnIsError,
+    error: moveColumnError,
+  } = useMutation(handleMoveCol, {
+    onSuccess: () => queryClient.invalidateQueries([`columns-${projectId}`]),
   });
   const { mutateAsync: moveTaskInSameCol } = useMutation(
     handleMoveTaskInsideTheSameCol,
     {
-      onSuccess: () => queryClient.invalidateQueries(`columns-${projectId}`),
+      onSuccess: () => queryClient.invalidateQueries([`columns-${projectId}`]),
     }
   );
   const { mutateAsync: moveTaskAcrossCols } = useMutation(
     handleMoveTaskAcrossCols,
     {
-      onSuccess: () => queryClient.invalidateQueries(`columns-${projectId}`),
+      onSuccess: () => queryClient.invalidateQueries([`columns-${projectId}`]),
     }
   );
 
@@ -120,16 +226,33 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
     //moving columns here
     if (!boardColumns) return;
     if (type === "column") {
-      const { column_id } = boardColumns[source.index];
+      // const { column_id } = boardColumns[source.index];
 
       if (source.index === destination.index) return;
-      const [removed] = boardColumns.splice(source.index, 1);
-      boardColumns.splice(destination.index, 0, removed);
-
-      return moveColumn({
-        movingCol: column_id,
-        newIndex: destination.index,
-      });
+      const boardColumnsMoving = array_move(
+        boardColumns,
+        source.index,
+        destination.index
+      );
+      if (destination.index > source.index) {
+        for (let i = source.index; i <= destination.index; i++) {
+          if (i === destination.index) {
+            boardColumnsMoving[i].index = destination.index;
+            break;
+          }
+          boardColumnsMoving[i].index = boardColumnsMoving[i].index - 1;
+        }
+      } else {
+        for (let i = source.index; i >= destination.index; i--) {
+          if (i === destination.index) {
+            boardColumnsMoving[i].index = destination.index;
+            break;
+          }
+          boardColumnsMoving[i].index = boardColumnsMoving[i].index + 1;
+        }
+      }
+      const noTasksColumns = boardColumnsMoving.map(({ tasks, ...col }) => col); // we are upserting and there is no tasks so we don't need to show update with tasks.
+      return await moveColumn(noTasksColumns);
     }
 
     // //moving task cards here
@@ -148,17 +271,25 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
       const destinationItems = destinationColumn.tasks;
 
       const [removed] = sourceItems.splice(source.index, 1);
-
       if (destinationItems.length === 0) {
-        destinationItems.push(removed);
+        destinationItems.push({
+          ...removed,
+          index: destination.index,
+          column_id: destinationColumn.column_id,
+        });
       } else {
-        destinationItems.splice(destination.index, 0, removed);
+        destinationItems.splice(destination.index, 0, {
+          ...removed,
+          index: destination.index,
+          column_id: destinationColumn.column_id,
+        });
       }
       if (!removed || !destinationColumn) return;
       return moveTaskAcrossCols({
-        column_id: destinationColumn.column_id,
-        movingTaskId: removed.task_id,
-        newIndex: destination.index,
+        source,
+        sourceItems,
+        destination,
+        destinationItems,
       });
     }
 
@@ -175,7 +306,7 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
       copiedItems.splice(destination.index, 0, removed); //add the removed item
       //array without this column
 
-      for (var i in boardColumns) {
+      for (const i in boardColumns) {
         if (boardColumns[i].column_id == column.column_id) {
           boardColumns[i].tasks = copiedItems;
           break; //Stop this loop, we found it!
@@ -188,11 +319,14 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
       });
     }
   };
+
   const [loadedImage, setLoadedImage] = useState(false);
   return (
     <main className="relative flex-col">
+      {movingColumnIsError && <p>{moveColumnError as string}</p>}
+      {fetchingBoardIsError && <p>{fetchingBoardError as string}</p>}
       <>
-        {headerImage !== "" && headerImage !== null && (
+        {headerImage !== "" && headerImage !== null && !isLoading && (
           <img
             onLoad={() => setLoadedImage(true)}
             loading={"eager"}
@@ -203,6 +337,8 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
             alt="Board header img"
           />
         )}
+        {isLoading && <Loader />}
+
         {boardColumns && (
           <DragDropContext onDragEnd={(result) => handleOnDragEnd(result)}>
             <Droppable
@@ -218,23 +354,25 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
                   }`}
                 >
                   {boardColumns &&
-                    boardColumns.map((column, index: number) => {
-                      return (
-                        <div
-                          className={`flex flex-col rounded-md mr-2 ${
-                            isDarkMode ? "darkBody" : "bg-gray-125"
-                          }`}
-                          key={index}
-                        >
-                          <KanbanColumn
-                            id={column.column_id}
-                            column={column}
-                            index={index}
-                            projectId={projectId}
-                          />
-                        </div>
-                      );
-                    })}
+                    boardColumns.map(
+                      (column: ColumnsWithTasksType, index: number) => {
+                        return (
+                          <div
+                            className={`flex flex-col rounded-md mr-2 ${
+                              isDarkMode ? "darkBody" : "bg-gray-125"
+                            }`}
+                            key={index}
+                          >
+                            <KanbanColumn
+                              id={column.column_id}
+                              column={column}
+                              index={index}
+                              projectId={projectId}
+                            />
+                          </div>
+                        );
+                      }
+                    )}
                   {provided.placeholder}
                   <div className="relative self-start h-96">
                     <button
@@ -261,7 +399,6 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
           </DragDropContext>
         )}
       </>
-      {/* )} */}
     </main>
   );
 };

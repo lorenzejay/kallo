@@ -1,12 +1,10 @@
-import axios from "axios";
-import { Dispatch, SetStateAction, useContext } from "react";
-import { useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useContext, useEffect } from "react";
+import { useRef } from "react";
 import { AiOutlineClose } from "react-icons/ai";
-import { useMutation } from "react-query";
+import { useMutation } from "@tanstack/react-query";
 import { DarkModeContext } from "../context/darkModeContext";
-import { configWithToken } from "../functions";
-import { useAuth } from "../hooks/useAuth";
 import { queryClient } from "../utils/queryClient";
+import supabase from "../utils/supabaseClient";
 
 type PrivacyOptionsType = {
   setOpenPrivacyOptions: (
@@ -27,47 +25,29 @@ const PrivacyOptions = ({
   className,
   newProject,
 }: PrivacyOptionsType) => {
-  const auth = useAuth();
-  const { userToken } = auth;
   const { isDarkMode } = useContext(DarkModeContext);
-
-  // const userLogin = useSelector((state: RootState) => state.userLogin);
-  // const { userInfo } = userLogin;
   const ref = useRef<HTMLDivElement>(null);
 
-  const [response, setResponse] =
-    useState<{ success: boolean; message: string }>();
-
   //update privacy
-  const handleUpdatePrivacy = async (projectIsPrivate: boolean) => {
-    try {
-      if (!userToken || !userToken === null) return;
-      const config = configWithToken(userToken);
-      const { data } = await axios.put(
-        `/api/projects/update-privacy/${projectId}`,
-        { is_private: projectIsPrivate },
-        config
-      );
-      setResponse(data);
-    } catch (error) {
-      console.log(error.message);
-    }
+  const handleUpdatePrivacy = async (is_private: boolean) => {
+    if (!projectId) return;
+    const { data, error } = await supabase
+      .from("projects")
+      .update({
+        is_private,
+      })
+      .eq("project_id", projectId);
+    if (error) throw new Error(error.message);
+    return data;
   };
   const { mutateAsync: updatePrivacy } = useMutation(handleUpdatePrivacy, {
     onSuccess: () =>
-      queryClient.invalidateQueries(`projectDeets-${projectId?.toString()}`),
+      queryClient.invalidateQueries([`projectDeets-${projectId?.toString()}`]),
   });
-
-  // console.log("proejctid", projectId);
-
-  useEffect(() => {
-    if (response && response.success === false) {
-      window.alert(response.message);
-    }
-  }, [response]);
 
   const closePrivacyOptions = () => {
     if (ref.current === null) return;
+    console.log("ref.current", ref.current);
     document.addEventListener("click", (e: any) => {
       if (ref.current && !ref.current.contains(e.target)) {
         setOpenPrivacyOptions(false);
@@ -75,14 +55,14 @@ const PrivacyOptions = ({
     });
   };
   useEffect(() => {
-    closePrivacyOptions();
+    document.addEventListener("mousedown", closePrivacyOptions);
+    return () => document.removeEventListener("mousedown", closePrivacyOptions);
   }, [ref]);
-  // console.log("isPrivateProject", isPrivateProject);
   return (
     <div
       className={`${
         isDarkMode ? "card-color" : "bg-gray-150"
-      } text-white absolute w-72 rounded-md p-3 z-30 ${className}`}
+      } text-white absolute w-72 rounded-md shadow-2xl p-3 z-30 ${className}`}
       ref={ref}
       onClick={closePrivacyOptions}
     >
@@ -93,8 +73,6 @@ const PrivacyOptions = ({
         <AiOutlineClose size={24} />
       </button>
       <p className="text-2xl">Visibility</p>
-      {/* {response && response.success === false && <p className='text-red-400'>{response.message}</p>}
-      {response && response.success === true && <p className='text-red-400'>{response.message}</p>} */}
       <p className="text-base">Choose who is able to see this board.</p>
       {projectId && !newProject ? (
         <button
