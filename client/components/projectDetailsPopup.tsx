@@ -31,7 +31,7 @@ const ProjectDetailsPopup = ({
       className={"right-0 z-10 pb-5 p-3"}
       hoverable={false}
       showArrow={false}
-      width={"w-auto"}
+      width={"w-48"}
     >
       <>
         <p className="text-2xl my-3">
@@ -48,7 +48,7 @@ const ProjectDetailsPopup = ({
             {data.created_at.substring(0, 10)}
           </p>
         )}
-        {userStatus === "admin" && (
+        {(userStatus === Status.admin || userStatus === Status.owner) && (
           <>
             <div className="flex flex-col">
               <span className="font-bold">Team:</span>
@@ -67,11 +67,6 @@ const ProjectDetailsPopup = ({
             <button
               onClick={() => setRevealImageSearch(!revealImageSearch)}
               className="disabled:opacity-70 disabled:pointer-events-none rounded-md my-3 px-2 py-1 bg-gray-200 hover:bg-blue-500 hover:text-white-175 hover:text-white text-black transition-all duration-500 "
-              disabled={
-                userStatus === "viewer" || userStatus === "none" || !userStatus
-                  ? true
-                  : false
-              }
             >
               Update Header
             </button>

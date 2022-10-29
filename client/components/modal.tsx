@@ -33,7 +33,7 @@ const Modal = ({
     <>
       <button
         onClick={() => setOpenModal(true)}
-        className={`block h-7 px-3 py-1 ${bgColor} rounded-sm`}
+        className={`block h-7 px-3 ${bgColor} rounded-sm`}
       >
         {modalName}
       </button>

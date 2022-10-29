@@ -334,7 +334,7 @@ const Kanban = ({ headerImage, projectId, userStatus }: KanbanProps) => {
             src={headerImage}
             className={`${
               loadedImage ? "block" : "hidden"
-            } rounded-md w-screen h-64 object-cover mb-3`}
+            } rounded-md w-screen h-64 object-cover mb-3 shadow`}
             alt="Board header img"
           />
         )}

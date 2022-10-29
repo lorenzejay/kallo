@@ -16,7 +16,7 @@ type PrivacyOptionsType = {
   projectId?: string | string[];
   className?: string;
   newProject?: boolean;
-  userStatus: Status | undefined;
+  userStatus?: Status | undefined;
 };
 
 const PrivacyOptions = ({
