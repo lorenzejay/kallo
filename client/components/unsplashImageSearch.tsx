@@ -3,12 +3,8 @@ import { createApi } from "unsplash-js";
 import { AiOutlineClose, AiOutlineSearch } from "react-icons/ai";
 import { useContext } from "react";
 import { DarkModeContext } from "../context/darkModeContext";
-import axios from "axios";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "../utils/queryClient";
-import { configWithToken } from "../functions";
-// import { useAuth } from "../hooks/useAuth";
-import { ReturnedApiStatus } from "../types/projectTypes";
 import supabase from "../utils/supabaseClient";
 
 interface UnsplashImageSearchProps {
@@ -55,27 +51,24 @@ const UnsplashImageSearch = ({
       });
 
       setImages(result.response.results);
-    } catch (error) {
+    } catch (error: any) {
       console.log(error.message);
     }
   };
 
   const handleUpdateHeaderImg = async (image: string) => {
     if (!projectId) return;
-    const {} = await supabase
+
+    const { error } = await supabase
       .from("projects")
       .update({ header_img: image })
       .eq("project_id", projectId);
-    // const config = configWithToken(userToken);
-    const { data } = await axios.put<ReturnedApiStatus | undefined>(
-      `/api/projects/update-header-img/${projectId}`,
-      { header_img: image },
-      config
-    );
-    if (!data)
-      return window.alert(
-        "You do not have project privileges to change this file."
-      );
+    if (error) throw new Error(error.message);
+
+    // if (!data)
+    //   return window.alert(
+    //     "You do not have project privileges to change this file."
+    //   );
   };
 
   const { mutateAsync: updateHeaderImg } = useMutation(handleUpdateHeaderImg, {

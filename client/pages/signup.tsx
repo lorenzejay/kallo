@@ -25,6 +25,7 @@ const Signup = () => {
   const {
     mutate: register,
     isLoading,
+    isError,
     error,
     isSuccess: registerMutationSuccess,
   } = useRegister({ email, password, firstName, lastName, username });
@@ -74,7 +75,7 @@ const Signup = () => {
             Kallo
           </h1>
           {formError && <p className="text-red-500">{formError}</p>}
-          {error && <p className="text-red-500">{error.message}</p>}
+          {isError && <p className="text-red-500">{error as string}</p>}
           <form
             className={`${
               isDarkMode ? "card-color text-white" : "bg-gray-100 text-black"

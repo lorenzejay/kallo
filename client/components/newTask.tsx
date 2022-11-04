@@ -36,7 +36,7 @@ const NewTask = ({
       .from("tasks")
       .select("column_id", { count: "exact" })
       .match({ column_id: column.column_id });
-    if (taskCountError) throw taskCountError.message;
+    if (taskCountError) throw new Error(taskCountError.message);
     const { data, error } = await supabase.from("tasks").insert([
       {
         title: newItemTitle,
@@ -44,8 +44,9 @@ const NewTask = ({
         index: count,
       },
     ]);
-    if (error) throw error.message;
+    if (error) throw new Error(error.message);
     if (data) return data;
+    return;
   };
   const {
     mutateAsync: newTask,
