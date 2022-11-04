@@ -12,16 +12,6 @@ CREATE TABLE users(
 );
 
 CREATE TYPE status AS ENUM ('viewer', 'admin', 'editor');
-CREATE TABLE shared_users(
-    shared_id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    shared_user uuid NOT NULL,
-    shared_project uuid NOT NULL,
-    status status
-);
-alter table shared_users add foreign key(shared_user) references users(user_id) on delete cascade;
-alter table shared_users add foreign key(shared_project) references projects(project_id) on delete cascade;
-
-
 CREATE TABLE projects (
     project_id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     title VARCHAR(120) NOT NULL,
@@ -31,6 +21,16 @@ CREATE TABLE projects (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 alter table projects add foreign key(project_owner) references users(user_id) on delete cascade;
+
+CREATE TABLE shared_users(
+    shared_id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    shared_user uuid NOT NULL,
+    shared_project uuid NOT NULL,
+    status status
+);
+alter table shared_users add foreign key(shared_user) references users(user_id) on delete cascade;
+alter table shared_users add foreign key(shared_project) references projects(project_id) on delete cascade;
+
 
 
 CREATE TABLE columns (
