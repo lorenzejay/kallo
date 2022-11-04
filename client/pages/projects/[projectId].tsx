@@ -11,22 +11,21 @@ import { DarkModeContext } from "../../context/darkModeContext";
 import { FormResultType, ProjectDeets, Status } from "../../types/projectTypes";
 import { queryClient } from "../../utils/queryClient";
 import supabase from "../../utils/supabaseClient";
-import useUser from "../../hooks/useUser";
 import ProtectedWrapper from "../../components/Protected";
 import SharedUserList from "../../components/SharedUserList";
 import PrivacyOptions from "../../components/privacyOptions";
 import ProjectDetailsPopup from "../../components/projectDetailsPopup";
 import useCheckAccessStatus from "../../hooks/useProjectAccess";
+import randomColor from "randomcolor";
 
 export type ProjectOwner = {
   username: string;
 };
 
 const Project = () => {
-  // const { userToken, user } = auth;
-  const { data: user } = useUser();
   const router = useRouter();
   const { projectId } = router.query;
+
   const { isDarkMode } = useContext(DarkModeContext);
   const [toggleDoubleClickEffect, setToggleDoubleClickEffect] = useState(false);
   //set is private
@@ -35,11 +34,6 @@ const Project = () => {
 
   const [formResult] = useState<FormResultType>({} as FormResultType);
   const [userStatus, setUserStatus] = useState<Status>();
-  useEffect(() => {
-    if (user === null) {
-      router.push("/signin");
-    }
-  }, [user]);
 
   const fetchUsersProjectAccess = async () => {
     if (!projectId) return;
@@ -162,6 +156,14 @@ const Project = () => {
                         onClick={() =>
                           setOpenPrivacyOptions(!openPrivacyOptions)
                         }
+                        disabled={
+                          userStatus === "viewer" ||
+                          userStatus === "none" ||
+                          userStatus === "editor" ||
+                          !userStatus
+                            ? true
+                            : false
+                        }
                       >
                         {projectDeets.is_private ? (
                           <span className="flex items-center justify-between">
@@ -180,10 +182,14 @@ const Project = () => {
                             <SharedUserList
                               user_id={user.shared_user}
                               key={i}
+                              color={randomColor({
+                                luminosity: "dark",
+                                hue: "random",
+                              })}
                             />
                           ))}
                         <button
-                          className="bg-blue-125 text-white-125 mr-3 rounded-full ml-3 p-1 w-9 h-9 r flex justify-center items-center"
+                          className="border shadow-2xl text-white-125 mr-3 rounded-full ml-3 p-1 w-9 h-9 r flex justify-center items-center"
                           onClick={() => setOpenInviteUsers(!openInviteUsers)}
                         >
                           <AiOutlinePlus size={21} />
@@ -204,6 +210,7 @@ const Project = () => {
                         projectOwner={project_owner ? project_owner : ""}
                         sharedUsers={shared_users}
                         projectTitle={projectDeets.title}
+                        userStatus={userStatus}
                       />
                     )}
                   </div>
@@ -212,6 +219,7 @@ const Project = () => {
                       is_private={projectDeets.is_private}
                       setOpenPrivacyOptions={setOpenPrivacyOptions}
                       projectId={projectId}
+                      userStatus={userStatus}
                     />
                   )}
                 </>
@@ -247,6 +255,7 @@ const Project = () => {
                 <Kanban
                   headerImage={projectDeets.header_img}
                   projectId={projectDeets.project_id}
+                  userStatus={userStatus}
                 />
               )}
             </main>

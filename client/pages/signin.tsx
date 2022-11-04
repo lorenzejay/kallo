@@ -20,12 +20,13 @@ const Signin = () => {
   const {
     mutate: loginMutation,
     isLoading,
+    isError,
     error,
     isSuccess: loginMutationSuccess,
   } = useLogin({ email, password });
 
   useEffect(() => {
-    if ((!isLoading && user) || (loginMutationSuccess && !error)) {
+    if ((!isLoading && user) || (loginMutationSuccess && !isError)) {
       router.push("/projects");
     }
   }, [user, loginMutationSuccess, isLoading]);
@@ -55,7 +56,7 @@ const Signin = () => {
             Kallo
           </h1>
           {isLoading && <Loader />}
-          {error && <p className="text-red-500 my-1">{error.message as any}</p>}
+          {isError && <p className="text-red-500 my-1">{error as string}</p>}
           <form
             className={`${
               isDarkMode ? "card-color text-white" : "bg-gray-100 text-black"

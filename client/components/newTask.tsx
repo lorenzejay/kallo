@@ -3,7 +3,7 @@ import { Dispatch } from "react";
 import { useContext } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { DarkModeContext } from "../context/darkModeContext";
-import { ColumnsWithTasksType } from "../types/projectTypes";
+import { ColumnsWithTasksType, Status } from "../types/projectTypes";
 import { queryClient } from "../utils/queryClient";
 import Loader from "./loader";
 import supabase from "../utils/supabaseClient";
@@ -15,6 +15,7 @@ type NewItemProps = {
   setNewItemTitle: Dispatch<SetStateAction<string>>;
   column: ColumnsWithTasksType;
   projectId: string;
+  userStatus: Status | undefined;
 };
 
 const NewTask = ({
@@ -24,23 +25,28 @@ const NewTask = ({
   setNewItemTitle,
   column,
   projectId,
+  userStatus,
 }: NewItemProps) => {
   const { isDarkMode } = useContext(DarkModeContext);
 
   const createNewTask = async () => {
-      if (!column.column_id || !projectId) return;
-      const { count, error: taskCountError } = await supabase.from('tasks').select('column_id', { count: 'exact'}).match({ column_id: column.column_id });
-      if (taskCountError) throw taskCountError.message;
-      const { data, error } = await supabase.from('tasks').insert([
-        {
-          title: newItemTitle,
-          column_id: column.column_id,
-          index: count
-
-        }
-      ]);
-      if (error) throw error.message;
-      if (data) return data;
+    if (userStatus === Status.none || userStatus === Status.viewer) return;
+    if (!column.column_id || !projectId) return;
+    const { count, error: taskCountError } = await supabase
+      .from("tasks")
+      .select("column_id", { count: "exact" })
+      .match({ column_id: column.column_id });
+    if (taskCountError) throw new Error(taskCountError.message);
+    const { data, error } = await supabase.from("tasks").insert([
+      {
+        title: newItemTitle,
+        column_id: column.column_id,
+        index: count,
+      },
+    ]);
+    if (error) throw new Error(error.message);
+    if (data) return data;
+    return;
   };
   const {
     mutateAsync: newTask,
@@ -88,7 +94,7 @@ const NewTask = ({
             onClick={() => setOpenNewItem(false)}
             className={`mr-1 ? ${
               isDarkMode ? "bg-red-400" : "bg-red-200"
-            } rounded-md p-2`}
+            } rounded-md p-2 disabled:opacity-60`}
           >
             Cancel
           </button>

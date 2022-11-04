@@ -5,23 +5,18 @@ const getUser = async (userId: string | undefined) => {
   if (!userId) throw Error("No user");
   const { data, error } = await supabase
     .from("users")
-    .select()
+    .select("*")
     .match({ user_id: userId })
     .single();
-
   if (error) {
-    throw new Error(error.message);
+    return error.message;
   }
-
-  if (!data) {
-    throw new Error("User not found");
-  }
-
   return data;
 };
 
 export default function useUser() {
   const user = supabase.auth.user();
-  // if (user === null) return;
-  return useQuery(["user"], () => getUser(user?.id), { enabled: !!user?.id });
+  return useQuery(["user"], () => getUser(user?.id), {
+    retry: 1,
+  });
 }

@@ -8,7 +8,7 @@ import {
 } from "react-beautiful-dnd";
 import { DarkModeContext } from "../context/darkModeContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Column, ColumnsWithTasksType } from "../types/projectTypes";
+import { Column, ColumnsWithTasksType, Status } from "../types/projectTypes";
 import KanbanColumn from "./kanbanColumn";
 import supabase from "../utils/supabaseClient";
 import Loader from "./loader";
@@ -16,9 +16,10 @@ import Loader from "./loader";
 type KanbanProps = {
   headerImage: string;
   projectId: string;
+  userStatus: Status | undefined;
 };
 
-const Kanban = ({ headerImage, projectId }: KanbanProps) => {
+const Kanban = ({ headerImage, projectId, userStatus }: KanbanProps) => {
   if (!projectId) return <></>;
   const queryClient = useQueryClient();
 
@@ -70,106 +71,18 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
     isError: fetchingBoardIsError,
   } = useQuery([`columns-${projectId}`], fetchColumns);
 
-  type moveColArgs = {
-    movingCol: string;
-    newIndex: number;
-  };
-
-  type movingTaskArgs = {
-    column_id: string;
-    movingTaskId: string;
-    newIndex: number;
-  };
   function array_move(arr: any[], old_index: number, new_index: number) {
     var element = arr[old_index];
     arr.splice(old_index, 1);
     arr.splice(new_index, 0, element);
     return arr;
   }
-  const handleMoveTaskInsideTheSameCol = async (args: movingTaskArgs) => {
-    if (!projectId || !args) return;
-    const { data, error: countError } = await supabase
+  const handleMoveTaskInsideTheSameCol = async (newColumnFormat: any) => {
+    const { data, error } = await supabase
       .from("tasks")
-      .select("*", { count: "exact" })
-      .match({ column_id: args.column_id });
-    if (countError) throw new Error(countError.message);
-    const movingTaskIndex = data.find(
-      (task) => task.task_id === args.movingTaskId
-    ).index;
-    const originalTaskIndex = data.findIndex(
-      (task) => task.index === args.newIndex
-    );
-    //previous task at the newIndex
-    const previousTaskAtNewIndexId = data[args.newIndex].task_id;
-
-    // or check directly with match
-    if (movingTaskIndex < 0)
-      throw new Error("Something went wrong moving this task");
-    //checks if the task moved from one index
-    if (args.newIndex === movingTaskIndex) return;
-    // just switching places
-    if (
-      movingTaskIndex - originalTaskIndex === 1 ||
-      originalTaskIndex - movingTaskIndex === 1
-    ) {
-      const { data: movingData, error: movingError } = await supabase
-        .from("tasks")
-        .update({ index: args.newIndex })
-        .eq("task_id", args.movingTaskId);
-      const { error: movingDataPreviousTaskAtNewIndexError } = await supabase
-        .from("tasks")
-        .update({ index: movingTaskIndex })
-        .eq("task_id", previousTaskAtNewIndexId);
-      if (movingError) throw new Error(movingError.message);
-      if (movingDataPreviousTaskAtNewIndexError)
-        throw new Error(movingDataPreviousTaskAtNewIndexError.message);
-      return movingData;
-    }
-    const { data: tasksInAffectedCol, error } = await supabase
-      .from("tasks")
-      .select("*")
-      .match({ column_id: args.column_id })
-      .order("index", { ascending: true });
+      .upsert(newColumnFormat);
     if (error) throw new Error(error.message);
-    if (!tasksInAffectedCol)
-      throw new Error("something wrong with getting tasks from col");
-    if (args.newIndex > movingTaskIndex) {
-      const copyOfTasksInAffedctedCol = [...tasksInAffectedCol];
-      //moving indexes
-      const newTasksMovedArr = array_move(
-        copyOfTasksInAffedctedCol,
-        movingTaskIndex,
-        args.newIndex
-      );
-      if (!newTasksMovedArr) return;
-      //adjusting indexes to remakes the array
-      for (let i = movingTaskIndex; i <= args.newIndex; i++) {
-        if (i === args.newIndex) {
-          newTasksMovedArr[i].index = args.newIndex;
-          break;
-        }
-        newTasksMovedArr[i].index = newTasksMovedArr[i].index - 1;
-      }
-      const { error: upsertError } = await supabase
-        .from("tasks")
-        .upsert(newTasksMovedArr);
-      if (upsertError) throw new Error(upsertError.message);
-    } else if (movingTaskIndex > args.newIndex) {
-      const copyOfTasksInAffedctedCol = [...tasksInAffectedCol];
-      const newTasksMovedArr = array_move(
-        copyOfTasksInAffedctedCol,
-        movingTaskIndex,
-        args.newIndex
-      );
-      newTasksMovedArr[args.newIndex].index = args.newIndex;
-      for (let i = args.newIndex + 1; i <= newTasksMovedArr.length - 1; i++) {
-        newTasksMovedArr[i].index = newTasksMovedArr[i].index + 1;
-      }
-      const { error: upsertError } = await supabase
-        .from("tasks")
-        .upsert(newTasksMovedArr);
-      if (upsertError) throw new Error(upsertError.message);
-    }
+    return data;
   };
   const handleMoveCol = async (boardColumnsMoving: ColumnsWithTasksType[]) => {
     const { error, data } = await supabase
@@ -312,11 +225,26 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
           break; //Stop this loop, we found it!
         }
       }
-      return moveTaskInSameCol({
-        column_id: source.droppableId,
-        movingTaskId: removed.task_id,
-        newIndex: destination.index,
-      });
+
+      // adjust the indexes of the tasks
+      if (destination.index > source.index) {
+        for (let i = source.index; i <= destination.index; i++) {
+          if (i === destination.index) {
+            copiedItems[i].index = destination.index;
+            break;
+          }
+          copiedItems[i].index = copiedItems[i].index - 1;
+        }
+      } else {
+        for (let i = source.index; i >= destination.index; i--) {
+          if (i === destination.index) {
+            copiedItems[i].index = destination.index;
+            break;
+          }
+          copiedItems[i].index = copiedItems[i].index + 1;
+        }
+      }
+      return moveTaskInSameCol(copiedItems);
     }
   };
 
@@ -333,7 +261,7 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
             src={headerImage}
             className={`${
               loadedImage ? "block" : "hidden"
-            } rounded-md w-screen h-64 object-cover mb-3`}
+            } rounded-md w-screen h-64 object-cover mb-3 shadow`}
             alt="Board header img"
           />
         )}
@@ -368,6 +296,7 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
                               column={column}
                               index={index}
                               projectId={projectId}
+                              userStatus={userStatus}
                             />
                           </div>
                         );
@@ -376,7 +305,14 @@ const Kanban = ({ headerImage, projectId }: KanbanProps) => {
                   {provided.placeholder}
                   <div className="relative self-start h-96">
                     <button
-                      className={`rounded-md w-64 text-xl mb-3 px-3 py-1 ${
+                      disabled={
+                        userStatus === Status.none ||
+                        userStatus === Status.viewer ||
+                        !userStatus
+                          ? true
+                          : false
+                      }
+                      className={`rounded-md w-64 text-xl mb-3 px-3 py-1 disabled:opacity-70 ${
                         isDarkMode
                           ? "bg-gray-700 text-white"
                           : "bg-gray-125 text-gray-700"

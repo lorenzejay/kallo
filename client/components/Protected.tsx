@@ -11,6 +11,7 @@ export default function ProtectedWrapper({ children }: { children: any }) {
       router.push("/signin");
     }
   }, [router, user]);
+
   if (isLoading) {
     return (
       <div className="h-screen grid place-items-center">

@@ -3,12 +3,9 @@ import { createApi } from "unsplash-js";
 import { AiOutlineClose, AiOutlineSearch } from "react-icons/ai";
 import { useContext } from "react";
 import { DarkModeContext } from "../context/darkModeContext";
-import axios from "axios";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient } from "../utils/queryClient";
-import { configWithToken } from "../functions";
-import { useAuth } from "../hooks/useAuth";
-import { ReturnedApiStatus } from "../types/projectTypes";
+import supabase from "../utils/supabaseClient";
 
 interface UnsplashImageSearchProps {
   setProjectHeader?: (x: string) => void;
@@ -28,8 +25,8 @@ const UnsplashImageSearch = ({
   projectId,
 }: UnsplashImageSearchProps) => {
   const { isDarkMode } = useContext(DarkModeContext);
-  const auth = useAuth();
-  const { userToken } = auth;
+  // const auth = useAuth();
+  // const { userToken } = auth;
 
   const [keywords, setKeywords] = useState("");
   const [images, setImages] = useState<any[]>([]);
@@ -54,27 +51,29 @@ const UnsplashImageSearch = ({
       });
 
       setImages(result.response.results);
-    } catch (error) {
+    } catch (error: any) {
       console.log(error.message);
     }
   };
 
   const handleUpdateHeaderImg = async (image: string) => {
-    if (!userToken || !projectId) return;
-    const config = configWithToken(userToken);
-    const { data } = await axios.put<ReturnedApiStatus | undefined>(
-      `/api/projects/update-header-img/${projectId}`,
-      { header_img: image },
-      config
-    );
-    if (!data)
-      return window.alert(
-        "You do not have project privileges to change this file."
-      );
+    if (!projectId) return;
+
+    const { error } = await supabase
+      .from("projects")
+      .update({ header_img: image })
+      .eq("project_id", projectId);
+    if (error) throw new Error(error.message);
+
+    // if (!data)
+    //   return window.alert(
+    //     "You do not have project privileges to change this file."
+    //   );
   };
 
   const { mutateAsync: updateHeaderImg } = useMutation(handleUpdateHeaderImg, {
-    onSuccess: () => queryClient.invalidateQueries([`projectDeets-${projectId}`]),
+    onSuccess: () =>
+      queryClient.invalidateQueries([`projectDeets-${projectId}`]),
   });
   return (
     <div

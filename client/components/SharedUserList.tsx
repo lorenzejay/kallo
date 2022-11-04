@@ -3,8 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import supabase from "../utils/supabaseClient";
 interface SharedUserProps {
   user_id: string;
+  color: string;
 }
-const SharedUserList = ({ user_id }: SharedUserProps) => {
+const SharedUserList = ({ user_id, color }: SharedUserProps) => {
   const fetchSharedUsername = async () => {
     const { data, error } = await supabase
       .from("users")
@@ -23,7 +24,10 @@ const SharedUserList = ({ user_id }: SharedUserProps) => {
 
   if (sharedUsernameError) <p>{sharedUsernameError}</p>;
   return (
-    <p className="-mr-2  order-4 shadow-xl bg-orange-125 text-white-175 rounded-full p-1 w-9 h-9 flex justify-center items-center text-xl font-medium">
+    <p
+      className={`-mr-3 order-4 shadow-xl text-white-175 rounded-full p-1 w-9 h-9 flex justify-center items-center text-xl font-medium`}
+      style={{ background: color }}
+    >
       {sharedUsername?.slice(0, 1)}
     </p>
   );

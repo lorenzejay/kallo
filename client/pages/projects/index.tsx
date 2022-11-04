@@ -33,7 +33,8 @@ const Projects = () => {
     const { data, error } = await supabase
       .from("projects")
       .select("*")
-      .match({ project_owner: user.user_id });
+      .match({ project_owner: user.user_id })
+      .order("created_at", { ascending: false });
     if (error) throw error;
 
     return data;
@@ -181,6 +182,7 @@ const Projects = () => {
                           is_private={isPrivateProject}
                           setOpenPrivacyOptions={setOpenPrivacyOptions}
                           className=" top-5 right-0 z-50 mb-10 lg:right-10 shadow-2xl"
+                          // userStatus={userStatus}
                         />
                       )}
                     </div>
@@ -214,6 +216,7 @@ const Projects = () => {
                         projectId={project.project_id}
                         title={project.title}
                         headerImg={project.header_img}
+                        isPrivate={project.is_private}
                       />
                     );
                   })}

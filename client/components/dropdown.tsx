@@ -48,26 +48,28 @@ const Dropdown = ({
           isDarkMode ? "text-white-175" : "black"
         }`}
       >
-        {title}
-        {openDropdown ? (
-          <RiArrowDropDownLine
-            size={20}
-            className={`pointer-events-none bg-tranparent ${
-              showArrow ? "block" : "hidden"
-            }`}
-          />
-        ) : (
-          <RiArrowDropUpLine
-            size={20}
-            className={`pointer-events-none bg-none ${
-              showArrow ? "block" : "hidden"
-            }`}
-            onClick={() => setOpenDropdown(true)}
-          />
-        )}
+        <>
+          {title}
+          {openDropdown ? (
+            <RiArrowDropDownLine
+              size={20}
+              className={`pointer-events-none bg-tranparent ${
+                showArrow ? "block" : "hidden"
+              }`}
+            />
+          ) : (
+            <RiArrowDropUpLine
+              size={20}
+              className={`pointer-events-none bg-none ${
+                showArrow ? "block" : "hidden"
+              }`}
+              onClick={() => setOpenDropdown(true)}
+            />
+          )}
+        </>
       </button>
       <div
-        className={`${width ? width : "w-auto"} ${
+        className={`${width ? width : "w-40"} ${
           isDarkMode ? "card-color" : "bg-gray-150 text-black"
         } rounded-md shadow-md p-3 mt-2  transition-all ease-in-out duration-500  ${className} ${
           openDropdown ? "absolute right-0 z-30" : "hidden"

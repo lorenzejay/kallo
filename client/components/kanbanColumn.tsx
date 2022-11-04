@@ -4,7 +4,7 @@ import { AiOutlineEllipsis } from "react-icons/ai";
 import { FaTrash } from "react-icons/fa";
 import { useMutation } from "@tanstack/react-query";
 import { DarkModeContext } from "../context/darkModeContext";
-import { ColumnsWithTasksType } from "../types/projectTypes";
+import { ColumnsWithTasksType, Status } from "../types/projectTypes";
 import { queryClient } from "../utils/queryClient";
 import Dropdown from "./dropdown";
 import KanbanTask from "./kanbanTask";
@@ -17,8 +17,15 @@ interface KanbanColProps {
   id: string;
   column: ColumnsWithTasksType;
   projectId: string;
+  userStatus: Status | undefined;
 }
-const KanbanColumn = ({ column, id, index, projectId }: KanbanColProps) => {
+const KanbanColumn = ({
+  column,
+  id,
+  index,
+  projectId,
+  userStatus,
+}: KanbanColProps) => {
   const [columnName, setColumnName] = useState(column.name || "");
   const [toggleDoubleClickEffect, setToggleDoubleClickEffect] = useState(false);
   const { isDarkMode } = useContext(DarkModeContext);
@@ -65,7 +72,16 @@ const KanbanColumn = ({ column, id, index, projectId }: KanbanColProps) => {
   });
 
   return (
-    <Draggable draggableId={id} index={index} key={id}>
+    <Draggable
+      draggableId={id}
+      index={index}
+      key={id}
+      isDragDisabled={
+        userStatus === "viewer" || userStatus === "none" || !userStatus
+          ? true
+          : false
+      }
+    >
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
@@ -149,6 +165,7 @@ const KanbanColumn = ({ column, id, index, projectId }: KanbanColProps) => {
                           key={item.task_id}
                           // column={column}
                           projectId={projectId}
+                          userStatus={userStatus}
                         />
                       );
                     })}
@@ -161,6 +178,7 @@ const KanbanColumn = ({ column, id, index, projectId }: KanbanColProps) => {
                       setOpenNewItem={setOpenNewItem}
                       column={column}
                       projectId={projectId}
+                      userStatus={userStatus}
                     />
                   )}
                   <button

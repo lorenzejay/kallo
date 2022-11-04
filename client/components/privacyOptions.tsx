@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { DarkModeContext } from "../context/darkModeContext";
 import { queryClient } from "../utils/queryClient";
 import supabase from "../utils/supabaseClient";
+import { Status } from "../types/projectTypes";
 
 type PrivacyOptionsType = {
   setOpenPrivacyOptions: (
@@ -15,6 +16,7 @@ type PrivacyOptionsType = {
   projectId?: string | string[];
   className?: string;
   newProject?: boolean;
+  userStatus?: Status | undefined;
 };
 
 const PrivacyOptions = ({
@@ -24,13 +26,21 @@ const PrivacyOptions = ({
   projectId,
   className,
   newProject,
+  userStatus,
 }: PrivacyOptionsType) => {
   const { isDarkMode } = useContext(DarkModeContext);
   const ref = useRef<HTMLDivElement>(null);
 
   //update privacy
   const handleUpdatePrivacy = async (is_private: boolean) => {
-    if (!projectId) return;
+    if (
+      !projectId ||
+      !userStatus ||
+      userStatus === Status.none ||
+      userStatus === Status.viewer ||
+      userStatus === Status.editor
+    )
+      return;
     const { data, error } = await supabase
       .from("projects")
       .update({
@@ -47,7 +57,6 @@ const PrivacyOptions = ({
 
   const closePrivacyOptions = () => {
     if (ref.current === null) return;
-    console.log("ref.current", ref.current);
     document.addEventListener("click", (e: any) => {
       if (ref.current && !ref.current.contains(e.target)) {
         setOpenPrivacyOptions(false);
