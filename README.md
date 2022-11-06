@@ -1,7 +1,6 @@
 # 👋🏽 Welcome to Kallo
 
-<img src='assets/kallo_home.png' />
-<img src='assets/kallo_kanban_board.png' />
+<img src='public/kallo_kanban_board.png' />
 
 Kallo is an kanban based task manager application that allows you to organize any projects or tasks into boards and todo lists. It's a customizable kanban board application that can be used for your projects, agile development, and tracking your progress.
 
@@ -9,18 +8,16 @@ Kallo is an kanban based task manager application that allows you to organize an
 
 - TypeScript
 - Next.js
-- Node.js
-- Express
-- PostgreSQL
+- Supabase
 - TailwindCss
 - Unsplash Api
-- Drag & Drop Library
+- React Beautiful D&D
 
-Be sure to have Node.js and PostgreSQL installed. For PostgreSQL, be sure to you are able to run:
-`psql -U superuser` in your terminal because the application used psql in the terminal to access the database locally.
 
-To check if you already have Node installed successfully run: `node -v` on your terminal. It should tell you what your version number is.
-
+## Get Unsplash API Keys
+```sh
+open https://unsplash.com/developers
+```
 Head over to the [Unsplash Api website](https://unsplash.com/developers) and create an account and register as a developer ~ it's free.
 After signup head over to `your apps` located on the header / navbar and create a new app. Read and accept the terms of agreement. Enter your project details and once you've created the app scroll all the way down to keys and copy and paste your `secret and access keys`. Your Unsplash Api keys will be used be stored in the .env.local file inside the client directory that we will make later.
 
@@ -33,7 +30,7 @@ After signup head over to `your apps` located on the header / navbar and create 
 - Each card can be dragged and dropped into a column.
 - Each card can have tags which can be set to specific colors.
 - Each card is called a task and inside each task you can create your own todo list with subtasks.
-- Dark and Light Theme Mode.
+- <s>Dark and Light Theme Mode.</s>
 
 ## Installation to run in your local environment
 
@@ -45,13 +42,13 @@ npm i -g typescript
 
 Clone the project
 
-```bash
+```sh
   git clone https://github.com/lorenzejay/kallo.git
 ```
 
 Go to the project directory
 
-```bash
+```sh
   cd kallo
 ```
 
@@ -59,14 +56,14 @@ Go to the project directory
 
 Install dependencies - You will need to also do this in the client directory
 
-```bash
+```sh
   npm install
 ```
 
 Create a .env file
 
-```bash
-  touch .env
+```sh
+  touch .env.local
 ```
 
 Open up psql terminal, login with your credentials that you made during installation and create a new database for this project.
@@ -77,7 +74,7 @@ CREATE DATABASE kallo
 
 Go into your database you created
 
-```
+```sh
 \c kallo
 ```
 
@@ -93,79 +90,27 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 Inside your .env in the root directory (there is also one for client but we will get to that later) file include:
 
-```
-PORT = 5000
-NODE_ENV = Development
-PG_USER = your_postgresql_username_here
-PG_PASSWORD = your_postgresql_password
-PG_HOST = localhost
-PG_PORT = 5432
-PG_DATABASE = kallo
-JWT_SECRET = jwt_secret_can_be_anything_you_want
-```
-
-Start the server - server will run on port 5000
-
-```bash
-  npm run dev
-```
-
-## Start Next.js (Frontend)
-
-Install dependencies - You will need to also do this in the client directory
-
-```bash
-  npm install
-```
-
-Create another .env
-
-```bash
-  touch .env.local
-```
-
-Inside your .env file include:
-
-```
+```env
 NODE_ENV = Development
 NEXT_PUBLIC_UNSPLASH_ACCESS_KEY = your_access_key_here
 UNPLASH_SECRET_KEY = your_secret_key_here
-NEXT_PUBLIC_BASE_URL: http://localhost:5000
+NEXT_PUBLIC_SUPABASE_URL= your_key
+NEXT_PUBLIC_SUPABASE_ANON_KEY=anon_key
 ```
 
-Also create a next.config.js file (This cannot be made in ts as it will face compilation issues). This will allow us to port our api calls to localhost:5000 during development.
+Start the server - server will run on port 3000
 
-```
-const baseUrl = "http://localhost:5000";
-module.exports = {
-  env: {
-    NEXT_PUBLIC_UNSPLASH_ACCESS_KEY: 'your_unsplash_api_access_key_here'
-    UNPLASH_SECRET_KEY: "your_unsplash_api_secret_here",
-    NEXT_PUBLIC_BASE_URL: "http://localhost:5000",
-  },
-  async rewrites() {
-    return [
-      {
-        source: "/api/:slug*",
-        destination: `${baseUrl}/api/:slug*`,
-      },
-    ];
-  },
-};
-
-```
-
-Start the server - Next.js will run on port 3000
-
-```bash
+```sh
   npm run dev
 ```
-
-Open up the application on http://localhost:3000/
+open port 3000
+```sh
+open localhost:3000
+```
 
 ### Roadmap
 
-- [ ] Connect Firebase Auth to Backend
-- [ ] Sharing / Privacy / Shared Middleware integration
+- [x] Convert to use Supabase
 - [x] Tags
 - [ ] Double Click Hook
+- [ ] Dark / Light / Customizable Themes
