@@ -8,11 +8,13 @@ import { RiTodoLine } from "react-icons/ri";
 import { DarkModeContext } from "../context/darkModeContext";
 // import useUser from "../hooks/useUser";
 import useLogout from "../hooks/useLogout";
-import { useUser } from "@supabase/auth-helpers-react";
+import { useSessionContext, useUser } from "@supabase/auth-helpers-react";
+import Loader from "./loader";
 
 const Header = () => {
   const logoutMuation = useLogout();
   const user = useUser();
+  const { isLoading, session } = useSessionContext();
   const { isDarkMode } = useContext(DarkModeContext);
   const router = useRouter();
 
@@ -33,8 +35,8 @@ const Header = () => {
           Kallo
         </h2>
       </Link>
-
-      {!user && (
+      {isLoading && <Loader />}
+      {!isLoading && !session && (
         <ul className="flex justify-between items-center w-48 mr-3">
           <li>
             <Link href="/signin">Sign In</Link>
@@ -45,7 +47,7 @@ const Header = () => {
         </ul>
       )}
       {/* {isLoading && <Loader />} */}
-      {user && (
+      {!isLoading && user && (
         <Dropdown title={user.email} className="right-0" width={"w-48"}>
           <ul className="text-sm">
             <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">

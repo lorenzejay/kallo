@@ -7,41 +7,36 @@ import Input from "../components/input";
 import Layout from "../components/layout";
 import Loader from "../components/loader";
 import { DarkModeContext } from "../context/darkModeContext";
-import useLogin from "../hooks/useLogin";
-import { useUser } from "@supabase/auth-helpers-react";
+import { useSessionContext, useUser } from "@supabase/auth-helpers-react";
 import supabase from "../utils/supabaseClient";
+import { AuthError } from "@supabase/supabase-js";
 
 // import useUser from "../hooks/useUser";
 
 const Signin = () => {
   const { isDarkMode } = useContext(DarkModeContext);
   const user = useUser();
+  const [error, setError] = useState<AuthError | null>(null);
+  const { isLoading, session } = useSessionContext();
 
   const router = useRouter();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const {
-    // mutate: loginMutation,
-    isLoading,
-    isError,
-    error,
-    isSuccess: loginMutationSuccess,
-  } = useLogin({ email, password });
 
   useEffect(() => {
-    if ((!isLoading && user) || (loginMutationSuccess && !isError)) {
+    if (!isLoading && session) {
       router.push("/projects");
     }
-  }, [user, loginMutationSuccess, isLoading]);
+  }, [user, session, error, isLoading]);
 
   const handleLogin = async () => {
     if (email === "" || password === "") return;
-    await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-    // loginMutation();
+    if (error) return setError(error);
   };
 
   return (
@@ -64,7 +59,7 @@ const Signin = () => {
             Kallo
           </h1>
           {isLoading && <Loader />}
-          {isError && <p className="text-red-500 my-1">{error as string}</p>}
+          {error && <p className="text-red-500 my-1">{error.message}</p>}
           <form
             className={`${
               isDarkMode ? "card-color text-white" : "bg-gray-100 text-black"

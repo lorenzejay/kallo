@@ -3,20 +3,19 @@ import React, { useEffect } from "react";
 // import useUser from "../hooks/useUser";
 import Layout from "./layout";
 import Loader from "./loader";
-import { useUser } from "@supabase/auth-helpers-react";
+import { useUser, useSessionContext } from "@supabase/auth-helpers-react";
 
 export default function ProtectedWrapper({ children }: { children: any }) {
   const router = useRouter();
   const user = useUser();
+  const { isLoading } = useSessionContext();
   useEffect(() => {
-    setTimeout(() => {
-      if (!user) {
-        router.push("/signin");
-      }
-    }, 500);
-  }, [router, user]);
+    if (!isLoading && !user) {
+      router.push("/signin");
+    }
+  }, [router, user, isLoading]);
 
-  if (!user) {
+  if (isLoading) {
     return (
       <Layout>
         <div className="h-screen grid place-items-center">

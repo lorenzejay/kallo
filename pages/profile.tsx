@@ -12,7 +12,7 @@ import { useUser } from "@supabase/auth-helpers-react";
 const Profile = () => {
   const user = useUser();
 
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = async (): Promise<UserInfo | undefined> => {
     if (!user?.id) return;
     const { data, error } = await supabase
       .from("users")
@@ -20,11 +20,10 @@ const Profile = () => {
       .eq("user_id", user.id)
       .single();
     if (error) throw new Error(error.message);
-    return data;
+    return data as UserInfo;
   };
-  const { data: userDetails, isLoading } = useQuery<UserInfo>(
+  const { data: userDetails, isLoading } = useQuery(
     [`user-${user?.id}`],
-    // @ts-ignore
     fetchUserProfile,
     {
       enabled: !!user?.id,
@@ -49,17 +48,14 @@ const Profile = () => {
             <section className="w-full flex flex-col justify-between text-lg lg:text-2xl lg:justify-center lg:w-1/2">
               <p className="flex mx-auto w-full my-3 text-left">
                 <span className="uppercase flex-grow">Full Name:</span>
-                {/* @ts-ignore */}
                 {userDetails.first_name} {userDetails.last_name}
               </p>
               <p className="flex mx-auto w-full my-3">
                 <span className="uppercase flex-grow">Username:</span>
-                {/* @ts-ignore */}
                 {userDetails.username}
               </p>
               <p className="flex mx-auto w-full my-3">
                 <span className="uppercase flex-grow">Email:</span>
-                {/* @ts-ignore */}
                 {userDetails.email}
               </p>
             </section>
