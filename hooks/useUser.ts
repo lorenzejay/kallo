@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import supabase from "../utils/supabaseClient";
 
+
+
 const getUser = async (userId: string | undefined) => {
   if (!userId) throw Error("No user");
 
@@ -15,7 +17,19 @@ const getUser = async (userId: string | undefined) => {
   return data;
 };
 
-export default function useUser() {
-  const user = supabase.auth.user();
-  return useQuery(["user"], () => getUser(user?.id));
+export default async function useClientUser() {
+  // const { data: { user } } = await supabase.auth.getUser()
+  // @ts-ignore
+  const user = useUser()
+  // return {user}
+  return useQuery(['user'], () => getUser(user?.id))
+  // const [user, setUser]= useState<User | null>()
+  // useEffect(() => {
+  //   fetchUser().then(u => {
+  //     setUser(u)
+  //   })
+  // },[])
+
+  
+  // return data
 }

@@ -46,7 +46,7 @@ const getUserAccessProject = async (
 };
 
 export default async function useCheckAccessStatus(projectId: string) {
-  const user = supabase.auth.user();
+  const {data: {user}} = await supabase.auth.getUser();
   if (!user || !projectId) return;
 
   const accessStatus = await getUserAccessProject(user?.id, projectId);

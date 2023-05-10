@@ -60,7 +60,7 @@ const Kanban = ({ headerImage, projectId, userStatus }: KanbanProps) => {
       .eq("project_associated", projectId)
       .order("index", { ascending: true });
     if (error) throw new Error(error.message);
-    const colsWithTasks = await getTasksForTheCol(data);
+    const colsWithTasks = await getTasksForTheCol(data as any);
     return colsWithTasks;
   };
 
@@ -283,6 +283,7 @@ const Kanban = ({ headerImage, projectId, userStatus }: KanbanProps) => {
                 >
                   {boardColumns &&
                     boardColumns.map(
+                      // @ts-ignore
                       (column: ColumnsWithTasksType, index: number) => {
                         return (
                           <div

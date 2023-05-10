@@ -8,17 +8,21 @@ import Layout from "../components/layout";
 import Loader from "../components/loader";
 import { DarkModeContext } from "../context/darkModeContext";
 import useLogin from "../hooks/useLogin";
-import useUser from "../hooks/useUser";
+import { useUser } from "@supabase/auth-helpers-react";
+import supabase from "../utils/supabaseClient";
+
+// import useUser from "../hooks/useUser";
 
 const Signin = () => {
   const { isDarkMode } = useContext(DarkModeContext);
-  const { data: user } = useUser();
+  const user = useUser();
+
   const router = useRouter();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const {
-    mutate: loginMutation,
+    // mutate: loginMutation,
     isLoading,
     isError,
     error,
@@ -31,9 +35,13 @@ const Signin = () => {
     }
   }, [user, loginMutationSuccess, isLoading]);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (email === "" || password === "") return;
-    loginMutation();
+    await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    // loginMutation();
   };
 
   return (

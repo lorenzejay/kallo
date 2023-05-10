@@ -6,12 +6,13 @@ import { AiOutlineUser } from "react-icons/ai";
 import { FiLogOut } from "react-icons/fi";
 import { RiTodoLine } from "react-icons/ri";
 import { DarkModeContext } from "../context/darkModeContext";
-import useUser from "../hooks/useUser";
+// import useUser from "../hooks/useUser";
 import useLogout from "../hooks/useLogout";
+import { useUser } from "@supabase/auth-helpers-react";
 
 const Header = () => {
   const logoutMuation = useLogout();
-  const { data } = useUser();
+  const user = useUser();
   const { isDarkMode } = useContext(DarkModeContext);
   const router = useRouter();
 
@@ -33,7 +34,7 @@ const Header = () => {
         </h2>
       </Link>
 
-      {!data && (
+      {!user && (
         <ul className="flex justify-between items-center w-48 mr-3">
           <li>
             <Link href="/signin">Sign In</Link>
@@ -44,8 +45,8 @@ const Header = () => {
         </ul>
       )}
       {/* {isLoading && <Loader />} */}
-      {data && (
-        <Dropdown title={data.email} className="right-0" width={"w-48"}>
+      {user && (
+        <Dropdown title={user.email} className="right-0" width={"w-48"}>
           <ul className="text-sm">
             <li className="hover:bg-gray-300 cursor-pointer hover:text-black rounded-md my-3 p-2 border-gray-50">
               <Link href="/projects">

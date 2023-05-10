@@ -44,7 +44,7 @@ const Project = () => {
     fetchUsersProjectAccess();
   }, [projectId]);
 
-  const getProjectDeets = async () => {
+  const getProjectDeets = async (): Promise<ProjectDeets | undefined> => {
     if (!projectId) return;
     const { data, error } = await supabase
       .from("projects")
@@ -52,13 +52,16 @@ const Project = () => {
       .eq("project_id", projectId)
       .single();
     if (error) throw new Error(error.message);
-    return data;
+    return data as ProjectDeets;
   };
 
-  const { data: projectDeets, isLoading: loadingProjectDetails } =
-    useQuery<ProjectDeets>([`projectDeets-${projectId}`], getProjectDeets, {
+  const { data: projectDeets, isLoading: loadingProjectDetails } = useQuery(
+    [`projectDeets-${projectId}`],
+    getProjectDeets,
+    {
       enabled: !!projectId,
-    });
+    }
+  );
 
   const updateProjectTitle = async (title: string) => {
     try {
@@ -106,11 +109,13 @@ const Project = () => {
     fetchProjectSharedUsers,
     { enabled: !!projectId }
   );
-
+  // @ts-ignore
   const [title, setTitle] = useState(projectDeets?.title || "Untitled");
   //add to set state in order to update state
   useEffect(() => {
+    // @ts-ignore
     if (projectDeets && projectDeets.title) {
+      // @ts-ignore
       setTitle(projectDeets.title);
     }
   }, [projectDeets]);
@@ -132,6 +137,7 @@ const Project = () => {
     <ProtectedWrapper>
       <Head>
         {projectDeets ? (
+          // @ts-ignore
           <title>{projectDeets.title} | Kallo</title>
         ) : (
           <title>Kallo</title>
@@ -208,6 +214,7 @@ const Project = () => {
                         data={projectDeets}
                         projectId={projectDeets.project_id}
                         projectOwner={project_owner ? project_owner : ""}
+                        // @ts-ignore
                         sharedUsers={shared_users}
                         projectTitle={projectDeets.title}
                         userStatus={userStatus}

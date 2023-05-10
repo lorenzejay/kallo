@@ -3,6 +3,7 @@ import { LoginCredentials, SignUpCredSupbaseAuth } from "../types/userTypes";
 import supabase from "../utils/supabaseClient";
 
 const register = async ({ email, password }: LoginCredentials) => {
+  // @ts-ignore
   const { user, error } = await supabase.auth.signUp({
     email,
     password,

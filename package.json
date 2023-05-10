@@ -9,7 +9,9 @@
     "export": "next build && next export"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^1.35.7",
+    "@supabase/auth-helpers-nextjs": "^0.6.1",
+    "@supabase/auth-helpers-react": "^0.3.1",
+    "@supabase/supabase-js": "^2.21.0",
     "@tanstack/react-query": "^4.10.3",
     "axios": "^1.0.0",
     "match-sorter": "^6.3.0",

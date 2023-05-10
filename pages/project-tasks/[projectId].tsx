@@ -56,11 +56,11 @@ const Tasks = () => {
       .match({ task_id: taskId })
       .single();
     if (error) throw error;
-    if (data) return data;
+    return data;
   };
 
   //fetch todos
-  const fetchTodos = async () => {
+  const fetchTodos = async (): Promise<TodoType[] | undefined> => {
     //no config , add auth protection here
     if (!taskId) return;
     const { data, error } = await supabase
@@ -68,41 +68,40 @@ const Tasks = () => {
       .select("*")
       .match({ task_id: taskId });
     if (error) throw new Error(error.message);
-    return data;
+    return data as TodoType[];
   };
   //add todo
-  const handleAddTodo = async () => {
+  const handleAddTodo = async (): Promise<Task | undefined> => {
     if (!taskId || !projectId) return;
-    if (userStatus === Status.viewer || userStatus === Status.none)
-      return window.alert("You do not have access to modify this file");
+    if (userStatus === Status.viewer || userStatus === Status.none) {
+      window.alert("You do not have access to modify this file");
+      return;
+    }
     const { count, error: checkerError } = await supabase
       .from("todos")
       .select("task_id", { count: "exact", head: true })
       .eq("task_id", taskId);
     if (checkerError) throw checkerError.message;
-    const { data, error } = await supabase.from("todos").insert([
-      {
-        description: newTodoTitle,
-        task_id: taskId,
-        index: count,
-      },
-    ]);
+    const { data, error } = await supabase
+      .from("todos")
+      .insert([
+        {
+          description: newTodoTitle,
+          task_id: taskId,
+          index: count,
+        },
+      ])
+      .select();
     if (error) throw error;
-    return data;
+    return data[0] as Task;
   };
 
-  const { data: taskDetails } = useQuery<Task>(
-    [`taskDetails-${taskId}`],
-    fetchTask,
-    {
-      enabled: !!taskId,
-    }
-  );
-  const { data: allTodos } = useQuery<TodoType[] | undefined>(
-    [`allTodos-${taskId}`],
-    fetchTodos,
-    { enabled: !!taskId }
-  );
+  const { data: taskDetails } = useQuery([`taskDetails-${taskId}`], fetchTask, {
+    enabled: !!taskId,
+  });
+  const { data: allTodos } = useQuery([`allTodos-${taskId}`], fetchTodos, {
+    enabled: !!taskId,
+  });
 
   const completedTodos = useMemo(() => {
     // show only completed todos

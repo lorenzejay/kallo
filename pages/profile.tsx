@@ -4,28 +4,30 @@ import React from "react";
 import Layout from "../components/layout";
 import Loader from "../components/loader";
 import ProtectedWrapper from "../components/Protected";
-import useUser from "../hooks/useUser";
+// import useUser from "../hooks/useUser";
 import { UserInfo } from "../types/userTypes";
 import supabase from "../utils/supabaseClient";
+import { useUser } from "@supabase/auth-helpers-react";
 
 const Profile = () => {
   const user = useUser();
 
   const fetchUserProfile = async () => {
-    if (!user.data?.user_id) return;
+    if (!user?.id) return;
     const { data, error } = await supabase
       .from("users")
       .select()
-      .eq("user_id", user.data.user_id)
+      .eq("user_id", user.id)
       .single();
     if (error) throw new Error(error.message);
-    if (data) return data;
+    return data;
   };
   const { data: userDetails, isLoading } = useQuery<UserInfo>(
-    [`user-${user.data?.user_id}`],
+    [`user-${user?.id}`],
+    // @ts-ignore
     fetchUserProfile,
     {
-      enabled: !!user.data?.user_id,
+      enabled: !!user?.id,
     }
   );
 
@@ -47,14 +49,17 @@ const Profile = () => {
             <section className="w-full flex flex-col justify-between text-lg lg:text-2xl lg:justify-center lg:w-1/2">
               <p className="flex mx-auto w-full my-3 text-left">
                 <span className="uppercase flex-grow">Full Name:</span>
+                {/* @ts-ignore */}
                 {userDetails.first_name} {userDetails.last_name}
               </p>
               <p className="flex mx-auto w-full my-3">
                 <span className="uppercase flex-grow">Username:</span>
+                {/* @ts-ignore */}
                 {userDetails.username}
               </p>
               <p className="flex mx-auto w-full my-3">
                 <span className="uppercase flex-grow">Email:</span>
+                {/* @ts-ignore */}
                 {userDetails.email}
               </p>
             </section>

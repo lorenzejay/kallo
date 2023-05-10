@@ -3,7 +3,7 @@ import { LoginCredentials } from '../types/userTypes'
 import supabase from '../utils/supabaseClient'
 
 const login = async ({email, password}: LoginCredentials) => {
-  const { user, error } = await supabase.auth.signIn({
+  const { data: {user }, error } = await supabase.auth.signInWithPassword({
     email, 
     password
   })
@@ -15,6 +15,6 @@ const login = async ({email, password}: LoginCredentials) => {
   return user;
 }
 
-export default function useLogin({ email, password }: LoginCredentials) {
+export default function  useLogin({ email, password }: LoginCredentials) {
   return useMutation(['user'], () => login({email, password}))
 }

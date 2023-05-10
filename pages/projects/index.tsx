@@ -9,15 +9,16 @@ import Head from "next/head";
 
 import { ProjectsNew } from "../../types/projectTypes";
 import supabase from "../../utils/supabaseClient";
-import useUser from "../../hooks/useUser";
+// import useUser from "../../hooks/useUser";
 import ProtectedWrapper from "../../components/Protected";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient } from "../../utils/queryClient";
 import Loader from "../../components/loader";
 import PrivacyOptions from "../../components/privacyOptions";
+import { useUser } from "@supabase/auth-helpers-react";
 
 const Projects = () => {
-  const { data: user } = useUser();
+  const user = useUser();
   const [openModal, setOpenModal] = useState(false);
   const [projectTitle, setProjectTitle] = useState("");
   const [projectHeader, setProjectHeader] = useState(
@@ -29,11 +30,11 @@ const Projects = () => {
 
   const [revealImageSearch, setRevealImageSearch] = useState(false);
   const fetchProjects = async () => {
-    if (!user?.user_id) return;
+    if (!user?.id) return;
     const { data, error } = await supabase
       .from("projects")
       .select("*")
-      .match({ project_owner: user.user_id })
+      .match({ project_owner: user.id })
       .order("created_at", { ascending: false });
     if (error) throw error;
 
@@ -43,8 +44,9 @@ const Projects = () => {
   const { data: projects, isLoading: loadingProjects } = useQuery(
     ["projects"],
     fetchProjects,
-    { enabled: !!user?.user_id }
+    { enabled: !!user?.id }
   );
+
   const createProject = async () => {
     try {
       if (!user) return;
@@ -56,7 +58,7 @@ const Projects = () => {
             title: trimmedTitle,
             header_img: projectHeader,
             is_private: isPrivateProject,
-            project_owner: user.user_id,
+            project_owner: user.id,
           },
         ])
         .limit(1)
@@ -209,6 +211,7 @@ const Projects = () => {
             {projects && projects.length > 0 ? (
               <div className="flex flex-col items-center md:grid md:grid-cols-2 lg:items-start lg:grid-cols-3 2xl:grid-cols-4 gap-5">
                 {projects &&
+                  // @ts-ignore
                   projects.map((project: ProjectsNew, i: number) => {
                     return (
                       <ProjectCard

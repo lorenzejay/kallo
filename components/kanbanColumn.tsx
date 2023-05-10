@@ -38,6 +38,7 @@ const KanbanColumn = ({
       .update({ name })
       .match({ column_id: column.column_id });
     if (error) throw error.message;
+    // @ts-ignore
     if (data) setColumnName(data[0].name);
     return data;
   };

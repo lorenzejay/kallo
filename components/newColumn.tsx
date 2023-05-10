@@ -4,7 +4,8 @@ import { DarkModeContext } from "../context/darkModeContext";
 import { queryClient } from "../utils/queryClient";
 import { useMutation } from "@tanstack/react-query";
 import supabase from "../utils/supabaseClient";
-import useUser from "../hooks/useUser";
+import { useUser } from "@supabase/auth-helpers-react";
+// import useUser from "../hooks/useUser";
 
 interface NewColumnProps {
   openNewColumn: boolean;
@@ -12,7 +13,7 @@ interface NewColumnProps {
   newColumnTitle: string;
   setNewColumnTitle: (x: string) => void;
   projectId: string;
-};
+}
 
 const NewColumn = ({
   openNewColumn,
@@ -22,18 +23,23 @@ const NewColumn = ({
   projectId,
 }: NewColumnProps) => {
   const { isDarkMode } = useContext(DarkModeContext);
-  const { data } = useUser();
+  const user = useUser();
   const createNewColumns = async () => {
-    if (data === null || !projectId) return;
+    if (user === null || !projectId) return;
     // need to check how many columns exist inside this project;
-    const { count, error: checkerError} = await supabase.from('columns').select('project_associated',{count: 'exact', head: true}).eq('project_associated', projectId);
-    if(checkerError) throw checkerError
-  
-    const { data: insertData, error } = await supabase.from('columns').insert([{
-      name: newColumnTitle,
-      project_associated: projectId,
-      index: count
-    }]);
+    const { count, error: checkerError } = await supabase
+      .from("columns")
+      .select("project_associated", { count: "exact", head: true })
+      .eq("project_associated", projectId);
+    if (checkerError) throw checkerError;
+
+    const { data: insertData, error } = await supabase.from("columns").insert([
+      {
+        name: newColumnTitle,
+        project_associated: projectId,
+        index: count,
+      },
+    ]);
     if (error) throw new Error(error.message);
     return insertData;
   };

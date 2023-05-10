@@ -7,12 +7,13 @@ import Button from "../components/button";
 import Input from "../components/input";
 import { DarkModeContext } from "../context/darkModeContext";
 import useRegister from "../hooks/useRegister";
-import useUser from "../hooks/useUser";
+import { useUser } from "@supabase/auth-helpers-react";
+import supabase from "../utils/supabaseClient";
 
 const Signup = () => {
   const { isDarkMode } = useContext(DarkModeContext);
   const router = useRouter();
-  const { data: user } = useUser();
+  const user = useUser();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -23,7 +24,7 @@ const Signup = () => {
   const [formError, setFormError] = useState("");
 
   const {
-    mutate: register,
+    // mutate: register,
     isLoading,
     isError,
     error,
@@ -46,7 +47,33 @@ const Signup = () => {
         password !== "" &&
         email !== ""
       ) {
-        await register();
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+
+        if (error) {
+          throw new Error(error.message);
+        }
+        if (data.user) {
+          const { data: insertData, error: insertError } = await supabase
+            .from("users")
+            .insert([
+              {
+                user_id: data?.user.id,
+                username: username,
+                first_name: firstName,
+                last_name: lastName,
+                email: email,
+              },
+            ]);
+
+          if (insertError) {
+            throw insertError;
+          }
+          return insertData;
+        }
+        return user;
       } else {
         return setFormError("Nothing must be blank.");
       }
