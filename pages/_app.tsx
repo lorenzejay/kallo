@@ -5,6 +5,7 @@ import { queryClient } from "../utils/queryClient";
 import ErrorBoundary from "../components/ErrorBoundary";
 import { SessionContextProvider } from "@supabase/auth-helpers-react";
 import supabase from "../utils/supabaseClient";
+import { ParallaxProvider } from "react-scroll-parallax";
 
 export default function MyApp({
   Component,
@@ -24,7 +25,9 @@ export default function MyApp({
         initialSession={pageProps.initialSession}
       >
         <QueryClientProvider client={queryClient}>
-          <Component {...pageProps} />
+          <ParallaxProvider>
+            <Component {...pageProps} />
+          </ParallaxProvider>
         </QueryClientProvider>
       </SessionContextProvider>
     </ErrorBoundary>

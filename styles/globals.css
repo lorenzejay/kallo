@@ -126,3 +126,11 @@ select:focus {
     box-shadow: 0 2.5em 0 0;
   }
 }
+
+.features-noscrollbar{
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+.features-noscrollbar::-webkit-scrollbar { 
+  display: none;  /* Safari and Chrome */
+}

@@ -15,8 +15,9 @@ const Layout = ({ children }: LayoutProps) => {
       <Header />
 
       <div
-        className={`px-7 lg:px-16 2xl:px-0 min-h-screen 
-        }  ${isDarkMode ? "darkBody" : ""} `}
+        className={`px-7 lg:px-16 2xl:px-0 min-h-screen ${
+          isDarkMode ? "darkBody" : ""
+        } `}
       >
         {children}
       </div>
