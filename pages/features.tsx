@@ -4,7 +4,6 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import Footer from "../components/Footer";
 const Feature = () => {
-  // const parallax = useParallax<HTMLDivElement>({ speed: -30 });
   const containerRef = useRef(null);
   const containerRef2 = useRef(null);
   const { scrollYProgress } = useScroll({
@@ -26,16 +25,7 @@ const Feature = () => {
     [1, 1, 1.2, 1.2, 2, 2, 1]
   );
   const opacityImg = useTransform(scrollYProgress, [0.8, 0.9], [1, 0]);
-  // const animationOrder = {
-  //   initial: 0,
-  //   scaleText: 0.05,
-  //   decreaseTextOpacity: 0.05,
-  //   textGone: 0.1,
-  //   scaleImage1: 0.05,
 
-  //   scaleImage2: 0.22,
-
-  // }
   const yImg = useTransform(scrollYProgress, [0.22, 0.3], [0, -300]);
   const xImg = useTransform(
     scrollYProgress,
@@ -45,17 +35,11 @@ const Feature = () => {
   const [windowWidth, setWindowWidth] = useState<number | undefined>(undefined);
   useEffect(() => {
     function handleResize() {
-      // Set window width/height to state
       setWindowWidth(window.innerWidth);
     }
-
-    const width = window.innerWidth;
-    console.log("width", width);
     window.addEventListener("resize", handleResize);
-
     // Call handler right away so state gets updated with initial window size
     handleResize();
-
     // Remove event listener on cleanup
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -80,15 +64,12 @@ const Feature = () => {
     [0, 0.74, 0.8],
     [0, 0, 1]
   );
-  console.log("windowWidth", windowWidth);
+
   return (
     <Layout>
       <div className="features-noscrollbar">
         <div className="w-full mx-auto lg:h-[325vh]" ref={containerRef}>
-          <motion.div
-            // ref={parallax.ref}
-            className="relative lg:sticky pt-0 mt-0 lg:top-3/4 lg:-translate-y-[40%] 2xl:-translate-y-[50%] 3xl:-translate-y-[50%] space-y-8"
-          >
+          <motion.div className="relative lg:sticky pt-0 mt-0 lg:top-3/4 lg:-translate-y-[40%] 2xl:-translate-y-[50%] 3xl:-translate-y-[50%] space-y-8">
             <motion.div
               style={
                 windowWidth && !isNaN(windowWidth) && windowWidth >= 1024
@@ -188,9 +169,6 @@ const Feature = () => {
                 <p className="3xl:text-xl">
                   Breakdown tasks based on your objective.
                 </p>
-                {/* <ul> */}
-                {/* <li>Breakdown tasks based on your objective.</li> */}
-                {/* </ul> */}
               </div>
             </motion.div>
           </div>
