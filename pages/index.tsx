@@ -47,9 +47,9 @@ const Index = () => {
           </main>
 
           <div className="flex flex-col justify-center items-center mt-36 pb-24  xl:mt-48 text-center lg:text-left">
-            <p className="text-2xl lg:text-3xl 2xl:text-4xl font-bold">
+            <h2 className="text-2xl lg:text-3xl 2xl:text-4xl font-bold">
               It's more than work, it's a way of working together.
-            </p>
+            </h2>
             <p className="text-center lg:w-3/4 mx-auto my-5 text-lg 2xl:text-2xl">
               Start with a Kallo board, lists, and cards. Customize and expand
               with more features as your teamwork grows. Manage projects,

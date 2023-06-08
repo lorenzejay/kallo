@@ -44,32 +44,28 @@ const Signin = () => {
       <main
         className={`${
           isDarkMode ? "darkBody text-white" : " text-black"
-        } min-h-screen flex flex-col items-center lg:justify-center px-7 pt-12 lg:px-16`}
+        } min-h-screen flex flex-col items-center py-16 lg:py-32 px-7 lg:px-16`}
       >
         <>
           <Head>
             <title>Kallo | Sign In</title>
             <link rel="icon" href="/home-1.png" />
           </Head>
-          <h1
-            className={`text-5xl font-semibold  ${
-              isDarkMode ? " text-white" : " text-black"
-            }`}
-          >
-            Kallo
-          </h1>
+
           {isLoading && <Loader />}
           {error && <p className="text-red-500 my-1">{error.message}</p>}
           <form
             className={`${
               isDarkMode ? "card-color text-white" : "bg-gray-100 text-black"
-            } mt-5 py-10 flex items-center justify-center flex-col shadow-xl border w-full max-w-[450px] rounded-md`}
+            }  flex items-center justify-center flex-col  w-full max-w-[450px] rounded-md`}
             onSubmit={(e) => {
               e.preventDefault();
               handleLogin();
             }}
           >
-            <p className={`mb-4  text-xl `}>Log in.</p>
+            <p className={`mb-4  text-xl xl:text-3xl uppercase font-bold`}>
+              Log in
+            </p>
             <Input
               placeholder="Email"
               type="email"
@@ -94,16 +90,12 @@ const Signin = () => {
               Sign In
             </Button>
             <Link href="/signup">
-              <p className=" mt-5 cursor-pointer">
-                If you don't have an account,{" "}
-                <span className="text-blue-500">Sign Up</span>
+              <p className=" mt-32 cursor-pointer">
+                Don't have an account yet?{" "}
+                <span className="font-bold">Register now</span>
               </p>
             </Link>
           </form>
-          <section className="hidden lg:flex justify-between items-center mt-48 w-full">
-            <img src="/kallo-sign-in.svg" className="lg:w-96 object-cover" />
-            <img src="/kallo-sign-in2.svg" className="lg:w-96 object-cover" />
-          </section>
         </>
       </main>
     </Layout>

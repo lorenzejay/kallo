@@ -9,6 +9,7 @@ import { DarkModeContext } from "../context/darkModeContext";
 import useRegister from "../hooks/useRegister";
 import { useUser } from "@supabase/auth-helpers-react";
 import supabase from "../utils/supabaseClient";
+import Layout from "../components/layout";
 
 const Signup = () => {
   const { isDarkMode } = useContext(DarkModeContext);
@@ -83,33 +84,28 @@ const Signup = () => {
   };
 
   return (
-    <>
-      <Head>
-        <title>Kallo | Register</title>
-        <link rel="icon" href="/home-1.png" />
-      </Head>
+    <Layout>
       <main
-        className={`min-h-screen flex flex-col items-center justify-center px-7 lg:px-16 lg:pt-12 text-white ${
+        className={`min-h-screen flex flex-col items-center py-16 lg:py-32 sm:px-7 lg:px-16 text-white ${
           isDarkMode ? "darkBody text-white" : " text-black"
         }`}
       >
+        <Head>
+          <title>Kallo | Register</title>
+          <link rel="icon" href="/home-1.png" />
+        </Head>
         <>
-          <h1
-            className={`text-5xl font-semibold  pt-12 ${
-              isDarkMode ? "text-white" : " text-black"
-            }`}
-          >
-            Kallo
-          </h1>
           {formError && <p className="text-red-500">{formError}</p>}
           {isError && <p className="text-red-500">{error as string}</p>}
           <form
             className={`${
               isDarkMode ? "card-color text-white" : "bg-gray-100 text-black"
-            } mt-10 py-10 px-2 flex items-center justify-center flex-col shadow-lg w-full max-w-[450px] rounded-md`}
+            } px-2 flex items-center justify-center flex-col w-full max-w-[450px] rounded-md`}
             onSubmit={handleSignUp}
           >
-            <p className="mb-4  text-xl">Register.</p>
+            <p className={`mb-4  text-xl xl:text-3xl uppercase font-bold`}>
+              Register.
+            </p>
             <Input
               placeholder="First Name"
               type="text"
@@ -173,19 +169,15 @@ const Signup = () => {
               Register
             </Button>
             <Link href="/signin">
-              <p className="mt-5 cursor-pointer">
-                If you already have an account,{" "}
-                <span className="text-blue-500 cursor-pointer">Sign In</span>
+              <p className="mt-32 cursor-pointer">
+                Already have an account?{" "}
+                <span className="font-bold cursor-pointer">Sign In</span>
               </p>
             </Link>
           </form>
-          <section className="hidden lg:flex justify-between items-center mt-48 w-full">
-            <img src="/kallo-sign-in.svg" className="lg:w-96 object-cover" />
-            <img src="/kallo-sign-in2.svg" className="lg:w-96 object-cover" />
-          </section>
         </>
       </main>
-    </>
+    </Layout>
   );
 };
 
