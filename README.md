@@ -9,7 +9,7 @@ Kallo is an kanban based task manager application that allows you to organize an
 - TypeScript
 - Next.js
 - Supabase
-- TailwindCss
+- TailwindCSS
 - Unsplash Api
 - React Beautiful D&D
 
@@ -52,42 +52,6 @@ Go to the project directory
   cd kallo
 ```
 
-## Start Node Server (Backend)
-
-Install dependencies - You will need to also do this in the client directory
-
-```sh
-  npm install
-```
-
-Create a .env file
-
-```sh
-  touch .env.local
-```
-
-Open up psql terminal, login with your credentials that you made during installation and create a new database for this project.
-
-```
-CREATE DATABASE kallo
-```
-
-Go into your database you created
-
-```sh
-\c kallo
-```
-
-Go over to database.sql file in the root directory and copy and paste the remaining code over on the psql terminal to setup the database.
-This first one is important as the project is using uuid's for the primary keys and when using postgreSQL, we must install it first.
-
-```
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-...
-...
-...
-```
-
 Inside your .env in the root directory (there is also one for client but we will get to that later) file include:
 
 ```env
@@ -98,6 +62,10 @@ NEXT_PUBLIC_SUPABASE_URL= your_key
 NEXT_PUBLIC_SUPABASE_ANON_KEY=anon_key
 ```
 
+```sh
+  npm install
+```
+
 Start the server - server will run on port 3000
 
 ```sh
@@ -105,12 +73,6 @@ Start the server - server will run on port 3000
 ```
 open port 3000
 ```sh
-open localhost:3000
+  open localhost:3000
 ```
 
-### Roadmap
-
-- [x] Convert to use Supabase
-- [x] Tags
-- [ ] Double Click Hook
-- [ ] Dark / Light / Customizable Themes
